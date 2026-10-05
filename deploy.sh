@@ -23,15 +23,14 @@ else
   echo "  sudo -u postgres psql -c \"CREATE DATABASE hgc_solar;\""
 fi
 
-echo "4. Khởi động lại dịch vụ Node.js qua PM2..."
+echo "4. Khởi động lại dịch vụ Node.js qua PM2 (chạy server.js chuẩn Production)..."
 if command -v pm2 >/dev/null 2>&1; then
   if pm2 list | grep -q "hgc-solar"; then
-    pm2 restart hgc-solar --update-env
-  else
-    pm2 start server.js --name "hgc-solar"
+    pm2 delete hgc-solar || true
   fi
+  pm2 start server.js --name "hgc-solar" --update-env
   pm2 save
-  echo "✓ PM2 đã khởi động lại tiến trình 'hgc-solar' thành công!"
+  echo "✓ PM2 đã khởi động tiến trình 'hgc-solar' (server.js) thành công!"
 else
   echo "PM2 chưa được cài đặt toàn cục. Hãy chạy: npm install -g pm2"
 fi

@@ -1,19 +1,100 @@
 // server.ts
 import express from "express";
-import fs2 from "fs";
-import path2 from "path";
-import { fileURLToPath as fileURLToPath2 } from "url";
-import nodemailer from "nodemailer";
-import dotenv from "dotenv";
-
-// src/server/db.ts
-import pg from "pg";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import nodemailer from "nodemailer";
+import dotenv from "dotenv";
+import pg from "pg";
+dotenv.config();
+var { Pool } = pg;
 var __filename = fileURLToPath(import.meta.url);
 var __dirname = path.dirname(__filename);
-var { Pool } = pg;
+var app = express();
+var PORT = process.env.PORT || 3e3;
+var hasDist = fs.existsSync(path.join(__dirname, "dist", "index.html"));
+var isProduction = process.env.NODE_ENV === "production" || process.env.NODE_ENV !== "development" && hasDist;
+app.use(express.json({ limit: "10mb" }));
+function createMailTransporter() {
+  const host = process.env.SMTP_HOST;
+  const port = Number(process.env.SMTP_PORT) || 465;
+  const user = process.env.SMTP_USER || process.env.GMAIL_USER;
+  const pass = process.env.SMTP_PASS || process.env.GMAIL_APP_PASSWORD;
+  if (user && pass) {
+    if (host) {
+      return nodemailer.createTransport({
+        host,
+        port,
+        secure: port === 465,
+        auth: { user, pass }
+      });
+    } else {
+      return nodemailer.createTransport({
+        service: "gmail",
+        auth: { user, pass }
+      });
+    }
+  }
+  return null;
+}
+async function sendVerificationEmail(toEmail, fullName, code) {
+  const transporter = createMailTransporter();
+  const fromAddress = process.env.SMTP_FROM || process.env.SMTP_USER || '"HGC Solar" <noreply@hgcvn.cloud>';
+  console.log(`
+======================================================`);
+  console.log(`[HGC Solar Email Service] \u0110ang g\u1EEDi m\xE3 OTP k\xEDch ho\u1EA1t t\xE0i kho\u1EA3n:`);
+  console.log(`Ng\u01B0\u1EDDi nh\u1EADn: ${fullName} <${toEmail}>`);
+  console.log(`M\xC3 X\xC1C TH\u1EF0C OTP: >>> ${code} <<<`);
+  console.log(`======================================================
+`);
+  if (!transporter) {
+    console.warn(`[HGC Solar Email Service] CH\u01AFA C\u1EA4U H\xCCNH SMTP_USER & SMTP_PASS trong file .env tr\xEAn VPS.`);
+    console.warn(`[HGC Solar Email Service] H\u01B0\u1EDBng d\u1EABn: Th\xEAm SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS v\xE0o .env \u0111\u1EC3 email \u0111\u01B0\u1EE3c g\u1EEDi th\u1EB3ng v\xE0o h\u1ED9p th\u01B0.`);
+    return { sent: false, reason: "no_smtp_configured" };
+  }
+  try {
+    const info = await transporter.sendMail({
+      from: fromAddress,
+      to: toEmail,
+      subject: `[HGC Solar] M\xE3 OTP k\xEDch ho\u1EA1t t\xE0i kho\u1EA3n c\u1EE7a b\u1EA1n: ${code}`,
+      text: `Xin ch\xE0o ${fullName},
+
+M\xE3 x\xE1c th\u1EF1c OTP k\xEDch ho\u1EA1t t\xE0i kho\u1EA3n HGC Solar c\u1EE7a b\u1EA1n l\xE0: ${code}
+M\xE3 c\xF3 hi\u1EC7u l\u1EF1c trong v\xF2ng 15 ph\xFAt.
+
+Tr\xE2n tr\u1ECDng,
+\u0110\u1ED9i ng\u0169 HGC Solar Power`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+          <div style="background: linear-gradient(135deg, #0F2A45 0%, #1e40af 100%); padding: 24px; text-align: center; color: white;">
+            <h1 style="margin: 0; font-size: 22px; font-weight: bold; letter-spacing: 0.5px;">HGC SOLAR POWER</h1>
+            <p style="margin: 4px 0 0; font-size: 13px; opacity: 0.9;">X\xE1c Th\u1EF1c T\xE0i Kho\u1EA3n Ng\u01B0\u1EDDi D\xF9ng</p>
+          </div>
+          <div style="padding: 28px 24px; background: #ffffff;">
+            <p style="margin: 0 0 16px; font-size: 15px; color: #1e293b;">Xin ch\xE0o <strong>${fullName}</strong>,</p>
+            <p style="margin: 0 0 20px; font-size: 14px; color: #475569; line-height: 1.6;">
+              C\u1EA3m \u01A1n b\u1EA1n \u0111\xE3 \u0111\u0103ng k\xFD t\xE0i kho\u1EA3n tr\xEAn n\u1EC1n t\u1EA3ng <strong>HGC Solar Design & Quotation Tool</strong>. Vui l\xF2ng nh\u1EADp m\xE3 OTP b\xEAn d\u01B0\u1EDBi \u0111\u1EC3 k\xEDch ho\u1EA1t t\xE0i kho\u1EA3n c\u1EE7a b\u1EA1n:
+            </p>
+            <div style="background: #f8fafc; border: 2px dashed #0F2A45; border-radius: 10px; padding: 18px; text-align: center; margin: 24px 0;">
+              <span style="font-size: 32px; font-weight: 800; letter-spacing: 6px; color: #E4572E; font-family: monospace;">${code}</span>
+            </div>
+            <p style="margin: 0 0 8px; font-size: 12px; color: #64748b;">\u2022 M\xE3 x\xE1c th\u1EF1c c\xF3 hi\u1EC7u l\u1EF1c trong v\xF2ng 15 ph\xFAt.</p>
+            <p style="margin: 0; font-size: 12px; color: #64748b;">\u2022 N\u1EBFu b\u1EA1n kh\xF4ng y\xEAu c\u1EA7u m\xE3 n\xE0y, vui l\xF2ng b\u1ECF qua email.</p>
+          </div>
+          <div style="background: #f1f5f9; padding: 16px; text-align: center; font-size: 12px; color: #64748b; border-top: 1px solid #e2e8f0;">
+            C\xD4NG TY TNHH HGC VI\u1EC6T NAM<br>
+            Hotline K\u1EF9 Thu\u1EADt: 0974 04 19 84 | Website: <a href="https://hgcvn.cloud" style="color: #0F2A45; text-decoration: none;">hgcvn.cloud</a>
+          </div>
+        </div>
+      `
+    });
+    console.log(`[HGC Solar Email Service] \u2713 \u0110\xE3 g\u1EEDi email th\xE0nh c\xF4ng t\u1EDBi ${toEmail} - MessageID: ${info.messageId}`);
+    return { sent: true, messageId: info.messageId };
+  } catch (err) {
+    console.error(`[HGC Solar Email Service] \u2717 L\u1ED7i khi g\u1EEDi email qua SMTP:`, err);
+    return { sent: false, error: err.message };
+  }
+}
 var DATA_DIR = path.resolve(process.cwd(), "data_storage");
 var USERS_FILE = path.join(DATA_DIR, "users.json");
 var PROJECTS_FILE = path.join(DATA_DIR, "projects.json");
@@ -26,8 +107,6 @@ if (!fs.existsSync(DATA_DIR)) {
 }
 var pool = null;
 var pgConnected = false;
-var fallbackUsers = loadFallbackUsers();
-var fallbackProjects = loadFallbackProjects();
 function loadFallbackUsers() {
   try {
     if (fs.existsSync(USERS_FILE)) {
@@ -82,11 +161,12 @@ function saveFallbackProjects(projects) {
     console.error("Error saving fallback projects:", err);
   }
 }
+var fallbackUsers = loadFallbackUsers();
+var fallbackProjects = loadFallbackProjects();
 async function initDatabase() {
   const databaseUrl = process.env.DATABASE_URL;
   if (!databaseUrl) {
-    console.log("[HGC Solar DB] Ch\u01B0a t\xECm th\u1EA5y bi\u1EBFn DATABASE_URL trong .env -> \u0110ang d\xF9ng ch\u1EBF \u0111\u1ED9 l\u01B0u tr\u1EEF File JSON d\u1EF1 ph\xF2ng.");
-    console.log('[HGC Solar DB] \u0110\u1EC3 k\xEDch ho\u1EA1t PostgreSQL: C\xE0i PostgreSQL tr\xEAn VPS v\xE0 th\xEAm DATABASE_URL="postgres://user:pass@localhost:5432/hgc_solar" v\xE0o file .env');
+    console.log("[HGC Solar DB] Ch\u01B0a t\xECm th\u1EA5y DATABASE_URL trong .env -> Ch\u1EA1y ch\u1EBF \u0111\u1ED9 l\u01B0u tr\u1EEF File JSON d\u1EF1 ph\xF2ng.");
     return false;
   }
   try {
@@ -121,11 +201,14 @@ async function initDatabase() {
         phone VARCHAR(50) DEFAULT '',
         address TEXT DEFAULT '',
         status VARCHAR(50) DEFAULT 'saved',
+        created_by VARCHAR(255) DEFAULT '',
         data JSONB NOT NULL,
         created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
         updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
       );
+      ALTER TABLE projects ADD COLUMN IF NOT EXISTS created_by VARCHAR(255) DEFAULT '';
       CREATE INDEX IF NOT EXISTS idx_projects_updated_at ON projects(updated_at DESC);
+      CREATE INDEX IF NOT EXISTS idx_projects_created_by ON projects(created_by);
     `);
     await client.query(`
       INSERT INTO users (id, full_name, email, phone, address, password, role, is_email_verified, created_at, updated_at)
@@ -143,6 +226,77 @@ async function initDatabase() {
       )
       ON CONFLICT (email) DO NOTHING;
     `);
+    if (fs.existsSync(USERS_FILE)) {
+      try {
+        const rawUsers = fs.readFileSync(USERS_FILE, "utf-8");
+        const oldUsers = JSON.parse(rawUsers);
+        if (Array.isArray(oldUsers) && oldUsers.length > 0) {
+          for (const u of oldUsers) {
+            if (!u || !u.email) continue;
+            await client.query(`
+              INSERT INTO users (id, full_name, email, phone, address, password, role, is_email_verified, verification_code, created_at, updated_at)
+              VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW())
+              ON CONFLICT (email) DO UPDATE SET
+                full_name = EXCLUDED.full_name,
+                phone = EXCLUDED.phone,
+                address = EXCLUDED.address,
+                password = EXCLUDED.password,
+                role = EXCLUDED.role,
+                is_email_verified = EXCLUDED.is_email_verified,
+                verification_code = EXCLUDED.verification_code;
+            `, [
+              u.id || `user-${Date.now()}`,
+              u.fullName || "",
+              String(u.email).trim().toLowerCase(),
+              u.phone || "",
+              u.address || "",
+              String(u.password || "123456"),
+              u.role || "ky_su",
+              u.isEmailVerified !== void 0 ? u.isEmailVerified : true,
+              u.verificationCode || null,
+              u.createdAt ? new Date(u.createdAt) : /* @__PURE__ */ new Date()
+            ]);
+          }
+          console.log(`[HGC Solar DB] \u2713 \u0110\xE3 t\u1EF1 \u0111\u1ED9ng di chuy\u1EC3n ${oldUsers.length} t\xE0i kho\u1EA3n ng\u01B0\u1EDDi d\xF9ng c\u0169 sang PostgreSQL.`);
+        }
+      } catch (err) {
+        console.error("[HGC Solar DB] L\u1ED7i khi t\u1EF1 \u0111\u1ED9ng di chuy\u1EC3n users c\u0169:", err);
+      }
+    }
+    if (fs.existsSync(PROJECTS_FILE)) {
+      try {
+        const rawProj = fs.readFileSync(PROJECTS_FILE, "utf-8");
+        const oldProjects = JSON.parse(rawProj);
+        if (Array.isArray(oldProjects) && oldProjects.length > 0) {
+          for (const p of oldProjects) {
+            if (!p || !p.id) continue;
+            await client.query(`
+              INSERT INTO projects (id, name, customer_name, phone, address, status, data, created_at, updated_at)
+              VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())
+              ON CONFLICT (id) DO UPDATE SET
+                name = EXCLUDED.name,
+                customer_name = EXCLUDED.customer_name,
+                phone = EXCLUDED.phone,
+                address = EXCLUDED.address,
+                status = EXCLUDED.status,
+                data = EXCLUDED.data;
+            `, [
+              p.id,
+              p.name || "D\u1EF1 \xE1n",
+              p.customerName || "",
+              p.phone || "",
+              p.address || "",
+              p.status || "saved",
+              JSON.stringify(p),
+              p.createdAt ? new Date(p.createdAt) : /* @__PURE__ */ new Date()
+            ]);
+          }
+          console.log(`[HGC Solar DB] \u2713 \u0110\xE3 t\u1EF1 \u0111\u1ED9ng di chuy\u1EC3n ${oldProjects.length} d\u1EF1 \xE1n c\u0169 sang PostgreSQL.`);
+        }
+      } catch (err) {
+        console.error("[HGC Solar DB] L\u1ED7i khi t\u1EF1 \u0111\u1ED9ng di chuy\u1EC3n projects c\u0169:", err);
+      }
+    }
     client.release();
     pgConnected = true;
     console.log("[HGC Solar DB] \u2713 C\u1EA5u tr\xFAc b\u1EA3ng PostgreSQL (users, projects) \u0111\xE3 s\u1EB5n s\xE0ng ho\u1EA1t \u0111\u1ED9ng.");
@@ -154,16 +308,42 @@ async function initDatabase() {
     return false;
   }
 }
-async function getProjects() {
+async function getProjects(userEmail, userRole) {
+  const normalizedEmail = (userEmail || "").toLowerCase().trim();
+  const normalizedRole = (userRole || "").toLowerCase().trim();
+  let allProjects = [];
   if (pgConnected && pool) {
     try {
       const res = await pool.query("SELECT data FROM projects ORDER BY updated_at DESC");
-      return res.rows.map((r) => r.data);
+      allProjects = res.rows.map((r) => r.data);
     } catch (err) {
       console.error("[DB Error] getProjects:", err);
+      allProjects = fallbackProjects;
     }
+  } else {
+    allProjects = fallbackProjects;
   }
-  return fallbackProjects;
+  if (normalizedRole === "admin") {
+    return allProjects;
+  }
+  if (!normalizedEmail) {
+    return allProjects.filter((p) => p.isPublic === true);
+  }
+  return allProjects.filter((p) => {
+    if (p.isPublic === true) return true;
+    const pOwner = (p.createdByEmail || "").toLowerCase().trim();
+    if (pOwner && pOwner === normalizedEmail) return true;
+    if (Array.isArray(p.sharedWithEmails) && p.sharedWithEmails.some((e) => String(e).toLowerCase().trim() === normalizedEmail)) {
+      return true;
+    }
+    if (Array.isArray(p.sharedWithRoles) && p.sharedWithRoles.some((r) => String(r).toLowerCase().trim() === normalizedRole)) {
+      return true;
+    }
+    if (!pOwner) {
+      return normalizedEmail === "hung.cv.10@gmail.com";
+    }
+    return false;
+  });
 }
 async function getProjectById(id) {
   if (pgConnected && pool) {
@@ -177,24 +357,31 @@ async function getProjectById(id) {
   }
   return fallbackProjects.find((p) => p.id === id) || null;
 }
-async function saveProject(project) {
+async function saveProject(project, userEmail) {
   const { id, name, customerName, phone, address, status } = project;
+  const normalizedEmail = (userEmail || "").toLowerCase().trim();
+  let createdByEmail = project.createdByEmail ? String(project.createdByEmail).toLowerCase().trim() : normalizedEmail;
+  if (!createdByEmail && normalizedEmail) {
+    createdByEmail = normalizedEmail;
+  }
   const projectData = {
     ...project,
+    createdByEmail,
     updatedAt: (/* @__PURE__ */ new Date()).toISOString()
   };
   if (pgConnected && pool) {
     try {
       await pool.query(
         `
-        INSERT INTO projects (id, name, customer_name, phone, address, status, data, created_at, updated_at)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW())
+        INSERT INTO projects (id, name, customer_name, phone, address, status, created_by, data, created_at, updated_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())
         ON CONFLICT (id) DO UPDATE SET
           name = EXCLUDED.name,
           customer_name = EXCLUDED.customer_name,
           phone = EXCLUDED.phone,
           address = EXCLUDED.address,
           status = EXCLUDED.status,
+          created_by = COALESCE(NULLIF(EXCLUDED.created_by, ''), projects.created_by),
           data = EXCLUDED.data,
           updated_at = NOW();
       `,
@@ -205,6 +392,7 @@ async function saveProject(project) {
           phone || "",
           address || "",
           status || "saved",
+          createdByEmail || "",
           JSON.stringify(projectData)
         ]
       );
@@ -385,96 +573,6 @@ async function getDbHealth() {
     usersCount: fallbackUsers.length
   };
 }
-
-// server.ts
-dotenv.config();
-var __filename2 = fileURLToPath2(import.meta.url);
-var __dirname2 = path2.dirname(__filename2);
-var app = express();
-var PORT = process.env.PORT || 3e3;
-var hasDist = fs2.existsSync(path2.join(__dirname2, "dist", "index.html"));
-var isProduction = process.env.NODE_ENV === "production" || process.env.NODE_ENV !== "development" && hasDist;
-app.use(express.json({ limit: "10mb" }));
-function createMailTransporter() {
-  const host = process.env.SMTP_HOST;
-  const port = Number(process.env.SMTP_PORT) || 465;
-  const user = process.env.SMTP_USER || process.env.GMAIL_USER;
-  const pass = process.env.SMTP_PASS || process.env.GMAIL_APP_PASSWORD;
-  if (user && pass) {
-    if (host) {
-      return nodemailer.createTransport({
-        host,
-        port,
-        secure: port === 465,
-        auth: { user, pass }
-      });
-    } else {
-      return nodemailer.createTransport({
-        service: "gmail",
-        auth: { user, pass }
-      });
-    }
-  }
-  return null;
-}
-async function sendVerificationEmail(toEmail, fullName, code) {
-  const transporter = createMailTransporter();
-  const fromAddress = process.env.SMTP_FROM || process.env.SMTP_USER || '"HGC Solar" <noreply@hgcvn.cloud>';
-  console.log(`
-======================================================`);
-  console.log(`[HGC Solar Email Service] \u0110ang g\u1EEDi m\xE3 OTP k\xEDch ho\u1EA1t t\xE0i kho\u1EA3n:`);
-  console.log(`Ng\u01B0\u1EDDi nh\u1EADn: ${fullName} <${toEmail}>`);
-  console.log(`M\xC3 X\xC1C TH\u1EF0C OTP: >>> ${code} <<<`);
-  console.log(`======================================================
-`);
-  if (!transporter) {
-    console.warn(`[HGC Solar Email Service] CH\u01AFA C\u1EA4U H\xCCNH SMTP_USER & SMTP_PASS trong file .env tr\xEAn VPS.`);
-    console.warn(`[HGC Solar Email Service] H\u01B0\u1EDBng d\u1EABn: Th\xEAm SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS v\xE0o .env \u0111\u1EC3 email \u0111\u01B0\u1EE3c g\u1EEDi th\u1EB3ng v\xE0o h\u1ED9p th\u01B0.`);
-    return { sent: false, reason: "no_smtp_configured" };
-  }
-  try {
-    const info = await transporter.sendMail({
-      from: fromAddress,
-      to: toEmail,
-      subject: `[HGC Solar] M\xE3 OTP k\xEDch ho\u1EA1t t\xE0i kho\u1EA3n c\u1EE7a b\u1EA1n: ${code}`,
-      text: `Xin ch\xE0o ${fullName},
-
-M\xE3 x\xE1c th\u1EF1c OTP k\xEDch ho\u1EA1t t\xE0i kho\u1EA3n HGC Solar c\u1EE7a b\u1EA1n l\xE0: ${code}
-M\xE3 c\xF3 hi\u1EC7u l\u1EF1c trong v\xF2ng 15 ph\xFAt.
-
-Tr\xE2n tr\u1ECDng,
-\u0110\u1ED9i ng\u0169 HGC Solar Power`,
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
-          <div style="background: linear-gradient(135deg, #0F2A45 0%, #1e40af 100%); padding: 24px; text-align: center; color: white;">
-            <h1 style="margin: 0; font-size: 22px; font-weight: bold; letter-spacing: 0.5px;">HGC SOLAR POWER</h1>
-            <p style="margin: 4px 0 0; font-size: 13px; opacity: 0.9;">X\xE1c Th\u1EF1c T\xE0i Kho\u1EA3n Ng\u01B0\u1EDDi D\xF9ng</p>
-          </div>
-          <div style="padding: 28px 24px; background: #ffffff;">
-            <p style="margin: 0 0 16px; font-size: 15px; color: #1e293b;">Xin ch\xE0o <strong>${fullName}</strong>,</p>
-            <p style="margin: 0 0 20px; font-size: 14px; color: #475569; line-height: 1.6;">
-              C\u1EA3m \u01A1n b\u1EA1n \u0111\xE3 \u0111\u0103ng k\xFD t\xE0i kho\u1EA3n tr\xEAn n\u1EC1n t\u1EA3ng <strong>HGC Solar Design & Quotation Tool</strong>. Vui l\xF2ng nh\u1EADp m\xE3 OTP b\xEAn d\u01B0\u1EDBi \u0111\u1EC3 k\xEDch ho\u1EA1t t\xE0i kho\u1EA3n c\u1EE7a b\u1EA1n:
-            </p>
-            <div style="background: #f8fafc; border: 2px dashed #0F2A45; border-radius: 10px; padding: 18px; text-align: center; margin: 24px 0;">
-              <span style="font-size: 32px; font-weight: 800; letter-spacing: 6px; color: #E4572E; font-family: monospace;">${code}</span>
-            </div>
-            <p style="margin: 0 0 8px; font-size: 12px; color: #64748b;">\u2022 M\xE3 x\xE1c th\u1EF1c c\xF3 hi\u1EC7u l\u1EF1c trong v\xF2ng 15 ph\xFAt.</p>
-            <p style="margin: 0; font-size: 12px; color: #64748b;">\u2022 N\u1EBFu b\u1EA1n kh\xF4ng y\xEAu c\u1EA7u m\xE3 n\xE0y, vui l\xF2ng b\u1ECF qua email.</p>
-          </div>
-          <div style="background: #f1f5f9; padding: 16px; text-align: center; font-size: 12px; color: #64748b; border-top: 1px solid #e2e8f0;">
-            C\xD4NG TY TNHH HGC VI\u1EC6T NAM<br>
-            Hotline K\u1EF9 Thu\u1EADt: 0974 04 19 84 | Website: <a href="https://hgcvn.cloud" style="color: #0F2A45; text-decoration: none;">hgcvn.cloud</a>
-          </div>
-        </div>
-      `
-    });
-    console.log(`[HGC Solar Email Service] \u2713 \u0110\xE3 g\u1EEDi email th\xE0nh c\xF4ng t\u1EDBi ${toEmail} - MessageID: ${info.messageId}`);
-    return { sent: true, messageId: info.messageId };
-  } catch (err) {
-    console.error(`[HGC Solar Email Service] \u2717 L\u1ED7i khi g\u1EEDi email qua SMTP:`, err);
-    return { sent: false, error: err.message };
-  }
-}
 function sanitizeUser(u) {
   const { password, verificationCode, ...rest } = u;
   return rest;
@@ -637,13 +735,25 @@ app.delete("/api/auth/users/:id", async (req, res) => {
   res.json({ success });
 });
 app.get("/api/projects", async (req, res) => {
-  const projects = await getProjects();
+  const userEmail = (req.headers["x-user-email"] || req.query.userEmail || "").toLowerCase().trim();
+  const userRole = (req.headers["x-user-role"] || req.query.userRole || "").toLowerCase().trim();
+  const projects = await getProjects(userEmail, userRole);
   res.json(projects);
 });
 app.get("/api/projects/:id", async (req, res) => {
+  const userEmail = (req.headers["x-user-email"] || req.query.userEmail || "").toLowerCase().trim();
+  const userRole = (req.headers["x-user-role"] || req.query.userRole || "").toLowerCase().trim();
   const project = await getProjectById(req.params.id);
   if (!project) {
     return res.status(404).json({ error: "Kh\xF4ng t\xECm th\u1EA5y d\u1EF1 \xE1n trong c\u01A1 s\u1EDF d\u1EEF li\u1EC7u" });
+  }
+  if (userRole !== "admin" && !project.isPublic) {
+    const isOwner = project.createdByEmail && project.createdByEmail.toLowerCase() === userEmail;
+    const isSharedEmail = Array.isArray(project.sharedWithEmails) && project.sharedWithEmails.some((e) => e.toLowerCase().trim() === userEmail);
+    const isSharedRole = Array.isArray(project.sharedWithRoles) && project.sharedWithRoles.some((r) => r.toLowerCase().trim() === userRole);
+    if (!isOwner && !isSharedEmail && !isSharedRole && project.createdByEmail) {
+      return res.status(403).json({ error: "B\u1EA1n kh\xF4ng c\xF3 quy\u1EC1n truy c\u1EADp d\u1EF1 \xE1n n\xE0y" });
+    }
   }
   res.json(project);
 });
@@ -652,19 +762,38 @@ app.post("/api/projects", async (req, res) => {
   if (!newProject || !newProject.id) {
     return res.status(400).json({ error: "D\u1EEF li\u1EC7u d\u1EF1 \xE1n kh\xF4ng h\u1EE3p l\u1EC7" });
   }
-  const saved = await saveProject(newProject);
+  const userEmail = (req.headers["x-user-email"] || req.query.userEmail || "").toLowerCase().trim();
+  const saved = await saveProject(newProject, userEmail);
   res.status(201).json(saved);
 });
 app.put("/api/projects/:id", async (req, res) => {
   const { id } = req.params;
   const updates = req.body;
+  const userEmail = (req.headers["x-user-email"] || req.query.userEmail || "").toLowerCase().trim();
+  const userRole = (req.headers["x-user-role"] || req.query.userRole || "").toLowerCase().trim();
   const existing = await getProjectById(id) || {};
+  if (existing.id && userRole !== "admin") {
+    const isOwner = existing.createdByEmail && existing.createdByEmail.toLowerCase() === userEmail;
+    const isShared = Array.isArray(existing.sharedWithEmails) && existing.sharedWithEmails.some((e) => e.toLowerCase().trim() === userEmail);
+    if (!isOwner && !isShared && existing.createdByEmail) {
+      return res.status(403).json({ error: "Ch\u1EC9 ng\u01B0\u1EDDi t\u1EA1o ho\u1EB7c ng\u01B0\u1EDDi \u0111\u01B0\u1EE3c chia s\u1EBB m\u1EDBi c\xF3 quy\u1EC1n c\u1EADp nh\u1EADt d\u1EF1 \xE1n n\xE0y" });
+    }
+  }
   const merged = { ...existing, ...updates, id };
-  const saved = await saveProject(merged);
+  const saved = await saveProject(merged, userEmail);
   res.json(saved);
 });
 app.delete("/api/projects/:id", async (req, res) => {
   const { id } = req.params;
+  const userEmail = (req.headers["x-user-email"] || req.query.userEmail || "").toLowerCase().trim();
+  const userRole = (req.headers["x-user-role"] || req.query.userRole || "").toLowerCase().trim();
+  const existing = await getProjectById(id);
+  if (existing && userRole !== "admin") {
+    const isOwner = existing.createdByEmail && existing.createdByEmail.toLowerCase() === userEmail;
+    if (!isOwner && existing.createdByEmail) {
+      return res.status(403).json({ error: "Ch\u1EC9 ng\u01B0\u1EDDi t\u1EA1o ho\u1EB7c Qu\u1EA3n tr\u1ECB vi\xEAn m\u1EDBi c\xF3 quy\u1EC1n x\xF3a d\u1EF1 \xE1n n\xE0y" });
+    }
+  }
   const success = await deleteProject(id);
   res.json({
     success: true,
@@ -682,9 +811,9 @@ async function startServer() {
     });
     app.use(vite.middlewares);
   } else {
-    app.use(express.static(path2.join(__dirname2, "dist")));
+    app.use(express.static(path.join(__dirname, "dist")));
     app.get("*", (req, res) => {
-      res.sendFile(path2.join(__dirname2, "dist", "index.html"));
+      res.sendFile(path.join(__dirname, "dist", "index.html"));
     });
   }
   app.listen(PORT, () => {

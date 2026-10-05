@@ -232,6 +232,13 @@ export interface Project {
   status: 'draft' | 'saved' | 'approved';
   module: 'solar' | 'bess' | 'solar_bess';
 
+  // Phân quyền & Chia sẻ dự án
+  createdByEmail?: string; // Email người tạo (Chủ sở hữu)
+  createdByName?: string; // Họ tên người tạo
+  sharedWithEmails?: string[]; // Danh sách email được chia sẻ riêng
+  sharedWithRoles?: ('ky_su' | 'sales' | 'admin')[]; // Chia sẻ theo nhóm vai trò
+  isPublic?: boolean; // Công khai cho toàn bộ công ty
+
   // Step 1: Customer & Roof
   custType: CustomerType;
   provinceCode: string;

@@ -238,30 +238,38 @@ export default function App() {
   const [inverters, setInverters] = useState(INITIAL_INVERTERS);
   const [materials, setMaterials] = useState(INITIAL_MATERIALS);
 
-  // Khởi tạo: Đồng bộ dữ liệu từ Backend Server
+  // Khởi tạo & Cập nhật khi tài khoản thay đổi: Đồng bộ dữ liệu dự án của riêng tài khoản từ Backend Server
   useEffect(() => {
-    fetchProjectsFromServer().then((serverProjects) => {
-      if (serverProjects !== null && Array.isArray(serverProjects)) {
-        setProjects(serverProjects);
-        if (serverProjects.length > 0) {
-          if (!serverProjects.some((p) => p.id === currentProjectId)) {
-            setCurrentProjectId(serverProjects[0].id);
+    if (currentUser) {
+      fetchProjectsFromServer(currentUser.email, currentUser.role).then((serverProjects) => {
+        if (serverProjects !== null && Array.isArray(serverProjects)) {
+          setProjects(serverProjects);
+          if (serverProjects.length > 0) {
+            if (!serverProjects.some((p) => p.id === currentProjectId)) {
+              setCurrentProjectId(serverProjects[0].id);
+            }
+          } else {
+            setCurrentProjectId('');
           }
-        } else {
-          setCurrentProjectId('');
         }
-      }
-    });
-  }, []);
-
-  // Đồng bộ LocalStorage khi projects thay đổi
-  useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(projects));
-    } catch (e) {
-      console.error(e);
+      });
+    } else {
+      setProjects([]);
+      setCurrentProjectId('');
     }
-  }, [projects]);
+  }, [currentUser?.email, currentUser?.role]);
+
+  // Đồng bộ LocalStorage theo từng tài khoản riêng biệt (tránh lộ dữ liệu trên cùng trình duyệt)
+  useEffect(() => {
+    if (currentUser && projects.length > 0) {
+      try {
+        const userStorageKey = `hgc_projects_${currentUser.email.toLowerCase()}`;
+        localStorage.setItem(userStorageKey, JSON.stringify(projects));
+      } catch (e) {
+        console.error(e);
+      }
+    }
+  }, [projects, currentUser?.email]);
 
   const currentProject = projects.find((p) => p.id === currentProjectId) || projects[0];
 
@@ -376,11 +384,11 @@ export default function App() {
             bomLines,
             financial,
           };
-          saveProjectToServer(resultProject);
+          saveProjectToServer(resultProject, currentUser?.email, currentUser?.role);
           return resultProject;
         }
 
-        saveProjectToServer(updated);
+        saveProjectToServer(updated, currentUser?.email, currentUser?.role);
         return updated;
       })
     );
@@ -398,31 +406,39 @@ export default function App() {
     handleUpdateProject({ selectedInverterId: prop.inverter.id });
   };
 
-  // Tạo dự án mới
+  // Tạo dự án mới gắn quyền sở hữu cho người tạo
   const handleCreateNewProject = (name: string) => {
     const newProj = createInitialProject();
     newProj.id = `proj-${Date.now()}`;
     newProj.name = name;
     newProj.customerName = name;
+    newProj.createdByEmail = currentUser?.email || 'admin@hgcvn.cloud';
+    newProj.createdByName = currentUser?.fullName || 'Kỹ sư HGC';
+    newProj.sharedWithEmails = [];
+    newProj.sharedWithRoles = [];
+    newProj.isPublic = false;
     newProj.createdAt = new Date().toISOString();
     newProj.updatedAt = new Date().toISOString();
+
     setProjects([newProj, ...projects]);
-    saveProjectToServer(newProj);
+    saveProjectToServer(newProj, currentUser?.email, currentUser?.role);
     setCurrentProjectId(newProj.id);
     setActiveView('wizard');
     setActiveStep(1);
-    showToast('✓ Đã tạo hồ sơ dự án mới thành công');
+    showToast('✓ Đã tạo hồ sơ dự án mới cho tài khoản của bạn');
   };
 
   const handleDeleteProject = (id: string) => {
     const updated = projects.filter((p) => p.id !== id);
     setProjects(updated);
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-    } catch (e) {
-      console.error(e);
+    if (currentUser) {
+      try {
+        localStorage.setItem(`hgc_projects_${currentUser.email.toLowerCase()}`, JSON.stringify(updated));
+      } catch (e) {
+        console.error(e);
+      }
     }
-    deleteProjectFromServer(id);
+    deleteProjectFromServer(id, currentUser?.email, currentUser?.role);
     showToast('✓ Đã xóa vĩnh viễn dự án thành công');
 
     if (currentProjectId === id) {
@@ -440,11 +456,21 @@ export default function App() {
       ...proj,
       id: `proj-${Date.now()}`,
       name: `${proj.name} (Bản sao)`,
+      customerName: `${proj.customerName} (Bản sao)`,
+      createdByEmail: currentUser?.email || proj.createdByEmail,
+      createdByName: currentUser?.fullName || proj.createdByName,
+      sharedWithEmails: [],
+      sharedWithRoles: [],
+      isPublic: false,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
     setProjects([duplicated, ...projects]);
+    saveProjectToServer(duplicated, currentUser?.email, currentUser?.role);
     setCurrentProjectId(duplicated.id);
+    setActiveView('wizard');
+    setActiveStep(1);
+    showToast('✓ Đã nhân bản hồ sơ dự án vào tài khoản của bạn');
   };
 
   const handleApplyQuickProposal = (genProject: Project) => {
@@ -579,6 +605,7 @@ export default function App() {
         {activeView === 'projects' && (
           <ProjectList
             projects={projects}
+            currentUser={currentUser}
             onSelectProject={(proj) => {
               setCurrentProjectId(proj.id);
               setActiveView('wizard');
@@ -586,6 +613,11 @@ export default function App() {
             onCreateProject={handleCreateNewProject}
             onDeleteProject={handleDeleteProject}
             onDuplicateProject={handleDuplicateProject}
+            onUpdateProject={(updated) => {
+              setProjects((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
+              saveProjectToServer(updated, currentUser?.email, currentUser?.role);
+              showToast('✓ Đã cập nhật quyền chia sẻ dự án');
+            }}
           />
         )}
 
