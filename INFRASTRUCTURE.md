@@ -63,7 +63,26 @@ cd /var/www/hgc-solar
 
 ---
 
-### Bước 3: Cấu Hình Biến Môi Trường (.env)
+### Bước 3: Cài Đặt & Cấu Hình Cơ Sở Dữ Liệu PostgreSQL trên VPS
+
+Để lưu trữ toàn bộ dữ liệu dự án thiết kế, tài khoản người dùng và danh mục báo giá một cách bền vững và chuyên nghiệp:
+
+1. **Cài đặt PostgreSQL:**
+```bash
+sudo apt update && sudo apt install -y postgresql postgresql-contrib
+sudo systemctl enable --now postgresql
+```
+
+2. **Tạo Cơ sở dữ liệu và đặt mật khẩu:**
+```bash
+# Tạo CSDL hgc_solar
+sudo -u postgres psql -c "CREATE DATABASE hgc_solar;"
+
+# Đặt mật khẩu cho tài khoản postgres (thay đổi mật khẩu theo ý bạn)
+sudo -u postgres psql -c "ALTER USER postgres PASSWORD 'HgcSolar@2026';"
+```
+
+3. **Cấu Hình Biến Môi Trường (.env):**
 
 Tạo file `.env` từ file mẫu:
 
@@ -76,8 +95,19 @@ Nội dung `.env`:
 ```env
 PORT=3000
 NODE_ENV=production
-APP_URL=https://yourdomain.com
+APP_URL=https://hgcvn.cloud
+
+# Chuỗi kết nối PostgreSQL trên VPS:
+DATABASE_URL="postgres://postgres:HgcSolar@2026@localhost:5432/hgc_solar"
+
+# Cấu hình gửi mail OTP xác thực tài khoản (Tùy chọn)
+SMTP_HOST="smtp.gmail.com"
+SMTP_PORT=465
+SMTP_USER="email-cua-ban@gmail.com"
+SMTP_PASS="mat-khau-ung-dung"
 ```
+
+*Lưu ý: Khi khởi động, hệ thống sẽ tự động tạo bảng `users` và `projects` với đầy đủ chỉ mục, bạn không cần phải chạy câu lệnh tạo bảng thủ công!*
 
 ---
 

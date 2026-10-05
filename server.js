@@ -1,16 +1,398 @@
 // server.ts
 import express from "express";
+import fs2 from "fs";
+import path2 from "path";
+import { fileURLToPath as fileURLToPath2 } from "url";
+import nodemailer from "nodemailer";
+import dotenv from "dotenv";
+
+// src/server/db.ts
+import pg from "pg";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-import nodemailer from "nodemailer";
-import dotenv from "dotenv";
-dotenv.config();
 var __filename = fileURLToPath(import.meta.url);
 var __dirname = path.dirname(__filename);
+var { Pool } = pg;
+var DATA_DIR = path.resolve(process.cwd(), "data_storage");
+var USERS_FILE = path.join(DATA_DIR, "users.json");
+var PROJECTS_FILE = path.join(DATA_DIR, "projects.json");
+if (!fs.existsSync(DATA_DIR)) {
+  try {
+    fs.mkdirSync(DATA_DIR, { recursive: true });
+  } catch (err) {
+    console.error("Error creating data directory:", err);
+  }
+}
+var pool = null;
+var pgConnected = false;
+var fallbackUsers = loadFallbackUsers();
+var fallbackProjects = loadFallbackProjects();
+function loadFallbackUsers() {
+  try {
+    if (fs.existsSync(USERS_FILE)) {
+      const content = fs.readFileSync(USERS_FILE, "utf-8");
+      const parsed = JSON.parse(content);
+      if (Array.isArray(parsed)) return parsed;
+    }
+  } catch (err) {
+    console.error("Error loading fallback users:", err);
+  }
+  const defaults = [
+    {
+      id: "user-admin-01",
+      fullName: "Qu\u1EA3n Tr\u1ECB Vi\xEAn HGC",
+      email: "admin@hgcvn.cloud",
+      phone: "0974 04 19 84",
+      address: "B36 TT7 Khu \u0111\xF4 th\u1ECB V\u0103n Qu\xE1n, H\xE0 \u0110\xF4ng, H\xE0 N\u1ED9i",
+      password: "123456",
+      role: "admin",
+      isEmailVerified: true,
+      createdAt: (/* @__PURE__ */ new Date()).toISOString()
+    }
+  ];
+  saveFallbackUsers(defaults);
+  return defaults;
+}
+function saveFallbackUsers(users) {
+  try {
+    fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2), "utf-8");
+  } catch (err) {
+    console.error("Error saving fallback users:", err);
+  }
+}
+function loadFallbackProjects() {
+  try {
+    if (fs.existsSync(PROJECTS_FILE)) {
+      const content = fs.readFileSync(PROJECTS_FILE, "utf-8");
+      const parsed = JSON.parse(content);
+      if (Array.isArray(parsed)) return parsed;
+    }
+  } catch (err) {
+    console.error("Error loading fallback projects:", err);
+  }
+  const defaults = [];
+  saveFallbackProjects(defaults);
+  return defaults;
+}
+function saveFallbackProjects(projects) {
+  try {
+    fs.writeFileSync(PROJECTS_FILE, JSON.stringify(projects, null, 2), "utf-8");
+  } catch (err) {
+    console.error("Error saving fallback projects:", err);
+  }
+}
+async function initDatabase() {
+  const databaseUrl = process.env.DATABASE_URL;
+  if (!databaseUrl) {
+    console.log("[HGC Solar DB] Ch\u01B0a t\xECm th\u1EA5y bi\u1EBFn DATABASE_URL trong .env -> \u0110ang d\xF9ng ch\u1EBF \u0111\u1ED9 l\u01B0u tr\u1EEF File JSON d\u1EF1 ph\xF2ng.");
+    console.log('[HGC Solar DB] \u0110\u1EC3 k\xEDch ho\u1EA1t PostgreSQL: C\xE0i PostgreSQL tr\xEAn VPS v\xE0 th\xEAm DATABASE_URL="postgres://user:pass@localhost:5432/hgc_solar" v\xE0o file .env');
+    return false;
+  }
+  try {
+    pool = new Pool({
+      connectionString: databaseUrl,
+      connectionTimeoutMillis: 5e3,
+      max: 10
+    });
+    const client = await pool.connect();
+    console.log("[HGC Solar DB] \u2713 \u0110\xE3 k\u1EBFt n\u1ED1i th\xE0nh c\xF4ng t\u1EDBi m\xE1y ch\u1EE7 c\u01A1 s\u1EDF d\u1EEF li\u1EC7u PostgreSQL!");
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS users (
+        id VARCHAR(255) PRIMARY KEY,
+        full_name VARCHAR(255) NOT NULL,
+        email VARCHAR(255) UNIQUE NOT NULL,
+        phone VARCHAR(50) NOT NULL DEFAULT '',
+        address TEXT NOT NULL DEFAULT '',
+        password VARCHAR(255) NOT NULL,
+        role VARCHAR(50) NOT NULL DEFAULT 'ky_su',
+        is_email_verified BOOLEAN NOT NULL DEFAULT FALSE,
+        verification_code VARCHAR(50),
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+      );
+      CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+    `);
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS projects (
+        id VARCHAR(255) PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        customer_name VARCHAR(255) DEFAULT '',
+        phone VARCHAR(50) DEFAULT '',
+        address TEXT DEFAULT '',
+        status VARCHAR(50) DEFAULT 'saved',
+        data JSONB NOT NULL,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+      );
+      CREATE INDEX IF NOT EXISTS idx_projects_updated_at ON projects(updated_at DESC);
+    `);
+    await client.query(`
+      INSERT INTO users (id, full_name, email, phone, address, password, role, is_email_verified, created_at, updated_at)
+      VALUES (
+        'user-admin-01',
+        'Qu\u1EA3n Tr\u1ECB Vi\xEAn HGC',
+        'admin@hgcvn.cloud',
+        '0974 04 19 84',
+        'B36 TT7 Khu \u0111\xF4 th\u1ECB V\u0103n Qu\xE1n, H\xE0 \u0110\xF4ng, H\xE0 N\u1ED9i',
+        '123456',
+        'admin',
+        TRUE,
+        NOW(),
+        NOW()
+      )
+      ON CONFLICT (email) DO NOTHING;
+    `);
+    client.release();
+    pgConnected = true;
+    console.log("[HGC Solar DB] \u2713 C\u1EA5u tr\xFAc b\u1EA3ng PostgreSQL (users, projects) \u0111\xE3 s\u1EB5n s\xE0ng ho\u1EA1t \u0111\u1ED9ng.");
+    return true;
+  } catch (error) {
+    console.error("[HGC Solar DB] \u2717 Kh\xF4ng th\u1EC3 k\u1EBFt n\u1ED1i t\u1EDBi PostgreSQL:", error.message);
+    console.log("[HGC Solar DB] -> T\u1EF1 \u0111\u1ED9ng chuy\u1EC3n v\u1EC1 ch\u1EBF \u0111\u1ED9 l\u01B0u tr\u1EEF File JSON an to\xE0n.");
+    pgConnected = false;
+    return false;
+  }
+}
+async function getProjects() {
+  if (pgConnected && pool) {
+    try {
+      const res = await pool.query("SELECT data FROM projects ORDER BY updated_at DESC");
+      return res.rows.map((r) => r.data);
+    } catch (err) {
+      console.error("[DB Error] getProjects:", err);
+    }
+  }
+  return fallbackProjects;
+}
+async function getProjectById(id) {
+  if (pgConnected && pool) {
+    try {
+      const res = await pool.query("SELECT data FROM projects WHERE id = $1", [id]);
+      if (res.rows.length > 0) return res.rows[0].data;
+      return null;
+    } catch (err) {
+      console.error("[DB Error] getProjectById:", err);
+    }
+  }
+  return fallbackProjects.find((p) => p.id === id) || null;
+}
+async function saveProject(project) {
+  const { id, name, customerName, phone, address, status } = project;
+  const projectData = {
+    ...project,
+    updatedAt: (/* @__PURE__ */ new Date()).toISOString()
+  };
+  if (pgConnected && pool) {
+    try {
+      await pool.query(
+        `
+        INSERT INTO projects (id, name, customer_name, phone, address, status, data, created_at, updated_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW())
+        ON CONFLICT (id) DO UPDATE SET
+          name = EXCLUDED.name,
+          customer_name = EXCLUDED.customer_name,
+          phone = EXCLUDED.phone,
+          address = EXCLUDED.address,
+          status = EXCLUDED.status,
+          data = EXCLUDED.data,
+          updated_at = NOW();
+      `,
+        [
+          id,
+          name || "D\u1EF1 \xE1n m\u1EDBi",
+          customerName || "",
+          phone || "",
+          address || "",
+          status || "saved",
+          JSON.stringify(projectData)
+        ]
+      );
+      return projectData;
+    } catch (err) {
+      console.error("[DB Error] saveProject to PG:", err);
+    }
+  }
+  const idx = fallbackProjects.findIndex((p) => p.id === id);
+  if (idx >= 0) {
+    fallbackProjects[idx] = projectData;
+  } else {
+    fallbackProjects.unshift(projectData);
+  }
+  saveFallbackProjects(fallbackProjects);
+  return projectData;
+}
+async function deleteProject(id) {
+  if (pgConnected && pool) {
+    try {
+      const res = await pool.query("DELETE FROM projects WHERE id = $1", [id]);
+      return (res.rowCount ?? 0) > 0;
+    } catch (err) {
+      console.error("[DB Error] deleteProject PG:", err);
+    }
+  }
+  const initialLen = fallbackProjects.length;
+  fallbackProjects = fallbackProjects.filter((p) => p.id !== id);
+  saveFallbackProjects(fallbackProjects);
+  return initialLen > fallbackProjects.length;
+}
+async function getUsers() {
+  if (pgConnected && pool) {
+    try {
+      const res = await pool.query("SELECT * FROM users ORDER BY created_at ASC");
+      return res.rows.map((row) => ({
+        id: row.id,
+        fullName: row.full_name,
+        email: row.email,
+        phone: row.phone,
+        address: row.address,
+        password: row.password,
+        role: row.role,
+        isEmailVerified: row.is_email_verified,
+        verificationCode: row.verification_code,
+        createdAt: row.created_at ? new Date(row.created_at).toISOString() : (/* @__PURE__ */ new Date()).toISOString()
+      }));
+    } catch (err) {
+      console.error("[DB Error] getUsers PG:", err);
+    }
+  }
+  return fallbackUsers;
+}
+async function findUserByEmail(email) {
+  const normalized = String(email).trim().toLowerCase();
+  if (pgConnected && pool) {
+    try {
+      const res = await pool.query("SELECT * FROM users WHERE LOWER(email) = $1 LIMIT 1", [normalized]);
+      if (res.rows.length > 0) {
+        const row = res.rows[0];
+        return {
+          id: row.id,
+          fullName: row.full_name,
+          email: row.email,
+          phone: row.phone,
+          address: row.address,
+          password: row.password,
+          role: row.role,
+          isEmailVerified: row.is_email_verified,
+          verificationCode: row.verification_code,
+          createdAt: row.created_at ? new Date(row.created_at).toISOString() : (/* @__PURE__ */ new Date()).toISOString()
+        };
+      }
+      return null;
+    } catch (err) {
+      console.error("[DB Error] findUserByEmail PG:", err);
+    }
+  }
+  return fallbackUsers.find((u) => u.email.toLowerCase() === normalized) || null;
+}
+async function saveUser(user) {
+  if (pgConnected && pool) {
+    try {
+      await pool.query(
+        `
+        INSERT INTO users (id, full_name, email, phone, address, password, role, is_email_verified, verification_code, created_at, updated_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW())
+        ON CONFLICT (email) DO UPDATE SET
+          full_name = EXCLUDED.full_name,
+          phone = EXCLUDED.phone,
+          address = EXCLUDED.address,
+          password = EXCLUDED.password,
+          role = EXCLUDED.role,
+          is_email_verified = EXCLUDED.is_email_verified,
+          verification_code = EXCLUDED.verification_code,
+          updated_at = NOW();
+      `,
+        [
+          user.id,
+          user.fullName,
+          user.email.toLowerCase(),
+          user.phone,
+          user.address,
+          user.password,
+          user.role,
+          user.isEmailVerified,
+          user.verificationCode || null
+        ]
+      );
+      return user;
+    } catch (err) {
+      console.error("[DB Error] saveUser PG:", err);
+    }
+  }
+  const idx = fallbackUsers.findIndex((u) => u.email.toLowerCase() === user.email.toLowerCase());
+  if (idx >= 0) {
+    fallbackUsers[idx] = user;
+  } else {
+    fallbackUsers.unshift(user);
+  }
+  saveFallbackUsers(fallbackUsers);
+  return user;
+}
+async function updateUserRole(id, role) {
+  if (pgConnected && pool) {
+    try {
+      const res = await pool.query("UPDATE users SET role = $1, updated_at = NOW() WHERE id = $2", [role, id]);
+      return (res.rowCount ?? 0) > 0;
+    } catch (err) {
+      console.error("[DB Error] updateUserRole PG:", err);
+    }
+  }
+  const user = fallbackUsers.find((u) => u.id === id);
+  if (user) {
+    user.role = role;
+    saveFallbackUsers(fallbackUsers);
+    return true;
+  }
+  return false;
+}
+async function deleteUser(id) {
+  if (pgConnected && pool) {
+    try {
+      const res = await pool.query("DELETE FROM users WHERE id = $1", [id]);
+      return (res.rowCount ?? 0) > 0;
+    } catch (err) {
+      console.error("[DB Error] deleteUser PG:", err);
+    }
+  }
+  const initialLen = fallbackUsers.length;
+  fallbackUsers = fallbackUsers.filter((u) => u.id !== id);
+  saveFallbackUsers(fallbackUsers);
+  return initialLen > fallbackUsers.length;
+}
+async function getDbHealth() {
+  let projectsCount = 0;
+  let usersCount = 0;
+  if (pgConnected && pool) {
+    try {
+      const pRes = await pool.query("SELECT COUNT(*) AS count FROM projects");
+      projectsCount = Number(pRes.rows[0]?.count || 0);
+      const uRes = await pool.query("SELECT COUNT(*) AS count FROM users");
+      usersCount = Number(uRes.rows[0]?.count || 0);
+      return {
+        database: "PostgreSQL",
+        connected: true,
+        projectsCount,
+        usersCount
+      };
+    } catch (err) {
+      console.error("[DB Error] getDbHealth PG:", err);
+    }
+  }
+  return {
+    database: "File Storage (JSON)",
+    connected: false,
+    projectsCount: fallbackProjects.length,
+    usersCount: fallbackUsers.length
+  };
+}
+
+// server.ts
+dotenv.config();
+var __filename2 = fileURLToPath2(import.meta.url);
+var __dirname2 = path2.dirname(__filename2);
 var app = express();
 var PORT = process.env.PORT || 3e3;
-var hasDist = fs.existsSync(path.join(__dirname, "dist", "index.html"));
+var hasDist = fs2.existsSync(path2.join(__dirname2, "dist", "index.html"));
 var isProduction = process.env.NODE_ENV === "production" || process.env.NODE_ENV !== "development" && hasDist;
 app.use(express.json({ limit: "10mb" }));
 function createMailTransporter() {
@@ -58,131 +440,51 @@ async function sendVerificationEmail(toEmail, fullName, code) {
       text: `Xin ch\xE0o ${fullName},
 
 M\xE3 x\xE1c th\u1EF1c OTP k\xEDch ho\u1EA1t t\xE0i kho\u1EA3n HGC Solar c\u1EE7a b\u1EA1n l\xE0: ${code}
-
-M\xE3 n\xE0y c\xF3 hi\u1EC7u l\u1EF1c trong 15 ph\xFAt.
+M\xE3 c\xF3 hi\u1EC7u l\u1EF1c trong v\xF2ng 15 ph\xFAt.
 
 Tr\xE2n tr\u1ECDng,
-\u0110\u1ED9i ng\u0169 HGC Solar
-Hotline: 0974 04 19 84`,
+\u0110\u1ED9i ng\u0169 HGC Solar Power`,
       html: `
-        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 580px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff;">
-          <div style="text-align: center; margin-bottom: 20px; border-bottom: 2px solid #f1f5f9; padding-bottom: 16px;">
-            <h2 style="color: #0F2A45; margin: 0 0 6px 0; font-size: 20px; font-weight: 800;">C\xD4NG TY TNHH HGC</h2>
-            <p style="color: #64748b; font-size: 13px; margin: 0;">H\u1EC7 Th\u1ED1ng Thi\u1EBFt K\u1EBF & B\xE1o Gi\xE1 \u0110i\u1EC7n M\u1EB7t Tr\u1EDDi \xC1p M\xE1i</p>
+        <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+          <div style="background: linear-gradient(135deg, #0F2A45 0%, #1e40af 100%); padding: 24px; text-align: center; color: white;">
+            <h1 style="margin: 0; font-size: 22px; font-weight: bold; letter-spacing: 0.5px;">HGC SOLAR POWER</h1>
+            <p style="margin: 4px 0 0; font-size: 13px; opacity: 0.9;">X\xE1c Th\u1EF1c T\xE0i Kho\u1EA3n Ng\u01B0\u1EDDi D\xF9ng</p>
           </div>
-
-          <div style="padding: 10px 0;">
-            <p style="color: #334155; font-size: 14px; line-height: 1.6; margin-top: 0;">
-              Xin ch\xE0o <strong>${fullName}</strong>,
+          <div style="padding: 28px 24px; background: #ffffff;">
+            <p style="margin: 0 0 16px; font-size: 15px; color: #1e293b;">Xin ch\xE0o <strong>${fullName}</strong>,</p>
+            <p style="margin: 0 0 20px; font-size: 14px; color: #475569; line-height: 1.6;">
+              C\u1EA3m \u01A1n b\u1EA1n \u0111\xE3 \u0111\u0103ng k\xFD t\xE0i kho\u1EA3n tr\xEAn n\u1EC1n t\u1EA3ng <strong>HGC Solar Design & Quotation Tool</strong>. Vui l\xF2ng nh\u1EADp m\xE3 OTP b\xEAn d\u01B0\u1EDBi \u0111\u1EC3 k\xEDch ho\u1EA1t t\xE0i kho\u1EA3n c\u1EE7a b\u1EA1n:
             </p>
-            <p style="color: #475569; font-size: 14px; line-height: 1.6;">
-              C\u1EA3m \u01A1n b\u1EA1n \u0111\xE3 \u0111\u0103ng k\xFD t\xE0i kho\u1EA3n t\u1EA1i <strong>HGC Solar Engine</strong>. \u0110\u1EC3 ho\xE0n t\u1EA5t k\xEDch ho\u1EA1t t\xE0i kho\u1EA3n v\xE0 b\u1EA3o m\u1EADt quy\u1EC1n truy c\u1EADp h\u1ED3 s\u01A1 d\u1EF1 \xE1n, vui l\xF2ng s\u1EED d\u1EE5ng m\xE3 OTP d\u01B0\u1EDBi \u0111\xE2y:
-            </p>
-
-            <div style="background: #FFF7ED; border: 2px dashed #EA580C; border-radius: 10px; padding: 18px; text-align: center; margin: 24px 0;">
-              <div style="font-size: 12px; font-weight: 700; color: #9A3412; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">
-                M\xE3 x\xE1c th\u1EF1c t\xE0i kho\u1EA3n (OTP)
-              </div>
-              <div style="font-size: 34px; font-weight: 900; letter-spacing: 8px; color: #EA580C; font-family: monospace;">
-                ${code}
-              </div>
-              <div style="font-size: 12px; color: #9A3412; margin-top: 8px;">
-                M\xE3 c\xF3 hi\u1EC7u l\u1EF1c trong v\xF2ng <strong>15 ph\xFAt</strong>
-              </div>
+            <div style="background: #f8fafc; border: 2px dashed #0F2A45; border-radius: 10px; padding: 18px; text-align: center; margin: 24px 0;">
+              <span style="font-size: 32px; font-weight: 800; letter-spacing: 6px; color: #E4572E; font-family: monospace;">${code}</span>
             </div>
-
-            <p style="color: #64748b; font-size: 13px; line-height: 1.5;">
-              Vui l\xF2ng ki\u1EC3m tra h\u1ED9p th\u01B0 \u0111\u1EBFn (Inbox) ho\u1EB7c th\u01B0 m\u1EE5c Spam. Kh\xF4ng chia s\u1EBB m\xE3 n\xE0y cho b\u1EA5t k\u1EF3 ai kh\xE1c.
-            </p>
+            <p style="margin: 0 0 8px; font-size: 12px; color: #64748b;">\u2022 M\xE3 x\xE1c th\u1EF1c c\xF3 hi\u1EC7u l\u1EF1c trong v\xF2ng 15 ph\xFAt.</p>
+            <p style="margin: 0; font-size: 12px; color: #64748b;">\u2022 N\u1EBFu b\u1EA1n kh\xF4ng y\xEAu c\u1EA7u m\xE3 n\xE0y, vui l\xF2ng b\u1ECF qua email.</p>
           </div>
-
-          <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #f1f5f9; text-align: center; color: #94a3b8; font-size: 12px; line-height: 1.5;">
-            <strong>C\xD4NG TY TNHH HGC</strong><br/>
-            Tr\u1EE5 s\u1EDF: B36 TT7 Khu \u0111\xF4 th\u1ECB V\u0103n Qu\xE1n, H\xE0 \u0110\xF4ng, H\xE0 N\u1ED9i<br/>
-            Hotline: 0974 04 19 84 \xB7 Email: contact@hgcvn.cloud
+          <div style="background: #f1f5f9; padding: 16px; text-align: center; font-size: 12px; color: #64748b; border-top: 1px solid #e2e8f0;">
+            C\xD4NG TY TNHH HGC VI\u1EC6T NAM<br>
+            Hotline K\u1EF9 Thu\u1EADt: 0974 04 19 84 | Website: <a href="https://hgcvn.cloud" style="color: #0F2A45; text-decoration: none;">hgcvn.cloud</a>
           </div>
         </div>
       `
     });
-    console.log(`[HGC Solar Email Service] \u0110\xC3 G\u1EECI EMAIL TH\xC0NH C\xD4NG T\u1EDAI ${toEmail}! ID: ${info.messageId}`);
+    console.log(`[HGC Solar Email Service] \u2713 \u0110\xE3 g\u1EEDi email th\xE0nh c\xF4ng t\u1EDBi ${toEmail} - MessageID: ${info.messageId}`);
     return { sent: true, messageId: info.messageId };
   } catch (err) {
-    console.error(`[HGC Solar Email Service] L\u1ED6I KHI G\u1EECI EMAIL TH\u1EF0C T\u1EBE:`, err.message || err);
+    console.error(`[HGC Solar Email Service] \u2717 L\u1ED7i khi g\u1EEDi email qua SMTP:`, err);
     return { sent: false, error: err.message };
   }
 }
-var DATA_DIR = path.join(__dirname, "data_storage");
-if (!fs.existsSync(DATA_DIR)) {
-  fs.mkdirSync(DATA_DIR, { recursive: true });
-}
-var USERS_FILE = path.join(DATA_DIR, "users.json");
-var PROJECTS_FILE = path.join(DATA_DIR, "projects.json");
-function loadUsers() {
-  try {
-    if (fs.existsSync(USERS_FILE)) {
-      const content = fs.readFileSync(USERS_FILE, "utf-8");
-      const parsed = JSON.parse(content);
-      if (Array.isArray(parsed)) return parsed;
-    }
-  } catch (err) {
-    console.error("Error loading users:", err);
-  }
-  const defaultUsers = [
-    {
-      id: "user-admin-01",
-      fullName: "Qu\u1EA3n Tr\u1ECB Vi\xEAn HGC",
-      email: "admin@hgcvn.cloud",
-      phone: "0974 04 19 84",
-      address: "B36 TT7 Khu \u0111\xF4 th\u1ECB V\u0103n Qu\xE1n, H\xE0 \u0110\xF4ng, H\xE0 N\u1ED9i",
-      password: "123456",
-      role: "admin",
-      isEmailVerified: true,
-      createdAt: (/* @__PURE__ */ new Date()).toISOString()
-    }
-  ];
-  saveUsers(defaultUsers);
-  return defaultUsers;
-}
-function saveUsers(users) {
-  try {
-    fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2), "utf-8");
-  } catch (err) {
-    console.error("Error saving users to disk:", err);
-  }
-}
-function loadProjects() {
-  try {
-    if (fs.existsSync(PROJECTS_FILE)) {
-      const content = fs.readFileSync(PROJECTS_FILE, "utf-8");
-      const parsed = JSON.parse(content);
-      if (Array.isArray(parsed)) return parsed;
-    }
-  } catch (err) {
-    console.error("Error loading projects:", err);
-  }
-  const defaultProj = [];
-  saveProjects(defaultProj);
-  return defaultProj;
-}
-function saveProjects(projects) {
-  try {
-    fs.writeFileSync(PROJECTS_FILE, JSON.stringify(projects, null, 2), "utf-8");
-  } catch (err) {
-    console.error("Error saving projects to disk:", err);
-  }
-}
-var usersStore = loadUsers();
-var projectsStore = loadProjects();
 function sanitizeUser(u) {
   const { password, verificationCode, ...rest } = u;
   return rest;
 }
-app.get("/api/health", (req, res) => {
+app.get("/api/health", async (req, res) => {
+  const dbHealth = await getDbHealth();
   res.json({
     status: "ok",
     uptime: process.uptime(),
-    projectsCount: projectsStore.length,
-    usersCount: usersStore.length,
+    ...dbHealth,
     timestamp: (/* @__PURE__ */ new Date()).toISOString()
   });
 });
@@ -195,12 +497,12 @@ app.post("/api/auth/register", async (req, res) => {
     });
   }
   const normalizedEmail = String(email).trim().toLowerCase();
-  const existingUser = usersStore.find((u) => u.email.toLowerCase() === normalizedEmail);
+  const existingUser = await findUserByEmail(normalizedEmail);
   if (existingUser) {
     if (!existingUser.isEmailVerified) {
       const newOtp = Math.floor(1e5 + Math.random() * 9e5).toString();
       existingUser.verificationCode = newOtp;
-      saveUsers(usersStore);
+      await saveUser(existingUser);
       await sendVerificationEmail(existingUser.email, existingUser.fullName, newOtp);
       return res.json({
         success: true,
@@ -226,8 +528,7 @@ app.post("/api/auth/register", async (req, res) => {
     verificationCode: otpCode,
     createdAt: (/* @__PURE__ */ new Date()).toISOString()
   };
-  usersStore.unshift(newUser);
-  saveUsers(usersStore);
+  await saveUser(newUser);
   await sendVerificationEmail(newUser.email, newUser.fullName, otpCode);
   res.status(201).json({
     success: true,
@@ -235,13 +536,13 @@ app.post("/api/auth/register", async (req, res) => {
     email: normalizedEmail
   });
 });
-app.post("/api/auth/verify-email", (req, res) => {
+app.post("/api/auth/verify-email", async (req, res) => {
   const { email, code } = req.body;
   if (!email || !code) {
     return res.status(400).json({ success: false, error: "Thi\u1EBFu email ho\u1EB7c m\xE3 x\xE1c th\u1EF1c" });
   }
   const normalizedEmail = String(email).trim().toLowerCase();
-  const user = usersStore.find((u) => u.email.toLowerCase() === normalizedEmail);
+  const user = await findUserByEmail(normalizedEmail);
   if (!user) {
     return res.status(404).json({ success: false, error: "Kh\xF4ng t\xECm th\u1EA5y t\xE0i kho\u1EA3n v\u1EDBi email n\xE0y." });
   }
@@ -256,7 +557,7 @@ app.post("/api/auth/verify-email", (req, res) => {
   if (cleanCode === user.verificationCode || cleanCode === "123456") {
     user.isEmailVerified = true;
     user.verificationCode = void 0;
-    saveUsers(usersStore);
+    await saveUser(user);
     console.log(`[HGC Solar Auth] User ${user.email} verified email successfully!`);
     return res.json({
       success: true,
@@ -272,29 +573,27 @@ app.post("/api/auth/verify-email", (req, res) => {
 app.post("/api/auth/resend-code", async (req, res) => {
   const { email } = req.body;
   const normalizedEmail = String(email).trim().toLowerCase();
-  const user = usersStore.find((u) => u.email.toLowerCase() === normalizedEmail);
+  const user = await findUserByEmail(normalizedEmail);
   if (!user) {
     return res.status(404).json({ success: false, error: "Kh\xF4ng t\xECm th\u1EA5y t\xE0i kho\u1EA3n." });
   }
   const newOtp = Math.floor(1e5 + Math.random() * 9e5).toString();
   user.verificationCode = newOtp;
-  saveUsers(usersStore);
+  await saveUser(user);
   await sendVerificationEmail(user.email, user.fullName, newOtp);
   res.json({
     success: true,
     message: "\u0110\xE3 g\u1EEDi l\u1EA1i m\xE3 x\xE1c th\u1EF1c qua email th\xE0nh c\xF4ng!"
   });
 });
-app.post("/api/auth/login", (req, res) => {
+app.post("/api/auth/login", async (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) {
     return res.status(400).json({ success: false, error: "Vui l\xF2ng nh\u1EADp email v\xE0 m\u1EADt kh\u1EA9u." });
   }
   const normalizedEmail = String(email).trim().toLowerCase();
-  const user = usersStore.find(
-    (u) => u.email.toLowerCase() === normalizedEmail && u.password === String(password)
-  );
-  if (!user) {
+  const user = await findUserByEmail(normalizedEmail);
+  if (!user || user.password !== String(password)) {
     return res.status(401).json({
       success: false,
       error: "Email ho\u1EB7c m\u1EADt kh\u1EA9u kh\xF4ng ch\xEDnh x\xE1c."
@@ -303,6 +602,7 @@ app.post("/api/auth/login", (req, res) => {
   if (!user.isEmailVerified) {
     if (!user.verificationCode) {
       user.verificationCode = Math.floor(1e5 + Math.random() * 9e5).toString();
+      await saveUser(user);
     }
     console.log(`[HGC Solar Auth] Login attempted on unverified account ${user.email}. OTP: ${user.verificationCode}`);
     return res.status(403).json({
@@ -318,71 +618,62 @@ app.post("/api/auth/login", (req, res) => {
     user: sanitizeUser(user)
   });
 });
-app.get("/api/auth/users", (req, res) => {
-  res.json(usersStore.map(sanitizeUser));
+app.get("/api/auth/users", async (req, res) => {
+  const users = await getUsers();
+  res.json(users.map(sanitizeUser));
 });
-app.get("/api/projects", (req, res) => {
-  res.json(projectsStore);
+app.put("/api/auth/users/:id/role", async (req, res) => {
+  const { id } = req.params;
+  const { role } = req.body;
+  if (!["ky_su", "sales", "admin"].includes(role)) {
+    return res.status(400).json({ error: "Vai tr\xF2 kh\xF4ng h\u1EE3p l\u1EC7" });
+  }
+  const success = await updateUserRole(id, role);
+  res.json({ success });
 });
-app.get("/api/projects/:id", (req, res) => {
-  const project = projectsStore.find((p) => p.id === req.params.id);
+app.delete("/api/auth/users/:id", async (req, res) => {
+  const { id } = req.params;
+  const success = await deleteUser(id);
+  res.json({ success });
+});
+app.get("/api/projects", async (req, res) => {
+  const projects = await getProjects();
+  res.json(projects);
+});
+app.get("/api/projects/:id", async (req, res) => {
+  const project = await getProjectById(req.params.id);
   if (!project) {
-    return res.status(404).json({ error: "Kh\xF4ng t\xECm th\u1EA5y d\u1EF1 \xE1n" });
+    return res.status(404).json({ error: "Kh\xF4ng t\xECm th\u1EA5y d\u1EF1 \xE1n trong c\u01A1 s\u1EDF d\u1EEF li\u1EC7u" });
   }
   res.json(project);
 });
-app.post("/api/projects", (req, res) => {
+app.post("/api/projects", async (req, res) => {
   const newProject = req.body;
   if (!newProject || !newProject.id) {
     return res.status(400).json({ error: "D\u1EEF li\u1EC7u d\u1EF1 \xE1n kh\xF4ng h\u1EE3p l\u1EC7" });
   }
-  const existingIndex = projectsStore.findIndex((p) => p.id === newProject.id);
-  if (existingIndex >= 0) {
-    projectsStore[existingIndex] = {
-      ...newProject,
-      updatedAt: (/* @__PURE__ */ new Date()).toISOString()
-    };
-  } else {
-    projectsStore.unshift({
-      ...newProject,
-      createdAt: newProject.createdAt || (/* @__PURE__ */ new Date()).toISOString(),
-      updatedAt: (/* @__PURE__ */ new Date()).toISOString()
-    });
-  }
-  saveProjects(projectsStore);
-  res.status(201).json(newProject);
+  const saved = await saveProject(newProject);
+  res.status(201).json(saved);
 });
-app.put("/api/projects/:id", (req, res) => {
+app.put("/api/projects/:id", async (req, res) => {
   const { id } = req.params;
   const updates = req.body;
-  const index = projectsStore.findIndex((p) => p.id === id);
-  if (index === -1) {
-    const created = { ...updates, id, updatedAt: (/* @__PURE__ */ new Date()).toISOString() };
-    projectsStore.unshift(created);
-    saveProjects(projectsStore);
-    return res.json(created);
-  }
-  projectsStore[index] = {
-    ...projectsStore[index],
-    ...updates,
-    updatedAt: (/* @__PURE__ */ new Date()).toISOString()
-  };
-  saveProjects(projectsStore);
-  res.json(projectsStore[index]);
+  const existing = await getProjectById(id) || {};
+  const merged = { ...existing, ...updates, id };
+  const saved = await saveProject(merged);
+  res.json(saved);
 });
-app.delete("/api/projects/:id", (req, res) => {
+app.delete("/api/projects/:id", async (req, res) => {
   const { id } = req.params;
-  const initialLength = projectsStore.length;
-  projectsStore = projectsStore.filter((p) => p.id !== id);
-  saveProjects(projectsStore);
+  const success = await deleteProject(id);
   res.json({
     success: true,
     deletedId: id,
-    remainingCount: projectsStore.length,
-    message: initialLength > projectsStore.length ? "\u0110\xE3 x\xF3a d\u1EF1 \xE1n th\xE0nh c\xF4ng" : "D\u1EF1 \xE1n kh\xF4ng t\u1ED3n t\u1EA1i"
+    message: success ? "\u0110\xE3 x\xF3a d\u1EF1 \xE1n v\u0129nh vi\u1EC5n kh\u1ECFi PostgreSQL Database" : "D\u1EF1 \xE1n kh\xF4ng t\u1ED3n t\u1EA1i"
   });
 });
 async function startServer() {
+  await initDatabase();
   if (!isProduction) {
     const { createServer } = await import("vite");
     const vite = await createServer({
@@ -391,9 +682,9 @@ async function startServer() {
     });
     app.use(vite.middlewares);
   } else {
-    app.use(express.static(path.join(__dirname, "dist")));
+    app.use(express.static(path2.join(__dirname2, "dist")));
     app.get("*", (req, res) => {
-      res.sendFile(path.join(__dirname, "dist", "index.html"));
+      res.sendFile(path2.join(__dirname2, "dist", "index.html"));
     });
   }
   app.listen(PORT, () => {

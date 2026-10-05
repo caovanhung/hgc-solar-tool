@@ -11,8 +11,17 @@ npm install
 echo "2. Build Frontend (dist/) và Backend (server.js)..."
 npm run build
 
-echo "3. Đảm bảo thư mục data_storage tồn tại..."
+echo "3. Đảm bảo thư mục dữ liệu tồn tại..."
 mkdir -p data_storage
+
+# Kiểm tra trạng thái PostgreSQL
+if command -v psql >/dev/null 2>&1; then
+  echo "✓ Đã phát hiện PostgreSQL trên VPS!"
+else
+  echo "! Lưu ý: PostgreSQL chưa được cài đặt trên VPS. Nếu bạn muốn dùng Database chuyên dụng, hãy chạy:"
+  echo "  sudo apt update && sudo apt install -y postgresql postgresql-contrib"
+  echo "  sudo -u postgres psql -c \"CREATE DATABASE hgc_solar;\""
+fi
 
 echo "4. Khởi động lại dịch vụ Node.js qua PM2..."
 if command -v pm2 >/dev/null 2>&1; then

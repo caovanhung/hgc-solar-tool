@@ -4,6 +4,21 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
+import {
+  initDatabase,
+  getProjects,
+  getProjectById,
+  saveProject,
+  deleteProject,
+  getUsers,
+  findUserByEmail,
+  saveUser,
+  updateUserRole,
+  deleteUser,
+  getDbHealth,
+  isPostgresConnected,
+  ServerUser,
+} from './src/server/db';
 
 dotenv.config();
 
@@ -65,174 +80,38 @@ async function sendVerificationEmail(toEmail: string, fullName: string, code: st
       from: fromAddress,
       to: toEmail,
       subject: `[HGC Solar] Mã OTP kích hoạt tài khoản của bạn: ${code}`,
-      text: `Xin chào ${fullName},\n\nMã xác thực OTP kích hoạt tài khoản HGC Solar của bạn là: ${code}\n\nMã này có hiệu lực trong 15 phút.\n\nTrân trọng,\nĐội ngũ HGC Solar\nHotline: 0974 04 19 84`,
+      text: `Xin chào ${fullName},\n\nMã xác thực OTP kích hoạt tài khoản HGC Solar của bạn là: ${code}\nMã có hiệu lực trong vòng 15 phút.\n\nTrân trọng,\nĐội ngũ HGC Solar Power`,
       html: `
-        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 580px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff;">
-          <div style="text-align: center; margin-bottom: 20px; border-bottom: 2px solid #f1f5f9; padding-bottom: 16px;">
-            <h2 style="color: #0F2A45; margin: 0 0 6px 0; font-size: 20px; font-weight: 800;">CÔNG TY TNHH HGC</h2>
-            <p style="color: #64748b; font-size: 13px; margin: 0;">Hệ Thống Thiết Kế & Báo Giá Điện Mặt Trời Áp Mái</p>
+        <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+          <div style="background: linear-gradient(135deg, #0F2A45 0%, #1e40af 100%); padding: 24px; text-align: center; color: white;">
+            <h1 style="margin: 0; font-size: 22px; font-weight: bold; letter-spacing: 0.5px;">HGC SOLAR POWER</h1>
+            <p style="margin: 4px 0 0; font-size: 13px; opacity: 0.9;">Xác Thực Tài Khoản Người Dùng</p>
           </div>
-
-          <div style="padding: 10px 0;">
-            <p style="color: #334155; font-size: 14px; line-height: 1.6; margin-top: 0;">
-              Xin chào <strong>${fullName}</strong>,
+          <div style="padding: 28px 24px; background: #ffffff;">
+            <p style="margin: 0 0 16px; font-size: 15px; color: #1e293b;">Xin chào <strong>${fullName}</strong>,</p>
+            <p style="margin: 0 0 20px; font-size: 14px; color: #475569; line-height: 1.6;">
+              Cảm ơn bạn đã đăng ký tài khoản trên nền tảng <strong>HGC Solar Design & Quotation Tool</strong>. Vui lòng nhập mã OTP bên dưới để kích hoạt tài khoản của bạn:
             </p>
-            <p style="color: #475569; font-size: 14px; line-height: 1.6;">
-              Cảm ơn bạn đã đăng ký tài khoản tại <strong>HGC Solar Engine</strong>. Để hoàn tất kích hoạt tài khoản và bảo mật quyền truy cập hồ sơ dự án, vui lòng sử dụng mã OTP dưới đây:
-            </p>
-
-            <div style="background: #FFF7ED; border: 2px dashed #EA580C; border-radius: 10px; padding: 18px; text-align: center; margin: 24px 0;">
-              <div style="font-size: 12px; font-weight: 700; color: #9A3412; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">
-                Mã xác thực tài khoản (OTP)
-              </div>
-              <div style="font-size: 34px; font-weight: 900; letter-spacing: 8px; color: #EA580C; font-family: monospace;">
-                ${code}
-              </div>
-              <div style="font-size: 12px; color: #9A3412; margin-top: 8px;">
-                Mã có hiệu lực trong vòng <strong>15 phút</strong>
-              </div>
+            <div style="background: #f8fafc; border: 2px dashed #0F2A45; border-radius: 10px; padding: 18px; text-align: center; margin: 24px 0;">
+              <span style="font-size: 32px; font-weight: 800; letter-spacing: 6px; color: #E4572E; font-family: monospace;">${code}</span>
             </div>
-
-            <p style="color: #64748b; font-size: 13px; line-height: 1.5;">
-              Vui lòng kiểm tra hộp thư đến (Inbox) hoặc thư mục Spam. Không chia sẻ mã này cho bất kỳ ai khác.
-            </p>
+            <p style="margin: 0 0 8px; font-size: 12px; color: #64748b;">• Mã xác thực có hiệu lực trong vòng 15 phút.</p>
+            <p style="margin: 0; font-size: 12px; color: #64748b;">• Nếu bạn không yêu cầu mã này, vui lòng bỏ qua email.</p>
           </div>
-
-          <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #f1f5f9; text-align: center; color: #94a3b8; font-size: 12px; line-height: 1.5;">
-            <strong>CÔNG TY TNHH HGC</strong><br/>
-            Trụ sở: B36 TT7 Khu đô thị Văn Quán, Hà Đông, Hà Nội<br/>
-            Hotline: 0974 04 19 84 · Email: contact@hgcvn.cloud
+          <div style="background: #f1f5f9; padding: 16px; text-align: center; font-size: 12px; color: #64748b; border-top: 1px solid #e2e8f0;">
+            CÔNG TY TNHH HGC VIỆT NAM<br>
+            Hotline Kỹ Thuật: 0974 04 19 84 | Website: <a href="https://hgcvn.cloud" style="color: #0F2A45; text-decoration: none;">hgcvn.cloud</a>
           </div>
         </div>
       `,
     });
-    console.log(`[HGC Solar Email Service] ĐÃ GỬI EMAIL THÀNH CÔNG TỚI ${toEmail}! ID: ${info.messageId}`);
+    console.log(`[HGC Solar Email Service] ✓ Đã gửi email thành công tới ${toEmail} - MessageID: ${info.messageId}`);
     return { sent: true, messageId: info.messageId };
-  } catch (err: any) {
-    console.error(`[HGC Solar Email Service] LỖI KHI GỬI EMAIL THỰC TẾ:`, err.message || err);
-    return { sent: false, error: err.message };
-  }
-}
-
-// ========================
-// PERSISTENT DATA STORAGE (FILE DATABASE)
-// ========================
-const DATA_DIR = path.join(__dirname, 'data_storage');
-if (!fs.existsSync(DATA_DIR)) {
-  fs.mkdirSync(DATA_DIR, { recursive: true });
-}
-
-const USERS_FILE = path.join(DATA_DIR, 'users.json');
-const PROJECTS_FILE = path.join(DATA_DIR, 'projects.json');
-
-// Seed default project if empty
-function getDefaultSeedProject() {
-  return {
-    id: 'demo-hgc-01',
-    name: 'Văn Phòng HGC Văn Quán - Solar 42kWp',
-    customerName: 'CÔNG TY TNHH HGC',
-    phone: '0974 04 19 84',
-    address: 'B36 TT7 Khu đô thị Văn Quán, Hà Đông, Hà Nội',
-    status: 'saved',
-    module: 'solar',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    custType: 'sinh_hoat',
-    provinceCode: 'HAN',
-    monthlyElectricityBillVnd: 18500000,
-    monthlyConsumptionKwh: 5800,
-    roofType: 'tole',
-    roofDir: 's',
-    roofShape: 'rect',
-    roofLengthM: 20,
-    roofWidthM: 12,
-    roofHeightM: 14,
-    sysType: 'zero_export',
-    phases: '3',
-    installMode: 'full_roof',
-    selectedPanelId: 'cs-585t',
-    marginPct: 18,
-    discountPct: 0,
-    pricingTier: 'recommended',
-  };
-}
-
-// ========================
-// USER AUTH STORAGE & SEED
-// ========================
-interface ServerUser {
-  id: string;
-  fullName: string;
-  email: string;
-  phone: string;
-  address: string;
-  password: string;
-  role: 'ky_su' | 'sales' | 'admin';
-  isEmailVerified: boolean;
-  verificationCode?: string;
-  createdAt: string;
-}
-
-function loadUsers(): ServerUser[] {
-  try {
-    if (fs.existsSync(USERS_FILE)) {
-      const content = fs.readFileSync(USERS_FILE, 'utf-8');
-      const parsed = JSON.parse(content);
-      if (Array.isArray(parsed)) return parsed;
-    }
   } catch (err) {
-    console.error('Error loading users:', err);
-  }
-  const defaultUsers: ServerUser[] = [
-    {
-      id: 'user-admin-01',
-      fullName: 'Quản Trị Viên HGC',
-      email: 'admin@hgcvn.cloud',
-      phone: '0974 04 19 84',
-      address: 'B36 TT7 Khu đô thị Văn Quán, Hà Đông, Hà Nội',
-      password: '123456',
-      role: 'admin',
-      isEmailVerified: true,
-      createdAt: new Date().toISOString(),
-    },
-  ];
-  saveUsers(defaultUsers);
-  return defaultUsers;
-}
-
-function saveUsers(users: ServerUser[]) {
-  try {
-    fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2), 'utf-8');
-  } catch (err) {
-    console.error('Error saving users to disk:', err);
+    console.error(`[HGC Solar Email Service] ✗ Lỗi khi gửi email qua SMTP:`, err);
+    return { sent: false, error: (err as Error).message };
   }
 }
-
-function loadProjects(): any[] {
-  try {
-    if (fs.existsSync(PROJECTS_FILE)) {
-      const content = fs.readFileSync(PROJECTS_FILE, 'utf-8');
-      const parsed = JSON.parse(content);
-      if (Array.isArray(parsed)) return parsed;
-    }
-  } catch (err) {
-    console.error('Error loading projects:', err);
-  }
-  const defaultProj: any[] = [];
-  saveProjects(defaultProj);
-  return defaultProj;
-}
-
-function saveProjects(projects: any[]) {
-  try {
-    fs.writeFileSync(PROJECTS_FILE, JSON.stringify(projects, null, 2), 'utf-8');
-  } catch (err) {
-    console.error('Error saving projects to disk:', err);
-  }
-}
-
-let usersStore: ServerUser[] = loadUsers();
-let projectsStore: any[] = loadProjects();
 
 function sanitizeUser(u: ServerUser) {
   const { password, verificationCode, ...rest } = u;
@@ -243,13 +122,13 @@ function sanitizeUser(u: ServerUser) {
 // REST API ROUTES
 // ========================
 
-// Health check
-app.get('/api/health', (req, res) => {
+// Health check endpoint (báo cáo trạng thái máy chủ & PostgreSQL Database)
+app.get('/api/health', async (req, res) => {
+  const dbHealth = await getDbHealth();
   res.json({
     status: 'ok',
     uptime: process.uptime(),
-    projectsCount: projectsStore.length,
-    usersCount: usersStore.length,
+    ...dbHealth,
     timestamp: new Date().toISOString(),
   });
 });
@@ -270,13 +149,13 @@ app.post('/api/auth/register', async (req, res) => {
   }
 
   const normalizedEmail = String(email).trim().toLowerCase();
-  const existingUser = usersStore.find((u) => u.email.toLowerCase() === normalizedEmail);
+  const existingUser = await findUserByEmail(normalizedEmail);
   if (existingUser) {
     if (!existingUser.isEmailVerified) {
       // Cho phép lấy lại mã nếu chưa xác thực
       const newOtp = Math.floor(100000 + Math.random() * 900000).toString();
       existingUser.verificationCode = newOtp;
-      saveUsers(usersStore);
+      await saveUser(existingUser);
       await sendVerificationEmail(existingUser.email, existingUser.fullName, newOtp);
       return res.json({
         success: true,
@@ -304,9 +183,8 @@ app.post('/api/auth/register', async (req, res) => {
     createdAt: new Date().toISOString(),
   };
 
-  usersStore.unshift(newUser);
-  saveUsers(usersStore);
-  
+  await saveUser(newUser);
+
   // Gửi email thực tế đến hòm thư người dùng
   await sendVerificationEmail(newUser.email, newUser.fullName, otpCode);
 
@@ -318,14 +196,14 @@ app.post('/api/auth/register', async (req, res) => {
 });
 
 // Xác nhận email bằng mã OTP 6 số
-app.post('/api/auth/verify-email', (req, res) => {
+app.post('/api/auth/verify-email', async (req, res) => {
   const { email, code } = req.body;
   if (!email || !code) {
     return res.status(400).json({ success: false, error: 'Thiếu email hoặc mã xác thực' });
   }
 
   const normalizedEmail = String(email).trim().toLowerCase();
-  const user = usersStore.find((u) => u.email.toLowerCase() === normalizedEmail);
+  const user = await findUserByEmail(normalizedEmail);
 
   if (!user) {
     return res.status(404).json({ success: false, error: 'Không tìm thấy tài khoản với email này.' });
@@ -343,7 +221,7 @@ app.post('/api/auth/verify-email', (req, res) => {
   if (cleanCode === user.verificationCode || cleanCode === '123456') {
     user.isEmailVerified = true;
     user.verificationCode = undefined;
-    saveUsers(usersStore);
+    await saveUser(user);
     console.log(`[HGC Solar Auth] User ${user.email} verified email successfully!`);
     return res.json({
       success: true,
@@ -362,7 +240,7 @@ app.post('/api/auth/verify-email', (req, res) => {
 app.post('/api/auth/resend-code', async (req, res) => {
   const { email } = req.body;
   const normalizedEmail = String(email).trim().toLowerCase();
-  const user = usersStore.find((u) => u.email.toLowerCase() === normalizedEmail);
+  const user = await findUserByEmail(normalizedEmail);
 
   if (!user) {
     return res.status(404).json({ success: false, error: 'Không tìm thấy tài khoản.' });
@@ -370,8 +248,8 @@ app.post('/api/auth/resend-code', async (req, res) => {
 
   const newOtp = Math.floor(100000 + Math.random() * 900000).toString();
   user.verificationCode = newOtp;
-  saveUsers(usersStore);
-  
+  await saveUser(user);
+
   // Gửi lại email thực tế
   await sendVerificationEmail(user.email, user.fullName, newOtp);
 
@@ -382,18 +260,16 @@ app.post('/api/auth/resend-code', async (req, res) => {
 });
 
 // Đăng nhập bằng Email và Password
-app.post('/api/auth/login', (req, res) => {
+app.post('/api/auth/login', async (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) {
     return res.status(400).json({ success: false, error: 'Vui lòng nhập email và mật khẩu.' });
   }
 
   const normalizedEmail = String(email).trim().toLowerCase();
-  const user = usersStore.find(
-    (u) => u.email.toLowerCase() === normalizedEmail && u.password === String(password)
-  );
+  const user = await findUserByEmail(normalizedEmail);
 
-  if (!user) {
+  if (!user || user.password !== String(password)) {
     return res.status(401).json({
       success: false,
       error: 'Email hoặc mật khẩu không chính xác.',
@@ -402,9 +278,9 @@ app.post('/api/auth/login', (req, res) => {
 
   // Kiểm tra xem đã xác thực email chưa
   if (!user.isEmailVerified) {
-    // Tạo lại OTP nếu cần
     if (!user.verificationCode) {
       user.verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+      await saveUser(user);
     }
     console.log(`[HGC Solar Auth] Login attempted on unverified account ${user.email}. OTP: ${user.verificationCode}`);
     return res.status(403).json({
@@ -423,85 +299,79 @@ app.post('/api/auth/login', (req, res) => {
 });
 
 // Danh sách người dùng (dành cho quản trị)
-app.get('/api/auth/users', (req, res) => {
-  res.json(usersStore.map(sanitizeUser));
+app.get('/api/auth/users', async (req, res) => {
+  const users = await getUsers();
+  res.json(users.map(sanitizeUser));
 });
 
-// GET /api/projects
-app.get('/api/projects', (req, res) => {
-  res.json(projectsStore);
+// Phân quyền người dùng (chỉ admin)
+app.put('/api/auth/users/:id/role', async (req, res) => {
+  const { id } = req.params;
+  const { role } = req.body;
+  if (!['ky_su', 'sales', 'admin'].includes(role)) {
+    return res.status(400).json({ error: 'Vai trò không hợp lệ' });
+  }
+  const success = await updateUserRole(id, role);
+  res.json({ success });
 });
 
-// GET /api/projects/:id
-app.get('/api/projects/:id', (req, res) => {
-  const project = projectsStore.find((p) => p.id === req.params.id);
+// Xóa tài khoản người dùng
+app.delete('/api/auth/users/:id', async (req, res) => {
+  const { id } = req.params;
+  const success = await deleteUser(id);
+  res.json({ success });
+});
+
+// ========================
+// PROJECTS REST API (POSTGRESQL DB)
+// ========================
+
+// GET /api/projects - Lấy toàn bộ danh sách dự án từ PostgreSQL
+app.get('/api/projects', async (req, res) => {
+  const projects = await getProjects();
+  res.json(projects);
+});
+
+// GET /api/projects/:id - Lấy chi tiết 1 dự án
+app.get('/api/projects/:id', async (req, res) => {
+  const project = await getProjectById(req.params.id);
   if (!project) {
-    return res.status(404).json({ error: 'Không tìm thấy dự án' });
+    return res.status(404).json({ error: 'Không tìm thấy dự án trong cơ sở dữ liệu' });
   }
   res.json(project);
 });
 
-// POST /api/projects - Tạo dự án mới hoặc bulk sync
-app.post('/api/projects', (req, res) => {
+// POST /api/projects - Tạo dự án mới hoặc lưu dự án vào DB
+app.post('/api/projects', async (req, res) => {
   const newProject = req.body;
   if (!newProject || !newProject.id) {
     return res.status(400).json({ error: 'Dữ liệu dự án không hợp lệ' });
   }
 
-  const existingIndex = projectsStore.findIndex((p) => p.id === newProject.id);
-  if (existingIndex >= 0) {
-    projectsStore[existingIndex] = {
-      ...newProject,
-      updatedAt: new Date().toISOString(),
-    };
-  } else {
-    projectsStore.unshift({
-      ...newProject,
-      createdAt: newProject.createdAt || new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    });
-  }
-
-  saveProjects(projectsStore);
-  res.status(201).json(newProject);
+  const saved = await saveProject(newProject);
+  res.status(201).json(saved);
 });
 
-// PUT /api/projects/:id - Cập nhật dự án
-app.put('/api/projects/:id', (req, res) => {
+// PUT /api/projects/:id - Cập nhật dự án trong DB
+app.put('/api/projects/:id', async (req, res) => {
   const { id } = req.params;
   const updates = req.body;
-  const index = projectsStore.findIndex((p) => p.id === id);
+  const existing = (await getProjectById(id)) || {};
+  const merged = { ...existing, ...updates, id };
 
-  if (index === -1) {
-    // Nếu chưa có thì thêm mới
-    const created = { ...updates, id, updatedAt: new Date().toISOString() };
-    projectsStore.unshift(created);
-    saveProjects(projectsStore);
-    return res.json(created);
-  }
-
-  projectsStore[index] = {
-    ...projectsStore[index],
-    ...updates,
-    updatedAt: new Date().toISOString(),
-  };
-
-  saveProjects(projectsStore);
-  res.json(projectsStore[index]);
+  const saved = await saveProject(merged);
+  res.json(saved);
 });
 
-// DELETE /api/projects/:id - Xóa dự án trên server
-app.delete('/api/projects/:id', (req, res) => {
+// DELETE /api/projects/:id - Xóa vĩnh viễn dự án khỏi PostgreSQL (DELETE FROM projects WHERE id = $1)
+app.delete('/api/projects/:id', async (req, res) => {
   const { id } = req.params;
-  const initialLength = projectsStore.length;
-  projectsStore = projectsStore.filter((p) => p.id !== id);
-  saveProjects(projectsStore);
+  const success = await deleteProject(id);
 
   res.json({
     success: true,
     deletedId: id,
-    remainingCount: projectsStore.length,
-    message: initialLength > projectsStore.length ? 'Đã xóa dự án thành công' : 'Dự án không tồn tại',
+    message: success ? 'Đã xóa dự án vĩnh viễn khỏi PostgreSQL Database' : 'Dự án không tồn tại',
   });
 });
 
@@ -509,6 +379,9 @@ app.delete('/api/projects/:id', (req, res) => {
 // VITE OR STATIC SERVING
 // ========================
 async function startServer() {
+  // Khởi tạo và kết nối cơ sở dữ liệu PostgreSQL
+  await initDatabase();
+
   if (!isProduction) {
     const { createServer } = await import('vite');
     const vite = await createServer({
