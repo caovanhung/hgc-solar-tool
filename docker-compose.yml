@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  # 1. Ứng dụng HGC Solar (Node.js 22 Express + Vite SPA)
+  solar-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: hgc-solar-app
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+    expose:
+      - "3000"
+    ports:
+      # Mở port 3000 nếu chạy trực tiếp không qua Nginx
+      - "3000:3000"
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - solar-net
+
+  # 2. Reverse Proxy Nginx (Tùy chọn: Dùng khi chạy trên Server riêng với SSL HTTPS)
+  nginx:
+    image: nginx:alpine
+    container_name: hgc-solar-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./certbot/conf:/etc/letsencrypt:ro
+      - ./certbot/www:/var/www/certbot:ro
+    depends_on:
+      - solar-app
+    networks:
+      - solar-net
+
+  # 3. Certbot tự động cấp chứng chỉ SSL Let's Encrypt
+  certbot:
+    image: certbot/certbot
+    container_name: hgc-solar-certbot
+    restart: "no"
+    volumes:
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+    networks:
+      - solar-net
+
+networks:
+  solar-net:
+    driver: bridge

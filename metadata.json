@@ -1,0 +1,6 @@
+{
+  "name": "HGC Solar Design & Quotation Tool",
+  "description": "Hệ thống thiết kế kỹ thuật và lập báo giá điện mặt trời áp mái đa nền tảng cho HGC & ETEK Power.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
