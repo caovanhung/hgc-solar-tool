@@ -9,6 +9,8 @@ echo "1. Cài đặt các thư viện mới nhất..."
 npm install
 
 echo "2. Build Frontend (dist/) và Backend (server.js)..."
+# Xóa sạch thư mục dist cũ để tránh lỗi EACCES quyền root
+rm -rf dist 2>/dev/null || sudo rm -rf dist 2>/dev/null || true
 npm run build
 
 echo "3. Đảm bảo thư mục dữ liệu tồn tại..."

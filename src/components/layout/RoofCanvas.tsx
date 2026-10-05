@@ -89,10 +89,41 @@ export const RoofCanvas: React.FC<RoofCanvasProps> = ({
 
     for (let r = 0; r < layout.rows; r++) {
       for (let c = 0; c < layout.cols; c++) {
-        if (panelIndex > layout.panelQty) break;
-
         const x = startX + c * (pwPx + gapPx);
         const y = startY + r * (phPx + gapPx);
+
+        if (panelIndex > layout.panelQty) {
+          panels.push(
+            <g key={`empty-${r}-${c}`} className="select-none opacity-45 pointer-events-none">
+              <rect
+                x={x}
+                y={y}
+                width={pwPx}
+                height={phPx}
+                rx={1.5}
+                fill="none"
+                stroke="#94A3B8"
+                strokeWidth={1}
+                strokeDasharray="3 3"
+              />
+              {pwPx > 18 && phPx > 22 && (
+                <text
+                  x={x + pwPx / 2}
+                  y={y + phPx / 2 + 3}
+                  textAnchor="middle"
+                  fontSize={Math.min(8, pwPx / 3.5)}
+                  fill="#94A3B8"
+                  className="font-mono"
+                >
+                  +{panelIndex}
+                </text>
+              )}
+            </g>
+          );
+          panelIndex++;
+          continue;
+        }
+
         const isHovered = hoveredPanel?.row === r && hoveredPanel?.col === c;
 
         panels.push(
@@ -383,6 +414,20 @@ export const RoofCanvas: React.FC<RoofCanvasProps> = ({
             </g>
           </svg>
         </div>
+
+        {/* Chú giải trạng thái phân bổ pin và ô trống */}
+        {layout.panelQty < (layout.maxRoofPanels || layout.cols * layout.rows) && (
+          <div className="absolute bottom-3 left-3 bg-slate-900/90 backdrop-blur-sm border border-slate-700/80 rounded-lg px-3 py-1.5 text-[11px] text-slate-300 flex items-center gap-3 shadow-md pointer-events-none z-10">
+            <div className="flex items-center gap-1.5">
+              <span className="w-3 h-3 rounded-sm bg-[#0F172A] border border-[#38BDF8] inline-block" />
+              <span>Đang lắp ({layout.panelQty} tấm)</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="w-3 h-3 rounded-sm border border-dashed border-slate-400 inline-block" />
+              <span>Vị trí mái dự phòng ({(layout.maxRoofPanels || layout.cols * layout.rows) - layout.panelQty} ô trống)</span>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Bottom Status & Info Bar */}

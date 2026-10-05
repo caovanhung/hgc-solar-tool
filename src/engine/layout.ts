@@ -235,8 +235,13 @@ export function calculatePanelLayout(params: LayoutParams): LayoutResult {
   const monthlyKwh = Number((dailyKwh * 30).toFixed(0));
   const monthlySavingVnd = Number((monthlyKwh * tariffVnd).toFixed(0));
 
+  const maxRoofPanels = maxCount;
+  const maxRoofKwp = Number(((maxCount * panel.wp) / 1000).toFixed(2));
+
   return {
     panelQty: finalPanelQty,
+    maxRoofPanels,
+    maxRoofKwp,
     installedKwp,
     cols: bestCols,
     rows: bestRows,

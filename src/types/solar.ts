@@ -104,6 +104,8 @@ export interface MaterialItem {
 
 export interface LayoutResult {
   panelQty: number;
+  maxRoofPanels?: number;
+  maxRoofKwp?: number;
   installedKwp: number;
   cols: number;
   rows: number;
