@@ -75,8 +75,8 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
         </div>
 
-        {/* Center: Active Project Pill (Desktop / Tablet) */}
-        {currentProject && activeView === 'wizard' && (
+        {/* Center: Active Project Pill (Desktop / Tablet) - Only when logged in */}
+        {currentUser && currentProject && activeView === 'wizard' && (
           <div className="hidden lg:flex items-center gap-2 px-3 py-1 bg-[#0A1C2E]/80 border border-[#1E4C7C] rounded-full text-xs">
             <Building2 size={13} className="text-[#E4572E]" />
             <span className="font-semibold text-slate-100 max-w-[200px] truncate">
@@ -99,128 +99,148 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* Right: Actions, User Auth & Roles */}
         <div className="flex items-center gap-1.5 sm:gap-2">
-          {/* Quick 3-min Quotation Button */}
-          <button
-            onClick={onOpenQuickProposal}
-            className="flex items-center gap-1.5 px-2.5 sm:px-3.5 py-1.5 text-xs font-bold rounded-lg bg-gradient-to-r from-[#E4572E] to-[#F2A65A] text-white hover:brightness-110 active:scale-95 transition-all shadow-sm"
-            title="Tạo nhanh báo giá 3 phút cho khách hàng"
-          >
-            <Zap size={14} className="fill-current" />
-            <span className="hidden sm:inline">Báo giá nhanh</span>
-            <span className="sm:hidden">Nhanh</span>
-          </button>
+          {currentUser ? (
+            <>
+              {/* Quick 3-min Quotation Button */}
+              <button
+                onClick={onOpenQuickProposal}
+                className="flex items-center gap-1.5 px-2.5 sm:px-3.5 py-1.5 text-xs font-bold rounded-lg bg-gradient-to-r from-[#E4572E] to-[#F2A65A] text-white hover:brightness-110 active:scale-95 transition-all shadow-sm"
+                title="Tạo nhanh báo giá 3 phút cho khách hàng"
+              >
+                <Zap size={14} className="fill-current" />
+                <span className="hidden sm:inline">Báo giá nhanh</span>
+                <span className="sm:hidden">Nhanh</span>
+              </button>
 
-          {/* Project List Switcher */}
-          <button
-            onClick={onOpenProjects}
-            className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 text-xs font-semibold rounded-lg border transition-colors ${
-              activeView === 'projects'
-                ? 'bg-[#1E4C7C] border-cyan-400 text-cyan-200'
-                : 'bg-[#0A1C2E] border-[#1E4C7C] text-slate-200 hover:bg-[#153454]'
-            }`}
-          >
-            <FolderOpen size={14} />
-            <span className="hidden md:inline">Dự án</span>
-          </button>
+              {/* Project List Switcher */}
+              <button
+                onClick={onOpenProjects}
+                className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 text-xs font-semibold rounded-lg border transition-colors ${
+                  activeView === 'projects'
+                    ? 'bg-[#1E4C7C] border-cyan-400 text-cyan-200'
+                    : 'bg-[#0A1C2E] border-[#1E4C7C] text-slate-200 hover:bg-[#153454]'
+                }`}
+              >
+                <FolderOpen size={14} />
+                <span className="hidden md:inline">Dự án</span>
+              </button>
 
-          {/* Admin Catalog Button */}
-          <button
-            onClick={onOpenAdmin}
-            className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 text-xs font-semibold rounded-lg border transition-colors ${
-              activeView === 'admin'
-                ? 'bg-[#1E4C7C] border-cyan-400 text-cyan-200'
-                : 'bg-[#0A1C2E] border-[#1E4C7C] text-slate-200 hover:bg-[#153454]'
-            }`}
-            title="Quản lý danh mục thiết bị và đơn giá"
-          >
-            <Settings size={14} />
-            <span className="hidden md:inline">Danh mục</span>
-          </button>
+              {/* Admin Catalog Button */}
+              <button
+                onClick={onOpenAdmin}
+                className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 text-xs font-semibold rounded-lg border transition-colors ${
+                  activeView === 'admin'
+                    ? 'bg-[#1E4C7C] border-cyan-400 text-cyan-200'
+                    : 'bg-[#0A1C2E] border-[#1E4C7C] text-slate-200 hover:bg-[#153454]'
+                }`}
+                title="Quản lý danh mục thiết bị và đơn giá"
+              >
+                <Settings size={14} />
+                <span className="hidden md:inline">Danh mục</span>
+              </button>
 
-          {/* Xóa Cache Button */}
-          {onClearCache && (
-            <button
-              onClick={onClearCache}
-              className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 text-xs font-semibold rounded-lg bg-[#0A1C2E] border border-emerald-500/40 text-emerald-300 hover:bg-[#153454] transition-colors"
-              title="Làm mới bộ nhớ đệm trình duyệt"
-            >
-              <RotateCcw size={13} />
-              <span className="hidden lg:inline">Xóa cache</span>
-            </button>
-          )}
+              {/* Xóa Cache Button */}
+              {onClearCache && (
+                <button
+                  onClick={onClearCache}
+                  className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 text-xs font-semibold rounded-lg bg-[#0A1C2E] border border-emerald-500/40 text-emerald-300 hover:bg-[#153454] transition-colors"
+                  title="Làm mới bộ nhớ đệm trình duyệt"
+                >
+                  <RotateCcw size={13} />
+                  <span className="hidden lg:inline">Xóa cache</span>
+                </button>
+              )}
 
-          {/* Print / Export PDF Button */}
-          {activeView === 'wizard' && (
-            <button
-              onClick={onPrint}
-              className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 text-xs font-semibold rounded-lg bg-[#0A1C2E] border border-[#1E4C7C] text-slate-200 hover:bg-[#153454] transition-colors"
-              title="Xuất hồ sơ thiết kế & in PDF"
-            >
-              <Printer size={14} />
-              <span className="hidden lg:inline">In PDF</span>
-            </button>
-          )}
+              {/* Print / Export PDF Button */}
+              {activeView === 'wizard' && (
+                <button
+                  onClick={onPrint}
+                  className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 text-xs font-semibold rounded-lg bg-[#0A1C2E] border border-[#1E4C7C] text-slate-200 hover:bg-[#153454] transition-colors"
+                  title="Xuất hồ sơ thiết kế & in PDF"
+                >
+                  <Printer size={14} />
+                  <span className="hidden lg:inline">In PDF</span>
+                </button>
+              )}
 
-          {/* Role Switcher Pill */}
-          <div className="relative hidden sm:block">
-            <button
-              onClick={() => {
-                setRoleDropdownOpen(!roleDropdownOpen);
-                setUserDropdownOpen(false);
-              }}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#0A1C2E] border border-[#1E4C7C] text-xs text-slate-200 hover:bg-[#153454] transition-colors"
-            >
-              <ShieldCheck size={14} className="text-emerald-400" />
-              <span className="font-semibold">
-                {userRole === 'ky_su' ? 'Kỹ sư' : userRole === 'sales' ? 'Kinh doanh' : 'Admin'}
-              </span>
-              <ChevronDown size={12} className="text-slate-400" />
-            </button>
-
-            {roleDropdownOpen && (
-              <div className="absolute right-0 mt-1 w-44 bg-[#0A1C2E] border border-[#1E4C7C] rounded-lg shadow-xl py-1 z-50 text-xs">
-                <div className="px-3 py-1.5 text-slate-400 border-b border-[#1E4C7C] font-semibold text-[10px] uppercase">
-                  Chuyển vai trò thử nghiệm
-                </div>
+              {/* Role Switcher Pill */}
+              <div className="relative hidden sm:block">
                 <button
                   onClick={() => {
-                    setUserRole('ky_su');
-                    setRoleDropdownOpen(false);
+                    setRoleDropdownOpen(!roleDropdownOpen);
+                    setUserDropdownOpen(false);
                   }}
-                  className={`w-full text-left px-3 py-2 flex items-center justify-between hover:bg-[#1E4C7C] ${
-                    userRole === 'ky_su' ? 'text-cyan-300 font-bold bg-[#14324f]' : 'text-slate-200'
-                  }`}
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#0A1C2E] border border-[#1E4C7C] text-xs text-slate-200 hover:bg-[#153454] transition-colors"
                 >
-                  <span>Kỹ sư (Engineer)</span>
-                  {userRole === 'ky_su' && <CheckCircle2 size={12} />}
+                  <ShieldCheck size={14} className="text-emerald-400" />
+                  <span className="font-semibold">
+                    {userRole === 'ky_su' ? 'Kỹ sư' : userRole === 'sales' ? 'Kinh doanh' : 'Admin'}
+                  </span>
+                  <ChevronDown size={12} className="text-slate-400" />
                 </button>
-                <button
-                  onClick={() => {
-                    setUserRole('sales');
-                    setRoleDropdownOpen(false);
-                  }}
-                  className={`w-full text-left px-3 py-2 flex items-center justify-between hover:bg-[#1E4C7C] ${
-                    userRole === 'sales' ? 'text-cyan-300 font-bold bg-[#14324f]' : 'text-slate-200'
-                  }`}
-                >
-                  <span>Kinh doanh (Sales)</span>
-                  {userRole === 'sales' && <CheckCircle2 size={12} />}
-                </button>
-                <button
-                  onClick={() => {
-                    setUserRole('admin');
-                    setRoleDropdownOpen(false);
-                  }}
-                  className={`w-full text-left px-3 py-2 flex items-center justify-between hover:bg-[#1E4C7C] ${
-                    userRole === 'admin' ? 'text-cyan-300 font-bold bg-[#14324f]' : 'text-slate-200'
-                  }`}
-                >
-                  <span>Quản trị viên (Admin)</span>
-                  {userRole === 'admin' && <CheckCircle2 size={12} />}
-                </button>
+
+                {roleDropdownOpen && (
+                  <div className="absolute right-0 mt-1 w-44 bg-[#0A1C2E] border border-[#1E4C7C] rounded-lg shadow-xl py-1 z-50 text-xs">
+                    <div className="px-3 py-1.5 text-slate-400 border-b border-[#1E4C7C] font-semibold text-[10px] uppercase">
+                      Chuyển vai trò thử nghiệm
+                    </div>
+                    <button
+                      onClick={() => {
+                        setUserRole('ky_su');
+                        setRoleDropdownOpen(false);
+                      }}
+                      className={`w-full text-left px-3 py-2 flex items-center justify-between hover:bg-[#1E4C7C] ${
+                        userRole === 'ky_su' ? 'text-cyan-300 font-bold bg-[#14324f]' : 'text-slate-200'
+                      }`}
+                    >
+                      <span>Kỹ sư (Engineer)</span>
+                      {userRole === 'ky_su' && <CheckCircle2 size={12} />}
+                    </button>
+                    <button
+                      onClick={() => {
+                        setUserRole('sales');
+                        setRoleDropdownOpen(false);
+                      }}
+                      className={`w-full text-left px-3 py-2 flex items-center justify-between hover:bg-[#1E4C7C] ${
+                        userRole === 'sales' ? 'text-cyan-300 font-bold bg-[#14324f]' : 'text-slate-200'
+                      }`}
+                    >
+                      <span>Kinh doanh (Sales)</span>
+                      {userRole === 'sales' && <CheckCircle2 size={12} />}
+                    </button>
+                    <button
+                      onClick={() => {
+                        setUserRole('admin');
+                        setRoleDropdownOpen(false);
+                      }}
+                      className={`w-full text-left px-3 py-2 flex items-center justify-between hover:bg-[#1E4C7C] ${
+                        userRole === 'admin' ? 'text-cyan-300 font-bold bg-[#14324f]' : 'text-slate-200'
+                      }`}
+                    >
+                      <span>Quản trị viên (Admin)</span>
+                      {userRole === 'admin' && <CheckCircle2 size={12} />}
+                    </button>
+                  </div>
+                )}
               </div>
-            )}
-          </div>
+            </>
+          ) : (
+            <div className="flex items-center gap-2">
+              <button
+                onClick={onOpenAuthModal}
+                className="px-3 py-1.5 rounded-lg border border-[#1E4C7C] bg-[#0A1C2E] text-slate-200 hover:text-white hover:bg-[#153454] text-xs font-semibold transition-colors flex items-center gap-1.5"
+              >
+                <User size={13} />
+                <span>Đăng nhập</span>
+              </button>
+              <button
+                onClick={onOpenAuthModal}
+                className="px-3.5 py-1.5 rounded-lg bg-[#E4572E] hover:bg-[#d04922] text-white text-xs font-bold transition-all shadow-sm flex items-center gap-1.5"
+              >
+                <span>Đăng ký</span>
+              </button>
+            </div>
+          )}
 
           {/* USER LOGIN / PROFILE BUTTON */}
           <div className="relative">

@@ -495,7 +495,78 @@ export default function App() {
 
       {/* 2. Main Content Area */}
       <main className="flex-1 w-full">
-        {/* VIEW 1: PROJECTS LIST */}
+        {!currentUser ? (
+          /* GUEST / NOT LOGGED IN LANDING SCREEN - Yêu cầu đăng nhập trước khi xem dự án */
+          <div className="max-w-4xl mx-auto px-4 py-12 sm:py-16 space-y-8 animate-fadeIn">
+            <div className="text-center space-y-4">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-cyan-950/80 border border-cyan-500/40 text-cyan-300 text-xs font-semibold shadow-xs">
+                <CheckCircle2 size={14} className="text-cyan-400" />
+                <span>Hệ Thống Tính Toán Kỹ Thuật & Báo Giá HGC Solar</span>
+              </div>
+              <h1 className="text-2xl sm:text-4xl font-extrabold text-[#0F2A45] tracking-tight leading-tight">
+                Phần Mềm Thiết Kế & Báo Giá Điện Mặt Trời Áp Mái
+              </h1>
+              <p className="text-sm sm:text-base text-slate-600 max-w-2xl mx-auto">
+                Hệ thống chuyên dụng dành cho Kỹ sư, Đối tác và Khách hàng của Công Ty TNHH HGC. Vui lòng đăng nhập để xem thông tin dự án, tính toán diện tích lắp đặt tấm pin và xuất dự toán BOM.
+              </p>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-3">
+                <button
+                  onClick={() => setShowAuthModal(true)}
+                  className="w-full sm:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-[#E4572E] to-[#f27449] hover:brightness-110 text-white font-bold text-sm shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <Sun size={16} />
+                  <span>Đăng nhập hệ thống</span>
+                </button>
+                <button
+                  onClick={() => setShowAuthModal(true)}
+                  className="w-full sm:w-auto px-6 py-3 rounded-xl bg-[#0F2A45] hover:bg-[#153454] text-white font-semibold text-sm shadow-sm transition-all flex items-center justify-center gap-2 border border-[#1E4C7C] cursor-pointer"
+                >
+                  <CheckCircle2 size={16} className="text-emerald-400" />
+                  <span>Đăng ký tài khoản mới</span>
+                </button>
+              </div>
+            </div>
+
+            {/* 3 Highlights Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4">
+              <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-2">
+                <div className="w-10 h-10 rounded-xl bg-amber-50 text-[#E4572E] flex items-center justify-center font-bold text-lg">
+                  ☀
+                </div>
+                <h3 className="font-bold text-slate-900 text-sm">Bố trí Panel 2D Tự Động</h3>
+                <p className="text-xs text-slate-500 leading-relaxed">
+                  Tự động tối ưu số lượng tấm pin áp mái theo kích thước chiều dài, rộng hoặc công suất tiêu thụ điện hàng tháng.
+                </p>
+              </div>
+
+              <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-2">
+                <div className="w-10 h-10 rounded-xl bg-cyan-50 text-cyan-600 flex items-center justify-center font-bold text-lg">
+                  ⚡
+                </div>
+                <h3 className="font-bold text-slate-900 text-sm">Phối Ghép Inverter Chuẩn</h3>
+                <p className="text-xs text-slate-500 leading-relaxed">
+                  Kiểm tra điện áp Voc cực tiểu, cực đại theo nhiệt độ Việt Nam và tỷ lệ DC/AC tối ưu từ 1.15 đến 1.35.
+                </p>
+              </div>
+
+              <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-2">
+                <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-lg">
+                  📄
+                </div>
+                <h3 className="font-bold text-slate-900 text-sm">Dự Toán BOM 8 Nhóm Vật Tư</h3>
+                <p className="text-xs text-slate-500 leading-relaxed">
+                  Xuất bảng vật tư chi tiết, tính toán dây cáp AC/DC, tủ điện phân phối và in PDF hồ sơ báo giá chuyên nghiệp.
+                </p>
+              </div>
+            </div>
+
+            <div className="p-4 rounded-xl bg-slate-100 border border-slate-200 text-center text-xs text-slate-500">
+              Công Ty TNHH HGC · Trụ sở: B36 TT7 KĐT Văn Quán, Hà Đông, Hà Nội · Hotline: 0974 04 19 84
+            </div>
+          </div>
+        ) : (
+          <>
+            {/* VIEW 1: PROJECTS LIST */}
         {activeView === 'projects' && (
           <ProjectList
             projects={projects}
@@ -653,6 +724,8 @@ export default function App() {
             </div>
           </div>
         ) : null}
+          </>
+        )}
       </main>
 
       {/* Toast Notification Banner */}
