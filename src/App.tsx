@@ -94,10 +94,10 @@ function createInitialProject(): Project {
 
   return {
     id: 'demo-hgc-01',
-    name: 'Văn Phòng HGC - Solar 42kWp',
-    customerName: 'Tập Đoàn Công Nghệ HGC (Trụ Sở Chính)',
-    phone: '0912345678',
-    address: 'Khu Công Nghệ Cao Hòa Lạc, Hà Nội',
+    name: 'Văn Phòng HGC Văn Quán - Solar 42kWp',
+    customerName: 'CÔNG TY TNHH HGC',
+    phone: '0974 04 19 84',
+    address: 'B36 TT7 Khu đô thị Văn Quán, Hà Đông, Hà Nội',
     status: 'saved',
     module: 'solar',
     createdAt: new Date().toISOString(),

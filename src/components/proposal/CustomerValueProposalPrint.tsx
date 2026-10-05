@@ -45,16 +45,25 @@ export const CustomerValueProposalPrint: React.FC<CustomerValueProposalPrintProp
       {/* ========================================================================= */}
       <div className="border-b-2 border-slate-200 pb-6 mb-6">
         {/* Letterhead */}
-        <div className="flex items-start justify-between border-b-2 border-[#0F2A45] pb-4 mb-5">
+        <div className="flex items-start justify-between border-b-2 border-red-600 pb-3 mb-5">
           <div className="flex items-center gap-3">
             <Logo size="lg" />
           </div>
 
-          <div className="text-right text-[11px] text-slate-600">
-            <div className="font-bold text-sm text-[#0F2A45]">CÔNG TY CỔ PHẦN CÔNG NGHỆ HGC</div>
-            <div>Hotline: 1900-xxxx · Website: www.hgc.vn · Email: contact@hgc.vn</div>
-            <div>Trụ sở: Hà Nội & TP. Hồ Chí Minh · Chi nhánh toàn quốc</div>
-            <div className="text-slate-400 font-mono text-[10px] mt-1">
+          <div className="text-right text-[11px] leading-tight space-y-0.5">
+            <div className="font-extrabold text-sm sm:text-base text-[#002060] tracking-wide uppercase">
+              CÔNG TY TNHH HGC
+            </div>
+            <div className="text-[#002060] font-medium text-[10.5px]">
+              <span className="font-semibold">[Add ]:</span> B36 TT7 Khu đô thị Văn Quán Hà Đông Hà Nội
+            </div>
+            <div className="text-red-600 font-medium text-[10.5px]">
+              <span className="font-semibold">[Web]:</span> https://hgcvn.com - <span className="font-semibold">[Email]:</span> hgc.vn2026@gmail.com
+            </div>
+            <div className="text-[#002060] font-medium text-[10.5px]">
+              <span className="font-semibold">[Head]:</span> 0974 04 19 84 - 0989 09 97 35
+            </div>
+            <div className="text-slate-400 font-mono text-[9.5px] pt-0.5">
               Mã hồ sơ: HGC-PROPOSAL-{project.id.slice(0, 6).toUpperCase()} · Ngày phát hành: {new Date().toLocaleDateString('vi-VN')}
             </div>
           </div>
@@ -394,7 +403,7 @@ export const CustomerValueProposalPrint: React.FC<CustomerValueProposalPrintProp
             <div className="h-16"></div>
           </div>
           <div>
-            <div className="font-bold text-slate-900 uppercase">ĐẠI DIỆN CÔNG TY CP CÔNG NGHỆ HGC</div>
+            <div className="font-bold text-slate-900 uppercase">ĐẠI DIỆN CÔNG TY TNHH HGC</div>
             <div className="text-[11px] text-slate-400 mt-0.5">(Ký, ghi rõ họ tên & đóng dấu)</div>
             <div className="h-16"></div>
           </div>
