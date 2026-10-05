@@ -13,8 +13,13 @@ import {
   ShieldCheck,
   ChevronDown,
   RotateCcw,
+  LogOut,
+  Phone,
+  MapPin,
+  Mail,
 } from 'lucide-react';
 import { Project } from '../../types/solar';
+import { UserProfile, UserRole } from '../../types/user';
 
 interface HeaderProps {
   currentProject?: Project;
@@ -24,9 +29,12 @@ interface HeaderProps {
   onPrint: () => void;
   onClearCache?: () => void;
   activeView: 'wizard' | 'projects' | 'admin';
-  userRole: 'ky_su' | 'sales' | 'admin';
-  setUserRole: (role: 'ky_su' | 'sales' | 'admin') => void;
+  userRole: UserRole;
+  setUserRole: (role: UserRole) => void;
   saveStatus: 'saved' | 'saving';
+  currentUser?: UserProfile | null;
+  onOpenAuthModal: () => void;
+  onLogout: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -40,16 +48,20 @@ export const Header: React.FC<HeaderProps> = ({
   userRole,
   setUserRole,
   saveStatus,
+  currentUser,
+  onOpenAuthModal,
+  onLogout,
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [roleDropdownOpen, setRoleDropdownOpen] = useState(false);
+  const [userDropdownOpen, setUserDropdownOpen] = useState(false);
 
   return (
     <header className="sticky top-0 z-40 bg-[#0F2A45] text-white border-b border-[#1E4C7C] shadow-md select-none print:hidden">
       {/* Main Top Header Bar */}
       <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 h-16 flex items-center justify-between gap-2 sm:gap-4">
-        {/* Left: Brand Logo & Module Tabs */}
-        <div className="flex items-center gap-4 sm:gap-6">
+        {/* Left: Brand Logo & Solar Tag */}
+        <div className="flex items-center gap-3 sm:gap-5">
           <div
             onClick={onOpenProjects}
             className="cursor-pointer flex items-center py-1 transition-opacity hover:opacity-95"
@@ -58,28 +70,9 @@ export const Header: React.FC<HeaderProps> = ({
             <Logo size="md" lightText={true} />
           </div>
 
-          {/* Module Selector: Solar, Bess, Solar+Bess (Hidden on small mobile, visible on tablet/laptop) */}
-          <nav className="hidden md:flex items-center p-1 bg-[#0A1C2E] rounded-lg border border-[#1E4C7C]">
-            <button
-              className="px-3 py-1.5 text-xs font-semibold rounded-md bg-[#E4572E] text-white shadow-sm transition-all"
-            >
-              ☀ Solar Áp Mái
-            </button>
-            <button
-              onClick={() => alert('Mô-đun BESS (Pin lưu trữ năng lượng công nghiệp) đang được phát triển theo lộ trình Phase 4!')}
-              className="px-3 py-1.5 text-xs font-medium text-slate-300 hover:text-white rounded-md transition-colors flex items-center gap-1.5"
-            >
-              <span>🔋 BESS</span>
-              <span className="text-[9px] bg-slate-800 text-slate-400 px-1.5 py-0.2 rounded font-mono">Sắp có</span>
-            </button>
-            <button
-              onClick={() => alert('Mô-đun Solar + BESS Hybrid đang được phát triển theo lộ trình Phase 4!')}
-              className="px-3 py-1.5 text-xs font-medium text-slate-300 hover:text-white rounded-md transition-colors flex items-center gap-1.5"
-            >
-              <span>⚡ Solar + BESS</span>
-              <span className="text-[9px] bg-slate-800 text-slate-400 px-1.5 py-0.2 rounded font-mono">Sắp có</span>
-            </button>
-          </nav>
+          <div className="hidden sm:flex items-center px-2.5 py-1 bg-[#0A1C2E] rounded-md border border-[#1E4C7C]/60 text-xs font-semibold text-amber-300">
+            ☀ Hệ Thống Điện Mặt Trời Áp Mái
+          </div>
         </div>
 
         {/* Center: Active Project Pill (Desktop / Tablet) */}
@@ -104,8 +97,8 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
         )}
 
-        {/* Right: Actions & User Info */}
-        <div className="flex items-center gap-1.5 sm:gap-2.5">
+        {/* Right: Actions, User Auth & Roles */}
+        <div className="flex items-center gap-1.5 sm:gap-2">
           {/* Quick 3-min Quotation Button */}
           <button
             onClick={onOpenQuickProposal}
@@ -144,12 +137,12 @@ export const Header: React.FC<HeaderProps> = ({
             <span className="hidden md:inline">Danh mục</span>
           </button>
 
-          {/* Xóa Cache Button - Đồng bộ chuẩn Etek Power */}
+          {/* Xóa Cache Button */}
           {onClearCache && (
             <button
               onClick={onClearCache}
               className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 text-xs font-semibold rounded-lg bg-[#0A1C2E] border border-emerald-500/40 text-emerald-300 hover:bg-[#153454] transition-colors"
-              title="Làm mới bộ nhớ đệm trình duyệt và đồng bộ danh mục 8 nhóm BOM mới nhất"
+              title="Làm mới bộ nhớ đệm trình duyệt"
             >
               <RotateCcw size={13} />
               <span className="hidden lg:inline">Xóa cache</span>
@@ -164,14 +157,17 @@ export const Header: React.FC<HeaderProps> = ({
               title="Xuất hồ sơ thiết kế & in PDF"
             >
               <Printer size={14} />
-              <span className="hidden lg:inline">In / Xuất PDF</span>
+              <span className="hidden lg:inline">In PDF</span>
             </button>
           )}
 
           {/* Role Switcher Pill */}
           <div className="relative hidden sm:block">
             <button
-              onClick={() => setRoleDropdownOpen(!roleDropdownOpen)}
+              onClick={() => {
+                setRoleDropdownOpen(!roleDropdownOpen);
+                setUserDropdownOpen(false);
+              }}
               className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#0A1C2E] border border-[#1E4C7C] text-xs text-slate-200 hover:bg-[#153454] transition-colors"
             >
               <ShieldCheck size={14} className="text-emerald-400" />
@@ -226,6 +222,88 @@ export const Header: React.FC<HeaderProps> = ({
             )}
           </div>
 
+          {/* USER LOGIN / PROFILE BUTTON */}
+          <div className="relative">
+            {currentUser ? (
+              <div>
+                <button
+                  onClick={() => {
+                    setUserDropdownOpen(!userDropdownOpen);
+                    setRoleDropdownOpen(false);
+                  }}
+                  className="flex items-center gap-2 pl-2 pr-2.5 py-1 bg-[#0A1C2E] border border-cyan-500/60 rounded-lg text-xs hover:bg-[#153454] transition-colors"
+                >
+                  <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center font-bold text-[11px] text-white shadow-sm">
+                    {currentUser.fullName.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="hidden md:flex flex-col text-left">
+                    <span className="font-semibold text-slate-100 max-w-[110px] truncate leading-tight">
+                      {currentUser.fullName}
+                    </span>
+                    <span className="text-[10px] text-emerald-400 flex items-center gap-0.5">
+                      <CheckCircle2 size={10} /> Đã xác thực
+                    </span>
+                  </div>
+                  <ChevronDown size={12} className="text-slate-400" />
+                </button>
+
+                {userDropdownOpen && (
+                  <div className="absolute right-0 mt-1.5 w-72 bg-[#0A1C2E] border border-[#1E4C7C] rounded-xl shadow-2xl p-3 z-50 text-xs text-slate-200 animate-fadeIn">
+                    <div className="flex items-start gap-2.5 pb-3 border-b border-[#1E4C7C]">
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center font-bold text-sm text-white shrink-0">
+                        {currentUser.fullName.charAt(0).toUpperCase()}
+                      </div>
+                      <div className="overflow-hidden">
+                        <div className="font-bold text-white truncate text-sm">{currentUser.fullName}</div>
+                        <div className="text-[11px] text-slate-400 flex items-center gap-1 truncate">
+                          <Mail size={11} className="shrink-0 text-cyan-400" />
+                          <span className="truncate">{currentUser.email}</span>
+                        </div>
+                        <div className="text-[10px] text-emerald-400 flex items-center gap-1 mt-0.5 font-medium">
+                          <CheckCircle2 size={10} /> Email đã xác thực hợp lệ
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="py-2.5 space-y-1.5 border-b border-[#1E4C7C] text-[11px]">
+                      <div className="flex items-center gap-2 text-slate-300">
+                        <Phone size={12} className="text-amber-400 shrink-0" />
+                        <span className="text-slate-400">SĐT:</span>
+                        <span className="font-semibold text-slate-200">{currentUser.phone || 'Chưa cập nhật'}</span>
+                      </div>
+                      <div className="flex items-start gap-2 text-slate-300">
+                        <MapPin size={12} className="text-amber-400 shrink-0 mt-0.5" />
+                        <span className="text-slate-400">Đ/C:</span>
+                        <span className="font-semibold text-slate-200 truncate">{currentUser.address || 'Chưa cập nhật'}</span>
+                      </div>
+                    </div>
+
+                    <div className="pt-2">
+                      <button
+                        onClick={() => {
+                          onLogout();
+                          setUserDropdownOpen(false);
+                        }}
+                        className="w-full flex items-center justify-center gap-2 py-2 bg-red-950/60 hover:bg-red-900/80 border border-red-500/40 rounded-lg text-red-200 font-semibold transition-colors"
+                      >
+                        <LogOut size={13} />
+                        <span>Đăng xuất</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <button
+                onClick={onOpenAuthModal}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-[#E4572E] hover:bg-[#d44820] text-white rounded-lg text-xs font-bold shadow-sm transition-all"
+              >
+                <User size={14} />
+                <span>Đăng nhập</span>
+              </button>
+            )}
+          </div>
+
           {/* Mobile Hamburger Menu Button */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -240,6 +318,40 @@ export const Header: React.FC<HeaderProps> = ({
       {/* Mobile Drawer Menu */}
       {mobileMenuOpen && (
         <div className="md:hidden bg-[#0A1C2E] border-b border-[#1E4C7C] px-4 py-3 space-y-3 animate-fadeIn">
+          {currentUser ? (
+            <div className="p-2.5 rounded-lg bg-[#0F2A45] border border-[#1E4C7C] flex items-center justify-between text-xs">
+              <div className="flex items-center gap-2 truncate">
+                <div className="w-7 h-7 rounded-full bg-cyan-600 flex items-center justify-center font-bold text-white">
+                  {currentUser.fullName.charAt(0)}
+                </div>
+                <div className="truncate">
+                  <span className="font-bold text-white block truncate">{currentUser.fullName}</span>
+                  <span className="text-[10px] text-slate-400 block truncate">{currentUser.phone} · {currentUser.email}</span>
+                </div>
+              </div>
+              <button
+                onClick={() => {
+                  onLogout();
+                  setMobileMenuOpen(false);
+                }}
+                className="text-xs text-red-400 font-semibold ml-2"
+              >
+                Thoát
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => {
+                onOpenAuthModal();
+                setMobileMenuOpen(false);
+              }}
+              className="w-full flex items-center justify-center gap-2 py-2.5 bg-[#E4572E] text-white font-bold rounded-lg text-xs"
+            >
+              <User size={15} />
+              <span>Đăng nhập / Đăng ký tài khoản</span>
+            </button>
+          )}
+
           {currentProject && activeView === 'wizard' && (
             <div className="p-2.5 rounded-lg bg-[#0F2A45] border border-[#1E4C7C] flex items-center justify-between text-xs">
               <div className="flex items-center gap-2 truncate">

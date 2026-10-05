@@ -14,6 +14,9 @@ import {
   saveProjectToServer,
   deleteProjectFromServer,
 } from './services/api';
+import { UserProfile, UserRole } from './types/user';
+import { getLocalStoredUser, removeLocalStoredUser } from './services/authApi';
+import { AuthModal } from './components/auth/AuthModal';
 
 import { Header } from './components/common/Header';
 import { Step1CustomerRoof } from './components/wizard/Step1CustomerRoof';
@@ -202,7 +205,9 @@ export default function App() {
   const [currentProjectId, setCurrentProjectId] = useState<string>(() => projects[0]?.id || 'demo-hgc-01');
   const [activeStep, setActiveStep] = useState<number>(1);
   const [activeView, setActiveView] = useState<'wizard' | 'projects' | 'admin'>('wizard');
-  const [userRole, setUserRole] = useState<'ky_su' | 'sales' | 'admin'>('ky_su');
+  const [userRole, setUserRole] = useState<UserRole>('ky_su');
+  const [currentUser, setCurrentUser] = useState<UserProfile | null>(() => getLocalStoredUser());
+  const [showAuthModal, setShowAuthModal] = useState<boolean>(false);
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving'>('saved');
   const [showQuickModal, setShowQuickModal] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -212,6 +217,20 @@ export default function App() {
     setTimeout(() => {
       setToastMessage(null);
     }, 3000);
+  };
+
+  const handleLoginSuccess = (user: UserProfile) => {
+    setCurrentUser(user);
+    if (user.role) {
+      setUserRole(user.role);
+    }
+    showToast(`✓ Đăng nhập thành công: ${user.fullName}`);
+  };
+
+  const handleLogout = () => {
+    removeLocalStoredUser();
+    setCurrentUser(null);
+    showToast('✓ Đã đăng xuất tài khoản');
   };
 
   // Catalogs
@@ -469,6 +488,9 @@ export default function App() {
         userRole={userRole}
         setUserRole={setUserRole}
         saveStatus={saveStatus}
+        currentUser={currentUser}
+        onOpenAuthModal={() => setShowAuthModal(true)}
+        onLogout={handleLogout}
       />
 
       {/* 2. Main Content Area */}
@@ -646,6 +668,13 @@ export default function App() {
         isOpen={showQuickModal}
         onClose={() => setShowQuickModal(false)}
         onApplyProposal={handleApplyQuickProposal}
+      />
+
+      {/* 4. User Authentication Modal */}
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        onLoginSuccess={handleLoginSuccess}
       />
     </div>
   );
