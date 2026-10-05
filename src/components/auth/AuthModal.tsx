@@ -303,9 +303,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               </button>
 
               <div className="p-3 rounded-lg bg-[#07131F]/70 border border-[#1E4C7C]/60 text-[11px] text-slate-400 space-y-1">
-                <p className="font-semibold text-slate-300">Tài khoản mặc định sẵn có:</p>
-                <p>• Admin: <span className="text-cyan-300 font-mono">hung.cv.10@gmail.com</span> / <span className="text-amber-300 font-mono">123456</span></p>
-                <p>• Hoặc tạo tài khoản mới để trải nghiệm quy trình xác thực email.</p>
+                <p className="font-semibold text-slate-300">Tài khoản quản trị viên sẵn có:</p>
+                <p>• Admin: <span className="text-cyan-300 font-mono">admin@hgcvn.cloud</span> / <span className="text-amber-300 font-mono">123456</span></p>
+                <p>• Hoặc bấm <strong className="text-orange-400">Đăng ký mới</strong> để tạo tài khoản bằng email của bạn.</p>
               </div>
             </form>
           )}

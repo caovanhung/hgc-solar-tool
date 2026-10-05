@@ -34,22 +34,11 @@ interface ServerUser {
 
 let usersStore: ServerUser[] = [
   {
-    id: 'user-hung-01',
-    fullName: 'Cao Văn Hùng',
-    email: 'hung.cv.10@gmail.com',
-    phone: '0974 04 19 84',
-    address: 'B36 TT7 Khu đô thị Văn Quán, Hà Đông, Hà Nội',
-    password: '123456',
-    role: 'admin',
-    isEmailVerified: true,
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: 'user-admin-02',
+    id: 'user-admin-01',
     fullName: 'Quản Trị Viên HGC',
     email: 'admin@hgcvn.cloud',
     phone: '0974 04 19 84',
-    address: 'Hà Nội',
+    address: 'B36 TT7 Khu đô thị Văn Quán, Hà Đông, Hà Nội',
     password: '123456',
     role: 'admin',
     isEmailVerified: true,
