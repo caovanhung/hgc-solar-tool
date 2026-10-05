@@ -190,19 +190,19 @@ export default function App() {
   const [projects, setProjects] = useState<Project[]>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
+      if (saved !== null) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) {
+        if (Array.isArray(parsed)) {
           return parsed.map(upgradeProjectIfNeeded);
         }
       }
     } catch (e) {
       console.error(e);
     }
-    return [createInitialProject()];
+    return [];
   });
 
-  const [currentProjectId, setCurrentProjectId] = useState<string>(() => projects[0]?.id || 'demo-hgc-01');
+  const [currentProjectId, setCurrentProjectId] = useState<string>(() => projects[0]?.id || '');
   const [activeStep, setActiveStep] = useState<number>(1);
   const [activeView, setActiveView] = useState<'wizard' | 'projects' | 'admin'>('wizard');
   const [userRole, setUserRole] = useState<UserRole>('ky_su');
@@ -238,13 +238,17 @@ export default function App() {
   const [inverters, setInverters] = useState(INITIAL_INVERTERS);
   const [materials, setMaterials] = useState(INITIAL_MATERIALS);
 
-  // Khởi tạo: Đồng bộ dữ liệu từ Backend Server (nếu có)
+  // Khởi tạo: Đồng bộ dữ liệu từ Backend Server
   useEffect(() => {
     fetchProjectsFromServer().then((serverProjects) => {
-      if (serverProjects && serverProjects.length > 0) {
+      if (serverProjects !== null && Array.isArray(serverProjects)) {
         setProjects(serverProjects);
-        if (!serverProjects.some((p) => p.id === currentProjectId)) {
-          setCurrentProjectId(serverProjects[0].id);
+        if (serverProjects.length > 0) {
+          if (!serverProjects.some((p) => p.id === currentProjectId)) {
+            setCurrentProjectId(serverProjects[0].id);
+          }
+        } else {
+          setCurrentProjectId('');
         }
       }
     });
@@ -413,8 +417,13 @@ export default function App() {
   const handleDeleteProject = (id: string) => {
     const updated = projects.filter((p) => p.id !== id);
     setProjects(updated);
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+    } catch (e) {
+      console.error(e);
+    }
     deleteProjectFromServer(id);
-    showToast('✓ Đã xóa dự án thành công');
+    showToast('✓ Đã xóa vĩnh viễn dự án thành công');
 
     if (currentProjectId === id) {
       if (updated.length > 0) {

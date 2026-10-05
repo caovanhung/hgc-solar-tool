@@ -178,7 +178,7 @@ function loadUsers(): ServerUser[] {
     if (fs.existsSync(USERS_FILE)) {
       const content = fs.readFileSync(USERS_FILE, 'utf-8');
       const parsed = JSON.parse(content);
-      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      if (Array.isArray(parsed)) return parsed;
     }
   } catch (err) {
     console.error('Error loading users:', err);
@@ -213,12 +213,12 @@ function loadProjects(): any[] {
     if (fs.existsSync(PROJECTS_FILE)) {
       const content = fs.readFileSync(PROJECTS_FILE, 'utf-8');
       const parsed = JSON.parse(content);
-      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      if (Array.isArray(parsed)) return parsed;
     }
   } catch (err) {
     console.error('Error loading projects:', err);
   }
-  const defaultProj = [getDefaultSeedProject()];
+  const defaultProj: any[] = [];
   saveProjects(defaultProj);
   return defaultProj;
 }
