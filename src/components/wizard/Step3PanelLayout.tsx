@@ -220,42 +220,12 @@ export const Step3PanelLayout: React.FC<Step3Props> = ({
         {/* Right Column: Interactive 2D Roof Layout */}
         <div className="lg:col-span-7 space-y-3">
           <div className="bg-white rounded-xl border border-slate-200/90 shadow-sm p-4 sm:p-5">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3 border-b border-slate-100 pb-2.5">
+            <div className="flex items-center justify-between mb-3 border-b border-slate-100 pb-2.5">
               <div>
                 <h3 className="text-sm font-bold text-[#0F2A45] uppercase tracking-wide">
                   2. Sơ Đồ Bố Trí Tấm Pin Trên Mặt Mái (2D Layout)
                 </h3>
                 <p className="text-[11px] text-slate-500">Mô phỏng kích thước thực tế, hướng la bàn và khoảng lùi an toàn</p>
-              </div>
-
-              {/* Chuyển nhanh giữa phương án bám tải và full mái */}
-              <div className="flex items-center gap-1.5 p-1 bg-slate-100 rounded-lg border border-slate-200 shrink-0">
-                <button
-                  type="button"
-                  onClick={() => onUpdate({ installMode: 'by_bill' })}
-                  className={`px-2.5 py-1 text-xs font-bold rounded-md transition-all flex items-center gap-1 ${
-                    project.installMode === 'by_bill'
-                      ? 'bg-emerald-600 text-white shadow-sm'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
-                  }`}
-                  title="Phương án bám tải hóa đơn"
-                >
-                  <Zap size={12} />
-                  <span>Theo tiền điện</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => onUpdate({ installMode: 'full_roof' })}
-                  className={`px-2.5 py-1 text-xs font-bold rounded-md transition-all flex items-center gap-1 ${
-                    project.installMode === 'full_roof'
-                      ? 'bg-[#0F2A45] text-white shadow-sm'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
-                  }`}
-                  title="Phương án phủ kín 100% mái"
-                >
-                  <Maximize2 size={12} />
-                  <span>Lắp Full mái</span>
-                </button>
               </div>
             </div>
 
