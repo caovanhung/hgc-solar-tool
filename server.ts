@@ -246,6 +246,19 @@ async function initDatabase(): Promise<boolean> {
       ALTER TABLE projects ADD COLUMN IF NOT EXISTS created_by VARCHAR(255) DEFAULT '';
       CREATE INDEX IF NOT EXISTS idx_projects_updated_at ON projects(updated_at DESC);
       CREATE INDEX IF NOT EXISTS idx_projects_created_by ON projects(created_by);
+
+      -- Gán quyền sở hữu mặc định cho các dự án cũ đã tạo trước đó
+      UPDATE projects
+      SET 
+        created_by = 'hung.cv.10@gmail.com',
+        data = jsonb_set(
+          jsonb_set(data, '{createdByEmail}', '"hung.cv.10@gmail.com"', true),
+          '{createdByName}', '"Cao Văn Hùng"', true
+        )
+      WHERE (created_by IS NULL OR created_by = '' OR data->>'createdByEmail' IS NULL OR data->>'createdByEmail' = '');
+
+      -- Xóa vĩnh viễn dự án mẫu demo Văn Phòng HGC Văn Quán theo yêu cầu
+      DELETE FROM projects WHERE id = 'demo-hgc-01' OR name LIKE '%Văn Phòng HGC Văn Quán%';
     `);
 
     // 3. Khởi tạo admin nếu chưa có

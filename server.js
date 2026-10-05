@@ -209,6 +209,19 @@ async function initDatabase() {
       ALTER TABLE projects ADD COLUMN IF NOT EXISTS created_by VARCHAR(255) DEFAULT '';
       CREATE INDEX IF NOT EXISTS idx_projects_updated_at ON projects(updated_at DESC);
       CREATE INDEX IF NOT EXISTS idx_projects_created_by ON projects(created_by);
+
+      -- G\xE1n quy\u1EC1n s\u1EDF h\u1EEFu m\u1EB7c \u0111\u1ECBnh cho c\xE1c d\u1EF1 \xE1n c\u0169 \u0111\xE3 t\u1EA1o tr\u01B0\u1EDBc \u0111\xF3
+      UPDATE projects
+      SET 
+        created_by = 'hung.cv.10@gmail.com',
+        data = jsonb_set(
+          jsonb_set(data, '{createdByEmail}', '"hung.cv.10@gmail.com"', true),
+          '{createdByName}', '"Cao V\u0103n H\xF9ng"', true
+        )
+      WHERE (created_by IS NULL OR created_by = '' OR data->>'createdByEmail' IS NULL OR data->>'createdByEmail' = '');
+
+      -- X\xF3a v\u0129nh vi\u1EC5n d\u1EF1 \xE1n m\u1EABu demo V\u0103n Ph\xF2ng HGC V\u0103n Qu\xE1n theo y\xEAu c\u1EA7u
+      DELETE FROM projects WHERE id = 'demo-hgc-01' OR name LIKE '%V\u0103n Ph\xF2ng HGC V\u0103n Qu\xE1n%';
     `);
     await client.query(`
       INSERT INTO users (id, full_name, email, phone, address, password, role, is_email_verified, created_at, updated_at)

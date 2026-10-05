@@ -280,6 +280,10 @@ export const ProjectList: React.FC<ProjectListProps> = ({
                     <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-200">
                       <Lock size={10} /> Dự án của tôi
                     </span>
+                  ) : proj.id === 'demo-hgc-01' || proj.name.includes('Văn Phòng HGC') ? (
+                    <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 border border-amber-200">
+                      <Sun size={10} /> Dự án mẫu HGC (Tham khảo)
+                    </span>
                   ) : (
                     <span
                       className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-md bg-purple-50 text-purple-700 border border-purple-200"

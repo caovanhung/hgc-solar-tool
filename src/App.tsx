@@ -31,14 +31,14 @@ import { Check, CheckCircle2, ChevronRight, Layers, Sun } from 'lucide-react';
 
 const STORAGE_KEY = 'hgc_solar_projects_v1';
 
-// Tạo dự án mẫu ban đầu
-function createInitialProject(): Project {
+// Khởi tạo đối tượng dự án mới hoàn chỉnh khi người dùng tạo dự án
+function createInitialProject(name = 'Hồ sơ kỹ thuật mới'): Project {
   const panel = INITIAL_PANELS[0]; // Canadian Solar 585Wp
   const province = VIETNAM_PROVINCES[0]; // Hà Nội (GHI 4.12)
   const tariffVnd = getEffectiveTariffVnd('sinh_hoat', 450);
 
-  const roofLengthM = 20;
-  const roofWidthM = 12;
+  const roofLengthM = 15;
+  const roofWidthM = 8;
 
   const layout = calculatePanelLayout({
     roofLengthM,
@@ -65,10 +65,10 @@ function createInitialProject(): Project {
   const topInverter = inverterProposals[0];
 
   const { cables, board } = calculateCablingAndBoard({
-    totalAcKw: topInverter ? topInverter.inverter.acKw * topInverter.qtyNeeded : 30,
-    inverterKw: topInverter ? topInverter.inverter.acKw : 15,
+    totalAcKw: topInverter ? topInverter.inverter.acKw * topInverter.qtyNeeded : 10,
+    inverterKw: topInverter ? topInverter.inverter.acKw : 10,
     phases: '3',
-    routeLengthM: 35,
+    routeLengthM: 25,
     stringIsc: panel.isc,
   });
 
@@ -96,25 +96,25 @@ function createInitialProject(): Project {
   });
 
   return {
-    id: 'demo-hgc-01',
-    name: 'Văn Phòng HGC Văn Quán - Solar 42kWp',
-    customerName: 'CÔNG TY TNHH HGC',
-    phone: '0974 04 19 84',
-    address: 'B36 TT7 Khu đô thị Văn Quán, Hà Đông, Hà Nội',
-    status: 'saved',
+    id: `proj-${Date.now()}`,
+    name,
+    customerName: name,
+    phone: '',
+    address: 'Hà Nội',
+    status: 'draft',
     module: 'solar',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     custType: 'sinh_hoat',
     provinceCode: 'HAN',
-    monthlyElectricityBillVnd: 18500000,
-    monthlyConsumptionKwh: 5800,
+    monthlyElectricityBillVnd: 5000000,
+    monthlyConsumptionKwh: 1600,
     roofType: 'tole',
     roofDir: 's',
     roofShape: 'rect',
     roofLengthM,
     roofWidthM,
-    roofHeightM: 14,
+    roofHeightM: 10,
     sysType: 'zero_export',
     phases: '3',
     installMode: 'full_roof',
@@ -188,12 +188,16 @@ function upgradeProjectIfNeeded(p: Project): Project {
 
 export default function App() {
   const [projects, setProjects] = useState<Project[]>(() => {
+    const user = getLocalStoredUser();
+    if (!user) return [];
     try {
-      const saved = localStorage.getItem(STORAGE_KEY);
+      const saved = localStorage.getItem(`hgc_projects_${user.email.toLowerCase()}`);
       if (saved !== null) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed)) {
-          return parsed.map(upgradeProjectIfNeeded);
+          return parsed
+            .filter((p: any) => p.id !== 'demo-hgc-01' && !p.name?.includes('Văn Phòng HGC'))
+            .map(upgradeProjectIfNeeded);
         }
       }
     } catch (e) {
@@ -204,7 +208,7 @@ export default function App() {
 
   const [currentProjectId, setCurrentProjectId] = useState<string>(() => projects[0]?.id || '');
   const [activeStep, setActiveStep] = useState<number>(1);
-  const [activeView, setActiveView] = useState<'wizard' | 'projects' | 'admin'>('wizard');
+  const [activeView, setActiveView] = useState<'wizard' | 'projects' | 'admin'>('projects');
   const [userRole, setUserRole] = useState<UserRole>('ky_su');
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(() => getLocalStoredUser());
   const [showAuthModal, setShowAuthModal] = useState<boolean>(false);
@@ -224,12 +228,50 @@ export default function App() {
     if (user.role) {
       setUserRole(user.role);
     }
+    // Nạp cache riêng của user hoặc reset để không lẫn lộn với tài khoản trước
+    try {
+      const cached = localStorage.getItem(`hgc_projects_${user.email.toLowerCase()}`);
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed)) {
+          const cleanCached = parsed.filter((p: any) => p.id !== 'demo-hgc-01' && !p.name?.includes('Văn Phòng HGC'));
+          setProjects(cleanCached);
+          setCurrentProjectId(cleanCached[0]?.id || '');
+        }
+      } else {
+        setProjects([]);
+        setCurrentProjectId('');
+      }
+    } catch {
+      setProjects([]);
+      setCurrentProjectId('');
+    }
+
+    // Tải mới từ PostgreSQL Backend theo đúng quyền của tài khoản này
+    fetchProjectsFromServer(user.email, user.role).then((serverProjects) => {
+      if (serverProjects !== null && Array.isArray(serverProjects)) {
+        const cleanProjects = serverProjects.filter(
+          (p: any) => p.id !== 'demo-hgc-01' && !p.name?.includes('Văn Phòng HGC')
+        );
+        setProjects(cleanProjects);
+        if (cleanProjects.length > 0) {
+          setCurrentProjectId(cleanProjects[0].id);
+        } else {
+          setCurrentProjectId('');
+          setActiveView('projects');
+        }
+      }
+    });
+
     showToast(`✓ Đăng nhập thành công: ${user.fullName}`);
   };
 
   const handleLogout = () => {
     removeLocalStoredUser();
     setCurrentUser(null);
+    setProjects([]);
+    setCurrentProjectId('');
+    setActiveView('projects');
     showToast('✓ Đã đăng xuất tài khoản');
   };
 
@@ -243,19 +285,24 @@ export default function App() {
     if (currentUser) {
       fetchProjectsFromServer(currentUser.email, currentUser.role).then((serverProjects) => {
         if (serverProjects !== null && Array.isArray(serverProjects)) {
-          setProjects(serverProjects);
-          if (serverProjects.length > 0) {
-            if (!serverProjects.some((p) => p.id === currentProjectId)) {
-              setCurrentProjectId(serverProjects[0].id);
+          const cleanProjects = serverProjects.filter(
+            (p: any) => p.id !== 'demo-hgc-01' && !p.name?.includes('Văn Phòng HGC')
+          );
+          setProjects(cleanProjects);
+          if (cleanProjects.length > 0) {
+            if (!cleanProjects.some((p) => p.id === currentProjectId)) {
+              setCurrentProjectId(cleanProjects[0].id);
             }
           } else {
             setCurrentProjectId('');
+            setActiveView('projects');
           }
         }
       });
     } else {
       setProjects([]);
       setCurrentProjectId('');
+      setActiveView('projects');
     }
   }, [currentUser?.email, currentUser?.role]);
 
@@ -490,12 +537,13 @@ export default function App() {
   const handleClearCache = () => {
     try {
       localStorage.removeItem(STORAGE_KEY);
-      const freshProject = createInitialProject();
-      setProjects([freshProject]);
-      setCurrentProjectId(freshProject.id);
-      setActiveView('wizard');
-      setActiveStep(5);
-      showToast('✓ Đã xóa cache thành công! Danh mục 8 nhóm BOM & Suất đầu tư đã được làm mới.');
+      if (currentUser) {
+        localStorage.removeItem(`hgc_projects_${currentUser.email.toLowerCase()}`);
+      }
+      setProjects([]);
+      setCurrentProjectId('');
+      setActiveView('projects');
+      showToast('✓ Đã dọn sạch bộ nhớ cache thành công!');
     } catch (e) {
       console.error(e);
     }
