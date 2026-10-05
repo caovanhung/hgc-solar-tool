@@ -42,7 +42,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   // Verification state
   const [verifyEmailTarget, setVerifyEmailTarget] = useState('');
   const [otpCode, setOtpCode] = useState('');
-  const [mockEmailOtp, setMockEmailOtp] = useState<string | null>(null);
 
   // Status
   const [isLoading, setIsLoading] = useState(false);
@@ -120,9 +119,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
     if (result.success) {
       setVerifyEmailTarget(email.trim().toLowerCase());
-      if (result.verificationCode) {
-        setMockEmailOtp(result.verificationCode);
-      }
       setSuccessMessage('Đăng ký thành công! Mã xác thực 6 số đã được gửi đến email của bạn.');
       setMode('verify');
     } else {
@@ -161,10 +157,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     const result = await resendVerificationCode(verifyEmailTarget);
     setIsLoading(false);
     if (result.success) {
-      if (result.verificationCode) {
-        setMockEmailOtp(result.verificationCode);
-      }
-      setSuccessMessage('Đã gửi lại mã xác nhận thành công!');
+      setSuccessMessage('Đã gửi lại mã xác nhận thành công! Vui lòng kiểm tra hòm thư.');
     } else {
       setErrorMessage(result.message || 'Không thể gửi lại mã lúc này.');
     }
@@ -456,29 +449,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 </p>
               </div>
 
-              {/* Simulation notification banner for convenience */}
-              {mockEmailOtp && (
-                <div className="p-3 rounded-xl bg-gradient-to-r from-amber-950/70 to-slate-900 border border-amber-500/50 text-amber-200">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="font-bold flex items-center gap-1.5 text-xs">
-                      <span>📩</span> Mã xác thực gửi về Email của bạn:
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => setOtpCode(mockEmailOtp)}
-                      className="text-[10px] bg-amber-500 text-slate-950 font-bold px-2 py-0.5 rounded hover:bg-amber-400 transition-colors"
-                    >
-                      Tự động điền
-                    </button>
-                  </div>
-                  <div className="text-lg font-mono font-black text-amber-300 tracking-widest text-center py-1">
-                    {mockEmailOtp}
-                  </div>
-                  <p className="text-[10px] text-amber-300/80 text-center">
-                    (Mã này cũng được hiển thị trong log máy chủ Node.js)
-                  </p>
-                </div>
-              )}
+              <div className="p-3 rounded-xl bg-[#07131F] border border-[#1E4C7C] text-slate-300 text-center space-y-1">
+                <p className="text-[12px] text-slate-200">
+                  Mã xác thực gồm <strong>6 chữ số</strong> đã được gửi qua email. Vui lòng mở hòm thư và điền vào ô bên dưới.
+                </p>
+                <p className="text-[11px] text-slate-400">
+                  (Nếu không thấy trong Hộp thư đến, vui lòng kiểm tra thêm mục <strong>Thư rác / Spam</strong>)
+                </p>
+              </div>
 
               <div>
                 <label className="block font-medium text-slate-300 mb-1 text-center">

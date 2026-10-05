@@ -42,7 +42,6 @@ export async function registerUser(params: {
   success: boolean;
   message?: string;
   email?: string;
-  verificationCode?: string;
 }> {
   try {
     const res = await fetch('/api/auth/register', {
@@ -56,7 +55,6 @@ export async function registerUser(params: {
         success: true,
         message: data.message,
         email: data.email,
-        verificationCode: data.verificationCode,
       };
     }
     return {
@@ -98,7 +96,6 @@ export async function verifyEmail(email: string, code: string): Promise<{
 export async function resendVerificationCode(email: string): Promise<{
   success: boolean;
   message?: string;
-  verificationCode?: string;
 }> {
   try {
     const res = await fetch('/api/auth/resend-code', {
@@ -110,7 +107,6 @@ export async function resendVerificationCode(email: string): Promise<{
     return {
       success: !!data.success,
       message: data.message,
-      verificationCode: data.verificationCode,
     };
   } catch (err) {
     return { success: false, message: 'Lỗi gửi lại mã.' };
