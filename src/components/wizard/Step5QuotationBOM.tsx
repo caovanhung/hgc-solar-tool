@@ -338,21 +338,21 @@ export const Step5QuotationBOM: React.FC<Step5Props> = ({
 
             {/* 2. Thí nghiệm & Hồ sơ EVN */}
             <div className={`p-3 rounded-xl border transition-all ${
-              project.includeEvnDocs !== false
-                ? 'border-slate-300 bg-white shadow-2xs'
-                : 'border-slate-200 bg-slate-50/50 opacity-70'
+              Boolean(project.includeEvnDocs)
+                ? 'border-[#E4572E] bg-orange-50/20 shadow-2xs'
+                : 'border-slate-200 bg-slate-50/50'
             }`}>
               <label className="flex items-center gap-2 cursor-pointer mb-2">
                 <input
                   type="checkbox"
-                  checked={project.includeEvnDocs !== false}
+                  checked={Boolean(project.includeEvnDocs)}
                   onChange={(e) => onUpdate({ includeEvnDocs: e.target.checked })}
                   className="accent-[#E4572E] w-4 h-4 rounded"
                 />
                 <span className="font-bold text-xs text-slate-900">Hồ Sơ & Thí Nghiệm EVN</span>
               </label>
-              {project.includeEvnDocs !== false ? (
-                <div className="flex items-center justify-between text-[11px] mt-2 pt-2 border-t border-slate-100">
+              {Boolean(project.includeEvnDocs) ? (
+                <div className="flex items-center justify-between text-[11px] mt-2 pt-2 border-t border-orange-200/60">
                   <span className="text-slate-600">Chi phí trọn gói:</span>
                   <div className="flex items-center gap-1">
                     <input
@@ -367,7 +367,7 @@ export const Step5QuotationBOM: React.FC<Step5Props> = ({
                   </div>
                 </div>
               ) : (
-                <p className="text-[11px] text-slate-400">Đã tắt: Dự án nội bộ tự dùng, không làm thỏa thuận EVN</p>
+                <p className="text-[11px] text-slate-500">Mặc định không có (Tích chọn nếu cần hồ sơ EVN)</p>
               )}
             </div>
 

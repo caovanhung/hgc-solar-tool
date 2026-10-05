@@ -381,14 +381,16 @@ export const AdminCatalog: React.FC<AdminCatalogProps> = ({
                         </td>
                         <td className="px-3.5 py-2.5 text-center whitespace-nowrap">
                           <span className={`text-[10px] px-2 py-0.5 rounded-full ${
-                            m.id === 'scada-logger'
-                              ? 'bg-amber-100 text-amber-800 font-medium'
+                            m.id === 'scada-logger' || m.id === 's-testing-evn'
+                              ? 'bg-amber-100 text-amber-800 font-semibold'
                               : m.source === 'demo_ui_observed'
                               ? 'bg-emerald-50 text-emerald-800'
                               : 'bg-slate-100 text-slate-600'
                           }`}>
                             {m.id === 'scada-logger'
-                              ? 'Tùy chọn (ETEK ko cần)'
+                              ? 'Mặc định không có (ETEK ko cần)'
+                              : m.id === 's-testing-evn'
+                              ? 'Mặc định không có (Tùy chọn)'
                               : m.source === 'demo_ui_observed'
                               ? 'Thực tế ETEK'
                               : 'Đơn giá mẫu'}

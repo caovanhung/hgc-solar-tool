@@ -86,9 +86,9 @@ function createInitialProject(name = 'Hồ sơ kỹ thuật mới'): Project {
     marginPct: 18,
     roofType: 'tole',
     hasCanopyFrame: false,
-    includeEvnDocs: true,
+    includeEvnDocs: false,
     includeTransport: true,
-    includeScada: false, // Thực tế ETEK ko cần Datalogger ngoài
+    includeScada: false, // Mặc định không có (ETEK ko cần)
   });
 
   const financial = calculateFinancials({
@@ -133,6 +133,8 @@ function createInitialProject(name = 'Hồ sơ kỹ thuật mới'): Project {
     marginPct: 18,
     discountPct: 0,
     pricingTier: 'recommended',
+    includeEvnDocs: false,
+    includeScada: false,
     bomLines,
     financial,
   };

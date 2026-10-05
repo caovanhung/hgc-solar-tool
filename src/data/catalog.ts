@@ -366,8 +366,8 @@ export const INITIAL_MATERIALS: MaterialItem[] = [
   // Nhóm VIII: Chi phí dịch vụ
   { id: 's-install', categoryCode: 'VIII', categoryName: 'Chi phí dịch vụ', name: 'Nhân công thi công cơ khí & đấu nối điện đóng điện trọn gói', spec: 'Đội ngũ kỹ sư & công nhân chứng chỉ an toàn lao động', sku: 'LABOR-EPC-KWP', unit: 'kWp', costVnd: 550000, source: 'derived_from_demo_total' },
   { id: 's-transport', categoryCode: 'VIII', categoryName: 'Chi phí dịch vụ', name: 'Vận chuyển thiết bị, cẩu kéo tấm pin & vật tư lên mái công trình', spec: 'Xe cẩu chuyên dụng trọn gói tới chân công trình', sku: 'TRANS-CRANE-SITE', unit: 'gói', costVnd: 3500000, source: 'derived_from_demo_total' },
-  { id: 's-testing-evn', categoryCode: 'VIII', categoryName: 'Chi phí dịch vụ', name: 'Thí nghiệm đo kiểm định điện & Lập hồ sơ kỹ thuật thỏa thuận EVN', spec: 'Hồ sơ pháp lý nghiệm thu kỹ thuật đấu nối Điện lực', sku: 'SERVICE-EVN-DOCS', unit: 'gói', costVnd: 4500000, source: 'derived_from_demo_total' },
+  { id: 's-testing-evn', categoryCode: 'VIII', categoryName: 'Chi phí dịch vụ', name: 'Thí nghiệm đo kiểm định điện & Lập hồ sơ kỹ thuật thỏa thuận EVN (Tùy chọn)', spec: 'Hồ sơ pháp lý nghiệm thu kỹ thuật đấu nối Điện lực (Mặc định không có)', sku: 'SERVICE-EVN-DOCS', unit: 'gói', costVnd: 4500000, source: 'derived_from_demo_total' },
 
   // Nhóm X: Hệ thống Scada
-  { id: 'scada-logger', categoryCode: 'X', categoryName: 'Hệ thống Scada', name: 'Datalogger thông minh & Thiết bị truyền thông đám mây 24/7 (Tùy chọn)', spec: 'Cổng RS485/WiFi/4G, tài khoản App/Web (Thực tế Etek không cần do Inverter đã tích hợp sẵn)', sku: 'SCADA-LOGGER-IOT', unit: 'bộ', costVnd: 3200000, source: 'demo_ui_observed' },
+  { id: 'scada-logger', categoryCode: 'X', categoryName: 'Hệ thống Scada', name: 'Datalogger thông minh & Thiết bị truyền thông đám mây 24/7 (Tùy chọn)', spec: 'Cổng RS485/WiFi/4G, tài khoản App/Web (Mặc định không có do Inverter đã tích hợp sẵn)', sku: 'SCADA-LOGGER-IOT', unit: 'bộ', costVnd: 3200000, source: 'demo_ui_observed' },
 ];

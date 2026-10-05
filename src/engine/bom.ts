@@ -521,7 +521,8 @@ export function generateProjectBom(params: GenerateBomParams): BomLine[] {
     });
   }
 
-  const includeEvnDocs = params.includeEvnDocs ?? true;
+  // Hồ sơ kỹ thuật thỏa thuận EVN: Mặc định KHÔNG CÓ (theo thực tế, chỉ đưa vào khi kỹ sư bật tùy chọn)
+  const includeEvnDocs = Boolean(params.includeEvnDocs);
   if (includeEvnDocs) {
     const docMat = findMat('s-testing-evn', 4500000);
     const docCost = params.evnDocsCostVnd !== undefined ? params.evnDocsCostVnd : docMat.cost;
@@ -547,9 +548,8 @@ export function generateProjectBom(params: GenerateBomParams): BomLine[] {
   // =========================================================================
   // NHÓM X - HỆ THỐNG SCADA & GIÁM SÁT
   // =========================================================================
-  // Thực tế ETEK và các hãng Inverter dân dụng / C&I hiện đại đã tích hợp sẵn Wifi Dongle miễn phí.
-  // Chỉ cộng phí SCADA Datalogger nếu khách hàng chủ động yêu cầu trang bị thêm hệ thống SCADA tập trung.
-  const includeScada = params.includeScada ?? false;
+  // Mặc định KHÔNG CÓ (thực tế Etek không cần do Inverter đã tích hợp sẵn Wifi Dongle miễn phí)
+  const includeScada = Boolean(params.includeScada);
   if (includeScada) {
     const scadaMat = findMat('scada-logger', 3200000);
     const scadaCost = params.scadaCostVnd !== undefined ? params.scadaCostVnd : scadaMat.cost;
