@@ -21,6 +21,17 @@ export interface GenerateBomParams {
   board: DistributionBoardResult;
   materialsCatalog: MaterialItem[];
   marginPct: number;
+  roofType?: string;
+  hasCanopyFrame?: boolean;
+  canopyAreaM2?: number;
+  canopyUnitCostVnd?: number;
+  includeEvnDocs?: boolean;
+  evnDocsCostVnd?: number;
+  includeTransport?: boolean;
+  transportCostVnd?: number;
+  installCostVndPerKwp?: number;
+  includeScada?: boolean;
+  scadaCostVnd?: number;
 }
 
 export function generateProjectBom(params: GenerateBomParams): BomLine[] {
@@ -436,10 +447,39 @@ export function generateProjectBom(params: GenerateBomParams): BomLine[] {
     origin: 'Việt Nam',
   });
 
+  // HẠNG MỤC MÁI KHUNG GIÀN NÂNG CAO (CANOPY) - TÙY CHỈNH THEO CÔNG TRÌNH
+  const isCanopy = params.roofType === 'canopy' || Boolean(params.hasCanopyFrame);
+  if (isCanopy) {
+    const canopyMat = findMat('m-canopy-steel', 450000);
+    const canopyUnitCost = params.canopyUnitCostVnd !== undefined ? params.canopyUnitCostVnd : canopyMat.cost;
+    const canopyArea = params.canopyAreaM2 !== undefined && params.canopyAreaM2 > 0
+      ? params.canopyAreaM2
+      : Math.round(layout.usableAreaM2 || layout.panelQty * 2.6);
+
+    lines.push({
+      id: 'bom-canopy-frame',
+      categoryCode: 'VII',
+      categoryName: 'Hạng mục xây dựng',
+      name: 'Gia công kết cấu khung giàn thép mạ kẽm / Mái khung nâng cao',
+      spec: `Hệ cột, kèo, xà gồ sắt hộp kẽm chống rỉ, bu lông neo liên kết chịu tải gió bão (${canopyArea} m²)`,
+      sku: canopyMat.sku,
+      unit: 'm²',
+      qty: canopyArea,
+      unitCostVnd: canopyUnitCost,
+      totalCostVnd: Math.round(canopyUnitCost * canopyArea),
+      unitSellVnd: Math.round(canopyUnitCost * multiplier),
+      totalSellVnd: Math.round(canopyUnitCost * canopyArea * multiplier),
+      brand: 'HGC Structural',
+      origin: 'Việt Nam',
+      note: 'Khung giàn chịu lực gió cấp 12',
+    });
+  }
+
   // =========================================================================
   // NHÓM VIII - CHI PHÍ DỊCH VỤ (Nhân công, Vận chuyển, Hồ sơ EVN)
   // =========================================================================
   const installMat = findMat('s-install', 550000);
+  const installCostPerKwp = params.installCostVndPerKwp !== undefined ? params.installCostVndPerKwp : installMat.cost;
   lines.push({
     id: 'bom-s-install',
     categoryCode: 'VIII',
@@ -449,74 +489,88 @@ export function generateProjectBom(params: GenerateBomParams): BomLine[] {
     sku: installMat.sku,
     unit: 'kWp',
     qty: layout.installedKwp,
-    unitCostVnd: installMat.cost,
-    totalCostVnd: Math.round(installMat.cost * layout.installedKwp),
-    unitSellVnd: Math.round(installMat.cost * multiplier),
-    totalSellVnd: Math.round(installMat.cost * layout.installedKwp * multiplier),
+    unitCostVnd: installCostPerKwp,
+    totalCostVnd: Math.round(installCostPerKwp * layout.installedKwp),
+    unitSellVnd: Math.round(installCostPerKwp * multiplier),
+    totalSellVnd: Math.round(installCostPerKwp * layout.installedKwp * multiplier),
     brand: 'HGC Engineering',
     origin: 'Việt Nam',
     note: 'Thi công theo tiêu chuẩn kỹ thuật & an toàn PCCC',
   });
 
-  const transMat = findMat('s-transport', 3500000);
-  lines.push({
-    id: 'bom-s-transport',
-    categoryCode: 'VIII',
-    categoryName: 'Chi phí dịch vụ',
-    name: 'Vận chuyển thiết bị, cẩu kéo tấm pin & vật tư lên mái công trình',
-    spec: 'Xe cẩu chuyên dụng trọn gói tới chân công trình',
-    sku: transMat.sku,
-    unit: 'gói',
-    qty: 1,
-    unitCostVnd: transMat.cost,
-    totalCostVnd: transMat.cost,
-    unitSellVnd: Math.round(transMat.cost * multiplier),
-    totalSellVnd: Math.round(transMat.cost * multiplier),
-    brand: 'Logistics',
-    origin: 'Việt Nam',
-    note: 'Bao gồm bảo hiểm hàng hóa vận chuyển',
-  });
+  const includeTransport = params.includeTransport ?? true;
+  if (includeTransport) {
+    const transMat = findMat('s-transport', 3500000);
+    const transCost = params.transportCostVnd !== undefined ? params.transportCostVnd : transMat.cost;
+    lines.push({
+      id: 'bom-s-transport',
+      categoryCode: 'VIII',
+      categoryName: 'Chi phí dịch vụ',
+      name: 'Vận chuyển thiết bị, cẩu kéo tấm pin & vật tư lên mái công trình',
+      spec: 'Xe cẩu chuyên dụng trọn gói tới chân công trình',
+      sku: transMat.sku,
+      unit: 'gói',
+      qty: 1,
+      unitCostVnd: transCost,
+      totalCostVnd: transCost,
+      unitSellVnd: Math.round(transCost * multiplier),
+      totalSellVnd: Math.round(transCost * multiplier),
+      brand: 'Logistics',
+      origin: 'Việt Nam',
+      note: 'Bao gồm bảo hiểm hàng hóa vận chuyển',
+    });
+  }
 
-  const docMat = findMat('s-testing-evn', 4500000);
-  lines.push({
-    id: 'bom-s-docs',
-    categoryCode: 'VIII',
-    categoryName: 'Chi phí dịch vụ',
-    name: 'Thí nghiệm đo kiểm định điện & Lập hồ sơ kỹ thuật thỏa thuận EVN',
-    spec: 'Hồ sơ pháp lý nghiệm thu kỹ thuật đấu nối với Công ty Điện lực EVN',
-    sku: docMat.sku,
-    unit: 'gói',
-    qty: 1,
-    unitCostVnd: docMat.cost,
-    totalCostVnd: docMat.cost,
-    unitSellVnd: Math.round(docMat.cost * multiplier),
-    totalSellVnd: Math.round(docMat.cost * multiplier),
-    brand: 'HGC Service',
-    origin: 'Việt Nam',
-    note: 'Nghiệm thu đóng điện theo QĐ 1279/QĐ-BCT',
-  });
+  const includeEvnDocs = params.includeEvnDocs ?? true;
+  if (includeEvnDocs) {
+    const docMat = findMat('s-testing-evn', 4500000);
+    const docCost = params.evnDocsCostVnd !== undefined ? params.evnDocsCostVnd : docMat.cost;
+    lines.push({
+      id: 'bom-s-docs',
+      categoryCode: 'VIII',
+      categoryName: 'Chi phí dịch vụ',
+      name: 'Thí nghiệm đo kiểm định điện & Lập hồ sơ kỹ thuật thỏa thuận EVN',
+      spec: 'Hồ sơ pháp lý nghiệm thu kỹ thuật đấu nối với Công ty Điện lực EVN',
+      sku: docMat.sku,
+      unit: 'gói',
+      qty: 1,
+      unitCostVnd: docCost,
+      totalCostVnd: docCost,
+      unitSellVnd: Math.round(docCost * multiplier),
+      totalSellVnd: Math.round(docCost * multiplier),
+      brand: 'HGC Service',
+      origin: 'Việt Nam',
+      note: 'Nghiệm thu đóng điện theo QĐ 1279/QĐ-BCT',
+    });
+  }
 
   // =========================================================================
   // NHÓM X - HỆ THỐNG SCADA & GIÁM SÁT
   // =========================================================================
-  const scadaMat = findMat('scada-logger', 3200000);
-  lines.push({
-    id: 'bom-scada',
-    categoryCode: 'X',
-    categoryName: 'Hệ thống Scada',
-    name: 'Datalogger thông minh & Thiết bị truyền thông đám mây 24/7',
-    spec: 'Cổng RS485/WiFi/4G, tài khoản giám sát thời gian thực qua App/Web',
-    sku: scadaMat.sku,
-    unit: 'bộ',
-    qty: 1,
-    unitCostVnd: scadaMat.cost,
-    totalCostVnd: scadaMat.cost,
-    unitSellVnd: Math.round(scadaMat.cost * multiplier),
-    totalSellVnd: Math.round(scadaMat.cost * multiplier),
-    brand: inverter?.brand || 'Huawei / Sungrow',
-    origin: 'Chính hãng',
-    note: 'Giám sát sản lượng điện phát & cảnh báo sự cố từ xa',
-  });
+  // Thực tế ETEK và các hãng Inverter dân dụng / C&I hiện đại đã tích hợp sẵn Wifi Dongle miễn phí.
+  // Chỉ cộng phí SCADA Datalogger nếu khách hàng chủ động yêu cầu trang bị thêm hệ thống SCADA tập trung.
+  const includeScada = params.includeScada ?? false;
+  if (includeScada) {
+    const scadaMat = findMat('scada-logger', 3200000);
+    const scadaCost = params.scadaCostVnd !== undefined ? params.scadaCostVnd : scadaMat.cost;
+    lines.push({
+      id: 'bom-scada',
+      categoryCode: 'X',
+      categoryName: 'Hệ thống Scada',
+      name: 'Datalogger thông minh & Thiết bị truyền thông đám mây 24/7 (Tùy chọn)',
+      spec: 'Cổng RS485/WiFi/4G, tài khoản giám sát thời gian thực qua App/Web',
+      sku: scadaMat.sku,
+      unit: 'bộ',
+      qty: 1,
+      unitCostVnd: scadaCost,
+      totalCostVnd: scadaCost,
+      unitSellVnd: Math.round(scadaCost * multiplier),
+      totalSellVnd: Math.round(scadaCost * multiplier),
+      brand: inverter?.brand || 'Huawei / Sungrow',
+      origin: 'Chính hãng',
+      note: 'Giám sát sản lượng điện phát & cảnh báo sự cố từ xa',
+    });
+  }
 
   return lines;
 }

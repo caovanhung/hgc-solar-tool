@@ -84,6 +84,11 @@ function createInitialProject(name = 'Hồ sơ kỹ thuật mới'): Project {
     board,
     materialsCatalog: INITIAL_MATERIALS,
     marginPct: 18,
+    roofType: 'tole',
+    hasCanopyFrame: false,
+    includeEvnDocs: true,
+    includeTransport: true,
+    includeScada: false, // Thực tế ETEK ko cần Datalogger ngoài
   });
 
   const financial = calculateFinancials({
@@ -278,7 +283,28 @@ export default function App() {
   // Catalogs
   const [panels, setPanels] = useState<PanelModel[]>(INITIAL_PANELS);
   const [inverters, setInverters] = useState(INITIAL_INVERTERS);
-  const [materials, setMaterials] = useState(INITIAL_MATERIALS);
+  const [materials, setMaterials] = useState<MaterialItem[]>(() => {
+    try {
+      const saved = localStorage.getItem('hgc_materials_catalog');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {
+      console.error(e);
+    }
+    return INITIAL_MATERIALS;
+  });
+
+  const handleUpdateMaterials = (newMats: MaterialItem[]) => {
+    setMaterials(newMats);
+    try {
+      localStorage.setItem('hgc_materials_catalog', JSON.stringify(newMats));
+    } catch (e) {
+      console.error(e);
+    }
+    showToast('✓ Đã lưu bảng giá vật tư Catalog mới');
+  };
 
   // Khởi tạo & Cập nhật khi tài khoản thay đổi: Đồng bộ dữ liệu dự án của riêng tài khoản từ Backend Server
   useEffect(() => {
@@ -348,7 +374,17 @@ export default function App() {
           updates.discountPct !== undefined ||
           updates.installMode !== undefined ||
           updates.manualPanelQty !== undefined ||
-          updates.targetLoadKw !== undefined
+          updates.targetLoadKw !== undefined ||
+          updates.hasCanopyFrame !== undefined ||
+          updates.canopyAreaM2 !== undefined ||
+          updates.canopyUnitCostVnd !== undefined ||
+          updates.includeEvnDocs !== undefined ||
+          updates.evnDocsCostVnd !== undefined ||
+          updates.includeTransport !== undefined ||
+          updates.transportCostVnd !== undefined ||
+          updates.installCostVndPerKwp !== undefined ||
+          updates.includeScada !== undefined ||
+          updates.scadaCostVnd !== undefined
         ) {
           const panel = panels.find((pan) => pan.id === (updates.selectedPanelId || updated.selectedPanelId)) || panels[0];
           const province = VIETNAM_PROVINCES.find((pv) => pv.code === (updates.provinceCode || updated.provinceCode)) || VIETNAM_PROVINCES[0];
@@ -409,6 +445,17 @@ export default function App() {
             board,
             materialsCatalog: materials,
             marginPct: updated.marginPct,
+            roofType: updated.roofType,
+            hasCanopyFrame: updated.hasCanopyFrame,
+            canopyAreaM2: updated.canopyAreaM2,
+            canopyUnitCostVnd: updated.canopyUnitCostVnd,
+            includeEvnDocs: updated.includeEvnDocs,
+            evnDocsCostVnd: updated.evnDocsCostVnd,
+            includeTransport: updated.includeTransport,
+            transportCostVnd: updated.transportCostVnd,
+            installCostVndPerKwp: updated.installCostVndPerKwp,
+            includeScada: updated.includeScada,
+            scadaCostVnd: updated.scadaCostVnd,
           });
 
           const financial = calculateFinancials({
@@ -677,7 +724,7 @@ export default function App() {
             materials={materials}
             onUpdatePanels={setPanels}
             onUpdateInverters={setInverters}
-            onUpdateMaterials={setMaterials}
+            onUpdateMaterials={handleUpdateMaterials}
             onBack={() => setActiveView('wizard')}
           />
         )}

@@ -34,9 +34,71 @@ export const AdminCatalog: React.FC<AdminCatalogProps> = ({
   onUpdateMaterials,
   onBack,
 }) => {
-  const [activeTab, setActiveTab] = useState<'panels' | 'inverters' | 'materials'>('panels');
+  const [activeTab, setActiveTab] = useState<'panels' | 'inverters' | 'materials'>('materials');
   const [searchTerm, setSearchTerm] = useState('');
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
+  const [editForm, setEditForm] = useState<Partial<MaterialItem>>({});
+  const [showAddModal, setShowAddModal] = useState<boolean>(false);
+  const [newMatForm, setNewMatForm] = useState<Partial<MaterialItem>>({
+    categoryCode: 'VII',
+    categoryName: 'Hạng mục xây dựng',
+    unit: 'm²',
+    costVnd: 450000,
+    source: 'derived_from_demo_total',
+  });
+
+  const handleStartEdit = (m: MaterialItem) => {
+    setEditingItemId(m.id);
+    setEditForm({
+      name: m.name,
+      spec: m.spec,
+      sku: m.sku,
+      unit: m.unit,
+      costVnd: m.costVnd,
+    });
+  };
+
+  const handleSaveEdit = (id: string) => {
+    const updated = materials.map((m) =>
+      m.id === id ? { ...m, ...editForm, costVnd: Number(editForm.costVnd || m.costVnd) } : m
+    );
+    onUpdateMaterials(updated);
+    setEditingItemId(null);
+  };
+
+  const handleDeleteMaterial = (id: string, name: string) => {
+    if (window.confirm(`Bạn có chắc chắn muốn xóa vật tư "${name}" khỏi danh mục?`)) {
+      const updated = materials.filter((m) => m.id !== id);
+      onUpdateMaterials(updated);
+    }
+  };
+
+  const handleAddMaterialSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newMatForm.name) return;
+
+    const newItem: MaterialItem = {
+      id: `custom-mat-${Date.now()}`,
+      categoryCode: (newMatForm.categoryCode as any) || 'VII',
+      categoryName: newMatForm.categoryName || 'Hạng mục xây dựng',
+      name: newMatForm.name,
+      spec: newMatForm.spec || '',
+      sku: newMatForm.sku || `MAT-${Date.now().toString().slice(-4)}`,
+      unit: newMatForm.unit || 'bộ',
+      costVnd: Number(newMatForm.costVnd || 0),
+      source: 'demo_ui_observed',
+    };
+
+    onUpdateMaterials([...materials, newItem]);
+    setShowAddModal(false);
+    setNewMatForm({
+      categoryCode: 'VII',
+      categoryName: 'Hạng mục xây dựng',
+      unit: 'm²',
+      costVnd: 450000,
+      source: 'derived_from_demo_total',
+    });
+  };
 
   // Export current catalog as JSON
   const handleExportData = () => {
@@ -221,41 +283,276 @@ export const AdminCatalog: React.FC<AdminCatalogProps> = ({
 
       {/* Tab 3: Materials Table */}
       {activeTab === 'materials' && (
-        <div className="bg-white rounded-xl border border-slate-200/90 shadow-sm overflow-x-auto">
-          <table className="w-full text-xs text-left">
-            <thead className="bg-[#0F2A45] text-white text-[11px] uppercase font-bold font-mono">
-              <tr>
-                <th className="px-3.5 py-3">Nhóm</th>
-                <th className="px-3.5 py-3">Tên Vật Tư Thiết Bị</th>
-                <th className="px-3.5 py-3">Thông Số Kỹ Thuật</th>
-                <th className="px-3.5 py-3">Mã SKU</th>
-                <th className="px-3.5 py-3 text-center">ĐVT</th>
-                <th className="px-3.5 py-3 text-right">Đơn Giá Vốn (đ)</th>
-                <th className="px-3.5 py-3 text-center">Nguồn Giá</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {materials
-                .filter((m) => m.name.toLowerCase().includes(searchTerm.toLowerCase()) || m.sku.toLowerCase().includes(searchTerm.toLowerCase()))
-                .map((m) => (
-                  <tr key={m.id} className="hover:bg-slate-50 transition-colors">
-                    <td className="px-3.5 py-2.5 font-bold text-[#0F2A45]">{m.categoryName}</td>
-                    <td className="px-3.5 py-2.5 font-semibold text-slate-900">{m.name}</td>
-                    <td className="px-3.5 py-2.5 text-slate-600 font-mono text-[11px]">{m.spec}</td>
-                    <td className="px-3.5 py-2.5 font-mono text-slate-500">{m.sku}</td>
-                    <td className="px-3.5 py-2.5 text-center text-slate-600">{m.unit}</td>
-                    <td className="px-3.5 py-2.5 text-right font-mono font-bold text-slate-900">
-                      {m.costVnd.toLocaleString('vi-VN')} đ
-                    </td>
-                    <td className="px-3.5 py-2.5 text-center">
-                      <span className="text-[10px] text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
-                        {m.source === 'demo_ui_observed' ? 'Thực tế ETEK' : 'Đơn giá mẫu'}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-            </tbody>
-          </table>
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-slate-500">
+              Nhấp vào biểu tượng bút chì để chỉnh sửa trực tiếp đơn giá vốn và quy cách vật tư.
+            </p>
+            <button
+              onClick={() => setShowAddModal(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#E4572E] hover:bg-[#d04922] text-white text-xs font-bold shadow-sm transition-all"
+            >
+              <Plus size={14} />
+              <span>Thêm Vật Tư Mới</span>
+            </button>
+          </div>
+
+          <div className="bg-white rounded-xl border border-slate-200/90 shadow-sm overflow-x-auto">
+            <table className="w-full text-xs text-left">
+              <thead className="bg-[#0F2A45] text-white text-[11px] uppercase font-bold font-mono">
+                <tr>
+                  <th className="px-3.5 py-3">Nhóm</th>
+                  <th className="px-3.5 py-3">Tên Vật Tư Thiết Bị</th>
+                  <th className="px-3.5 py-3">Thông Số Kỹ Thuật</th>
+                  <th className="px-3.5 py-3">Mã SKU</th>
+                  <th className="px-3.5 py-3 text-center">ĐVT</th>
+                  <th className="px-3.5 py-3 text-right">Đơn Giá Vốn (đ)</th>
+                  <th className="px-3.5 py-3 text-center">Nguồn Giá</th>
+                  <th className="px-3.5 py-3 text-center">Thao Tác</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {materials
+                  .filter((m) => m.name.toLowerCase().includes(searchTerm.toLowerCase()) || m.sku.toLowerCase().includes(searchTerm.toLowerCase()))
+                  .map((m) => {
+                    const isEditing = editingItemId === m.id;
+                    return (
+                      <tr key={m.id} className={isEditing ? 'bg-orange-50/40' : 'hover:bg-slate-50 transition-colors'}>
+                        <td className="px-3.5 py-2.5 font-bold text-[#0F2A45] whitespace-nowrap">{m.categoryName}</td>
+                        <td className="px-3.5 py-2.5 font-semibold text-slate-900">
+                          {isEditing ? (
+                            <input
+                              type="text"
+                              value={editForm.name ?? m.name}
+                              onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                              className="w-full px-2 py-1 text-xs border border-orange-300 rounded font-semibold bg-white"
+                            />
+                          ) : (
+                            m.name
+                          )}
+                        </td>
+                        <td className="px-3.5 py-2.5 text-slate-600 font-mono text-[11px]">
+                          {isEditing ? (
+                            <input
+                              type="text"
+                              value={editForm.spec ?? m.spec}
+                              onChange={(e) => setEditForm({ ...editForm, spec: e.target.value })}
+                              className="w-full px-2 py-1 text-xs border border-orange-300 rounded font-mono bg-white"
+                            />
+                          ) : (
+                            m.spec
+                          )}
+                        </td>
+                        <td className="px-3.5 py-2.5 font-mono text-slate-500 whitespace-nowrap">
+                          {isEditing ? (
+                            <input
+                              type="text"
+                              value={editForm.sku ?? m.sku}
+                              onChange={(e) => setEditForm({ ...editForm, sku: e.target.value })}
+                              className="w-24 px-2 py-1 text-xs border border-orange-300 rounded font-mono bg-white"
+                            />
+                          ) : (
+                            m.sku
+                          )}
+                        </td>
+                        <td className="px-3.5 py-2.5 text-center text-slate-600 whitespace-nowrap">
+                          {isEditing ? (
+                            <input
+                              type="text"
+                              value={editForm.unit ?? m.unit}
+                              onChange={(e) => setEditForm({ ...editForm, unit: e.target.value })}
+                              className="w-14 px-1.5 py-1 text-xs text-center border border-orange-300 rounded bg-white"
+                            />
+                          ) : (
+                            m.unit
+                          )}
+                        </td>
+                        <td className="px-3.5 py-2.5 text-right font-mono font-bold text-slate-900 whitespace-nowrap">
+                          {isEditing ? (
+                            <input
+                              type="number"
+                              value={editForm.costVnd ?? m.costVnd}
+                              onChange={(e) => setEditForm({ ...editForm, costVnd: Number(e.target.value) })}
+                              className="w-28 px-2 py-1 text-xs text-right border border-orange-400 rounded font-mono font-bold bg-white focus:ring-1 focus:ring-[#E4572E]"
+                            />
+                          ) : (
+                            `${m.costVnd.toLocaleString('vi-VN')} đ`
+                          )}
+                        </td>
+                        <td className="px-3.5 py-2.5 text-center whitespace-nowrap">
+                          <span className={`text-[10px] px-2 py-0.5 rounded-full ${
+                            m.id === 'scada-logger'
+                              ? 'bg-amber-100 text-amber-800 font-medium'
+                              : m.source === 'demo_ui_observed'
+                              ? 'bg-emerald-50 text-emerald-800'
+                              : 'bg-slate-100 text-slate-600'
+                          }`}>
+                            {m.id === 'scada-logger'
+                              ? 'Tùy chọn (ETEK ko cần)'
+                              : m.source === 'demo_ui_observed'
+                              ? 'Thực tế ETEK'
+                              : 'Đơn giá mẫu'}
+                          </span>
+                        </td>
+                        <td className="px-3.5 py-2.5 text-center whitespace-nowrap">
+                          {isEditing ? (
+                            <div className="flex items-center justify-center gap-1">
+                              <button
+                                onClick={() => handleSaveEdit(m.id)}
+                                className="p-1 rounded bg-emerald-600 hover:bg-emerald-700 text-white shadow-2xs"
+                                title="Lưu thay đổi"
+                              >
+                                <Check size={14} />
+                              </button>
+                              <button
+                                onClick={() => setEditingItemId(null)}
+                                className="p-1 rounded bg-slate-200 hover:bg-slate-300 text-slate-700"
+                                title="Hủy"
+                              >
+                                <ArrowLeft size={14} />
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="flex items-center justify-center gap-1">
+                              <button
+                                onClick={() => handleStartEdit(m)}
+                                className="p-1 rounded hover:bg-slate-100 text-slate-500 hover:text-slate-800"
+                                title="Chỉnh sửa đơn giá"
+                              >
+                                <Edit2 size={14} />
+                              </button>
+                              <button
+                                onClick={() => handleDeleteMaterial(m.id, m.name)}
+                                className="p-1 rounded hover:bg-red-50 text-slate-400 hover:text-red-600"
+                                title="Xóa khỏi danh mục"
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            </div>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Thêm Vật Tư Mới */}
+      {showAddModal && (
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl space-y-4 animate-scaleUp">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <h3 className="font-extrabold text-base text-[#0F2A45]">Thêm Mới Vật Tư Vào Catalog</h3>
+              <button
+                onClick={() => setShowAddModal(false)}
+                className="text-slate-400 hover:text-slate-700 text-sm font-bold"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleAddMaterialSubmit} className="space-y-3 text-xs">
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Nhóm Hạng Mục</label>
+                <select
+                  value={newMatForm.categoryCode}
+                  onChange={(e) => {
+                    const code = e.target.value;
+                    const nameMap: Record<string, string> = {
+                      IV: 'Hệ thống điện',
+                      V: 'Hệ thống máng cáp',
+                      VI: 'Hệ thống phụ trợ',
+                      VII: 'Hạng mục xây dựng',
+                      VIII: 'Chi phí dịch vụ',
+                      X: 'Hệ thống Scada',
+                    };
+                    setNewMatForm({
+                      ...newMatForm,
+                      categoryCode: code as any,
+                      categoryName: nameMap[code] || 'Vật tư',
+                    });
+                  }}
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none focus:border-[#E4572E] font-medium"
+                >
+                  <option value="VII">VII - Hạng mục xây dựng (Khung giàn, Mái khung, Rail)</option>
+                  <option value="VIII">VIII - Chi phí dịch vụ (Nhân công, Cẩu kéo, Hồ sơ EVN)</option>
+                  <option value="IV">IV - Hệ thống điện (Tủ điện, Cáp, MC4)</option>
+                  <option value="V">V - Hệ thống máng cáp (Trunking, Ống HDPE)</option>
+                  <option value="VI">VI - Hệ thống phụ trợ (Tiếp địa, Chống sét)</option>
+                  <option value="X">X - Hệ thống Scada (Datalogger, IoT)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Tên Vật Tư / Thiết Bị *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="VD: Gia công khung giàn sắt hộp kẽm 50x100"
+                  value={newMatForm.name || ''}
+                  onChange={(e) => setNewMatForm({ ...newMatForm, name: e.target.value })}
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none focus:border-[#E4572E]"
+                />
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Quy Cách & Thông Số Kỹ Thuật</label>
+                <input
+                  type="text"
+                  placeholder="VD: Thép hộp mạ kẽm dày 1.8mm, bu lông mạ kẽm"
+                  value={newMatForm.spec || ''}
+                  onChange={(e) => setNewMatForm({ ...newMatForm, spec: e.target.value })}
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none focus:border-[#E4572E]"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Đơn Vị Tính (ĐVT)</label>
+                  <input
+                    type="text"
+                    placeholder="m², cái, mét, gói, bộ..."
+                    value={newMatForm.unit || ''}
+                    onChange={(e) => setNewMatForm({ ...newMatForm, unit: e.target.value })}
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none focus:border-[#E4572E]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Đơn Giá Vốn (VND) *</label>
+                  <input
+                    type="number"
+                    required
+                    min="0"
+                    step="1000"
+                    placeholder="VD: 450000"
+                    value={newMatForm.costVnd || ''}
+                    onChange={(e) => setNewMatForm({ ...newMatForm, costVnd: Number(e.target.value) })}
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none focus:border-[#E4572E] font-mono font-bold"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setShowAddModal(false)}
+                  className="px-4 py-2 border border-slate-300 rounded-lg text-slate-700 font-semibold"
+                >
+                  Hủy
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-[#E4572E] hover:bg-[#d04922] text-white rounded-lg font-bold shadow-sm"
+                >
+                  Thêm Vào Catalog
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
     </div>

@@ -10,7 +10,7 @@ export type CustomerType =
   | 'hcsn_ytegd'
   | 'hcsn_khac';
 
-export type RoofType = 'tole' | 'concrete' | 'tile';
+export type RoofType = 'tole' | 'concrete' | 'tile' | 'canopy';
 export type RoofDirection = 's' | 'se' | 'sw' | 'e' | 'w';
 export type RoofShape = 'rect' | 'l' | 'manual';
 export type SystemType = 'zero_export' | 'on_grid' | 'hybrid' | 'off_grid';
@@ -283,4 +283,17 @@ export interface Project {
   pricingTier: 'economy' | 'recommended' | 'premium';
   bomLines?: BomLine[];
   financial?: FinancialResult;
+
+  // Tùy chỉnh làm mái khung & chi phí dịch vụ EPC
+  hasCanopyFrame?: boolean;
+  canopyAreaM2?: number;
+  canopyUnitCostVnd?: number;
+  canopyHeightM?: number;
+  includeEvnDocs?: boolean;
+  evnDocsCostVnd?: number;
+  includeTransport?: boolean;
+  transportCostVnd?: number;
+  installCostVndPerKwp?: number;
+  includeScada?: boolean;
+  scadaCostVnd?: number;
 }

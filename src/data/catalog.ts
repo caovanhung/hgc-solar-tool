@@ -361,6 +361,7 @@ export const INITIAL_MATERIALS: MaterialItem[] = [
   { id: 'm-clip', categoryCode: 'VII', categoryName: 'Hạng mục xây dựng', name: 'Chân kẹp mái tôn cliplock (Seam clamp) kèm đệm cao su EPDM', spec: 'Nhôm đúc mạ điện phân, không đục thủng tôn mái', sku: 'HLC-CLIP-01', unit: 'bộ', costVnd: 45000, source: 'demo_ui_observed' },
   { id: 'm-lfeet', categoryCode: 'VII', categoryName: 'Hạng mục xây dựng', name: 'Chân chữ L (L-Feet) chống bão mái tôn sóng vuông', spec: 'Nhôm Al6005-T5, kèm vít bắn tôn inox chống dột', sku: 'HLC-LFEET-02', unit: 'bộ', costVnd: 28000, source: 'demo_ui_observed' },
   { id: 'm-joiner', categoryCode: 'VII', categoryName: 'Hạng mục xây dựng', name: 'Thanh nối rail nhôm kèm bu lông M8 Inox 304', spec: 'Al6005-T5, dài 200mm liên kết thanh rail', sku: 'HLC-JOIN-20', unit: 'bộ', costVnd: 22000, source: 'demo_ui_observed' },
+  { id: 'm-canopy-steel', categoryCode: 'VII', categoryName: 'Hạng mục xây dựng', name: 'Gia công kết cấu khung giàn thép mạ kẽm / Mái khung nâng cao', spec: 'Hệ cột, kèo, xà gồ sắt hộp kẽm chống rỉ, bu lông neo liên kết chịu lực gió bão', sku: 'STEEL-CANOPY-M2', unit: 'm²', costVnd: 450000, source: 'derived_from_demo_total' },
 
   // Nhóm VIII: Chi phí dịch vụ
   { id: 's-install', categoryCode: 'VIII', categoryName: 'Chi phí dịch vụ', name: 'Nhân công thi công cơ khí & đấu nối điện đóng điện trọn gói', spec: 'Đội ngũ kỹ sư & công nhân chứng chỉ an toàn lao động', sku: 'LABOR-EPC-KWP', unit: 'kWp', costVnd: 550000, source: 'derived_from_demo_total' },
@@ -368,5 +369,5 @@ export const INITIAL_MATERIALS: MaterialItem[] = [
   { id: 's-testing-evn', categoryCode: 'VIII', categoryName: 'Chi phí dịch vụ', name: 'Thí nghiệm đo kiểm định điện & Lập hồ sơ kỹ thuật thỏa thuận EVN', spec: 'Hồ sơ pháp lý nghiệm thu kỹ thuật đấu nối Điện lực', sku: 'SERVICE-EVN-DOCS', unit: 'gói', costVnd: 4500000, source: 'derived_from_demo_total' },
 
   // Nhóm X: Hệ thống Scada
-  { id: 'scada-logger', categoryCode: 'X', categoryName: 'Hệ thống Scada', name: 'Datalogger thông minh & Thiết bị truyền thông đám mây 24/7', spec: 'Cổng RS485/WiFi/4G, tài khoản giám sát thời gian thực App/Web', sku: 'SCADA-LOGGER-IOT', unit: 'bộ', costVnd: 3200000, source: 'demo_ui_observed' },
+  { id: 'scada-logger', categoryCode: 'X', categoryName: 'Hệ thống Scada', name: 'Datalogger thông minh & Thiết bị truyền thông đám mây 24/7 (Tùy chọn)', spec: 'Cổng RS485/WiFi/4G, tài khoản App/Web (Thực tế Etek không cần do Inverter đã tích hợp sẵn)', sku: 'SCADA-LOGGER-IOT', unit: 'bộ', costVnd: 3200000, source: 'demo_ui_observed' },
 ];

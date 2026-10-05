@@ -24,6 +24,7 @@ import {
   Check,
   X,
   Eye,
+  Wrench,
 } from 'lucide-react';
 
 interface Step5Props {
@@ -267,6 +268,182 @@ export const Step5QuotationBOM: React.FC<Step5Props> = ({
             </span>
           </div>
         )}
+
+        {/* Tùy Chỉnh Hạng Mục Mái Khung & Chi Phí Dịch Vụ Công Trình */}
+        <div className="mt-4 pt-4 border-t border-slate-200 space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-[#0F2A45] uppercase tracking-wide flex items-center gap-1.5">
+              <Wrench size={14} className="text-[#E4572E]" />
+              <span>Tùy Chỉnh Hạng Mục Mái Khung & Dịch Vụ Công Trình (Chuẩn EPC)</span>
+            </span>
+            <span className="text-[11px] text-slate-500 hidden sm:inline">
+              Bật/tắt các gói dịch vụ và gia công mái khung theo yêu cầu thực tế
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+            {/* 1. Mái Khung Giàn Nâng Cao */}
+            <div className={`p-3 rounded-xl border transition-all ${
+              project.roofType === 'canopy' || project.hasCanopyFrame
+                ? 'border-[#E4572E] bg-orange-50/20 shadow-2xs'
+                : 'border-slate-200 bg-slate-50/50'
+            }`}>
+              <label className="flex items-center gap-2 cursor-pointer mb-2">
+                <input
+                  type="checkbox"
+                  checked={project.roofType === 'canopy' || Boolean(project.hasCanopyFrame)}
+                  onChange={(e) => onUpdate({
+                    hasCanopyFrame: e.target.checked,
+                    roofType: e.target.checked ? 'canopy' : (project.roofType === 'canopy' ? 'tole' : project.roofType),
+                  })}
+                  className="accent-[#E4572E] w-4 h-4 rounded"
+                />
+                <span className="font-bold text-xs text-slate-900">Làm Mái Khung Nâng Cao</span>
+              </label>
+              {(project.roofType === 'canopy' || project.hasCanopyFrame) ? (
+                <div className="space-y-2 mt-2 pt-2 border-t border-orange-200/60">
+                  <div className="flex items-center justify-between text-[11px]">
+                    <span className="text-slate-600">Đơn giá gia công:</span>
+                    <div className="flex items-center gap-1">
+                      <input
+                        type="number"
+                        min="0"
+                        step="10000"
+                        value={project.canopyUnitCostVnd !== undefined ? project.canopyUnitCostVnd : 450000}
+                        onChange={(e) => onUpdate({ canopyUnitCostVnd: Number(e.target.value) })}
+                        className="w-20 px-1.5 py-0.5 text-right text-xs font-mono font-bold border border-slate-300 rounded bg-white"
+                      />
+                      <span className="text-[10px] text-slate-500 font-mono">đ/m²</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between text-[11px]">
+                    <span className="text-slate-600">Diện tích khung:</span>
+                    <div className="flex items-center gap-1">
+                      <input
+                        type="number"
+                        min="1"
+                        step="1"
+                        value={project.canopyAreaM2 || Math.round(project.roofLengthM * project.roofWidthM)}
+                        onChange={(e) => onUpdate({ canopyAreaM2: Number(e.target.value) })}
+                        className="w-20 px-1.5 py-0.5 text-right text-xs font-mono font-bold border border-slate-300 rounded bg-white"
+                      />
+                      <span className="text-[10px] text-slate-500 font-mono">m²</span>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-[11px] text-slate-500">Mặc định: Lắp áp mái tiêu chuẩn (Không làm khung thép)</p>
+              )}
+            </div>
+
+            {/* 2. Thí nghiệm & Hồ sơ EVN */}
+            <div className={`p-3 rounded-xl border transition-all ${
+              project.includeEvnDocs !== false
+                ? 'border-slate-300 bg-white shadow-2xs'
+                : 'border-slate-200 bg-slate-50/50 opacity-70'
+            }`}>
+              <label className="flex items-center gap-2 cursor-pointer mb-2">
+                <input
+                  type="checkbox"
+                  checked={project.includeEvnDocs !== false}
+                  onChange={(e) => onUpdate({ includeEvnDocs: e.target.checked })}
+                  className="accent-[#E4572E] w-4 h-4 rounded"
+                />
+                <span className="font-bold text-xs text-slate-900">Hồ Sơ & Thí Nghiệm EVN</span>
+              </label>
+              {project.includeEvnDocs !== false ? (
+                <div className="flex items-center justify-between text-[11px] mt-2 pt-2 border-t border-slate-100">
+                  <span className="text-slate-600">Chi phí trọn gói:</span>
+                  <div className="flex items-center gap-1">
+                    <input
+                      type="number"
+                      min="0"
+                      step="500000"
+                      value={project.evnDocsCostVnd !== undefined ? project.evnDocsCostVnd : 4500000}
+                      onChange={(e) => onUpdate({ evnDocsCostVnd: Number(e.target.value) })}
+                      className="w-24 px-1.5 py-0.5 text-right text-xs font-mono font-bold border border-slate-300 rounded bg-white"
+                    />
+                    <span className="text-[10px] text-slate-500 font-mono">đ</span>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-[11px] text-slate-400">Đã tắt: Dự án nội bộ tự dùng, không làm thỏa thuận EVN</p>
+              )}
+            </div>
+
+            {/* 3. Vận chuyển & Cẩu kéo */}
+            <div className={`p-3 rounded-xl border transition-all ${
+              project.includeTransport !== false
+                ? 'border-slate-300 bg-white shadow-2xs'
+                : 'border-slate-200 bg-slate-50/50 opacity-70'
+            }`}>
+              <label className="flex items-center gap-2 cursor-pointer mb-2">
+                <input
+                  type="checkbox"
+                  checked={project.includeTransport !== false}
+                  onChange={(e) => onUpdate({ includeTransport: e.target.checked })}
+                  className="accent-[#E4572E] w-4 h-4 rounded"
+                />
+                <span className="font-bold text-xs text-slate-900">Vận Chuyển & Cẩu Kéo</span>
+              </label>
+              {project.includeTransport !== false ? (
+                <div className="flex items-center justify-between text-[11px] mt-2 pt-2 border-t border-slate-100">
+                  <span className="text-slate-600">Xe cẩu trọn gói:</span>
+                  <div className="flex items-center gap-1">
+                    <input
+                      type="number"
+                      min="0"
+                      step="500000"
+                      value={project.transportCostVnd !== undefined ? project.transportCostVnd : 3500000}
+                      onChange={(e) => onUpdate({ transportCostVnd: Number(e.target.value) })}
+                      className="w-24 px-1.5 py-0.5 text-right text-xs font-mono font-bold border border-slate-300 rounded bg-white"
+                    />
+                    <span className="text-[10px] text-slate-500 font-mono">đ</span>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-[11px] text-slate-400">Đã tắt: Chủ đầu tư tự chịu vận chuyển / nhận tại kho</p>
+              )}
+            </div>
+
+            {/* 4. Hệ thống SCADA Datalogger */}
+            <div className={`p-3 rounded-xl border transition-all ${
+              Boolean(project.includeScada)
+                ? 'border-[#E4572E] bg-orange-50/20 shadow-2xs'
+                : 'border-slate-200 bg-slate-50/50'
+            }`}>
+              <label className="flex items-center gap-2 cursor-pointer mb-2">
+                <input
+                  type="checkbox"
+                  checked={Boolean(project.includeScada)}
+                  onChange={(e) => onUpdate({ includeScada: e.target.checked })}
+                  className="accent-[#E4572E] w-4 h-4 rounded"
+                />
+                <span className="font-bold text-xs text-slate-900">Hệ Thống Scada Datalogger</span>
+              </label>
+              {project.includeScada ? (
+                <div className="flex items-center justify-between text-[11px] mt-2 pt-2 border-t border-orange-200/60">
+                  <span className="text-slate-600">Chi phí bộ Logger:</span>
+                  <div className="flex items-center gap-1">
+                    <input
+                      type="number"
+                      min="0"
+                      step="200000"
+                      value={project.scadaCostVnd !== undefined ? project.scadaCostVnd : 3200000}
+                      onChange={(e) => onUpdate({ scadaCostVnd: Number(e.target.value) })}
+                      className="w-24 px-1.5 py-0.5 text-right text-xs font-mono font-bold border border-slate-300 rounded bg-white"
+                    />
+                    <span className="text-[10px] text-slate-500 font-mono">đ</span>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-[11px] text-emerald-700 font-medium">
+                  ✓ Đã tích hợp Wifi Dongle miễn phí theo Inverter (ETEK không cần)
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* 5 Financial Highlight KPI Cards (Bao Gồm Suất Đầu Tư Rõ Ràng) */}

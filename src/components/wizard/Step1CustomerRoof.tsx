@@ -289,12 +289,15 @@ export const Step1CustomerRoof: React.FC<Step1Props> = ({ project, onUpdate, onN
               <option value="tole">Mái tôn (Tôn sóng vuông / Cliplock / Seam)</option>
               <option value="concrete">Mái bê tông cốt thép (Bằng phẳng)</option>
               <option value="tile">Mái ngói (Ngói xi măng / ngói đất nung)</option>
+              <option value="canopy">Mái khung giàn nâng cao / Canopy (Sân thượng, nhà xe)</option>
             </select>
             <p className="text-[11px] text-slate-500 mt-1">
               {project.roofType === 'tole'
                 ? '✓ Sử dụng kẹp Seam / chân L bắn xà gồ'
                 : project.roofType === 'concrete'
                 ? '✓ Cần khung giàn nâng góc nghiêng 10-15°'
+                : project.roofType === 'canopy'
+                ? '✓ Thi công hệ cột kèo xà gồ sắt hộp mạ kẽm chịu lực'
                 : '✓ Sử dụng móc ngói inox chuyên dụng'}
             </p>
           </div>
@@ -349,6 +352,64 @@ export const Step1CustomerRoof: React.FC<Step1Props> = ({ project, onUpdate, onN
             </select>
           </div>
         </div>
+
+        {/* Tùy chỉnh thông số Mái Khung Giàn Nâng Cao */}
+        {project.roofType === 'canopy' && (
+          <div className="mt-4 p-4 rounded-xl bg-blue-50/60 border border-blue-200/80 animate-fadeIn">
+            <div className="flex items-center gap-2 mb-1.5 font-bold text-sm text-[#0F2A45]">
+              <span className="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
+              <span>Tùy Chỉnh Kết Cấu Mái Khung Giàn Thép Nâng Cao (Canopy)</span>
+            </div>
+            <p className="text-xs text-slate-600 mb-3 leading-relaxed">
+              Áp dụng cho sân thượng, nhà để xe, sân vườn cần gia công hệ cột, kèo, xà gồ sắt hộp mạ kẽm chịu lực gió bão. Chi phí sẽ được tự động tính vào dự toán BOM Nhóm VII.
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                  Chiều cao cột khung giàn (m)
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  max="10"
+                  step="0.5"
+                  value={project.canopyHeightM || 2.5}
+                  onChange={(e) => onUpdate({ canopyHeightM: Number(e.target.value) })}
+                  className="w-full px-3 py-1.5 text-xs font-mono font-bold border border-slate-300 rounded-lg outline-none focus:border-[#E4572E] bg-white"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                  Đơn giá gia công khung (đ/m²)
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  step="10000"
+                  value={project.canopyUnitCostVnd !== undefined ? project.canopyUnitCostVnd : 450000}
+                  onChange={(e) => onUpdate({ canopyUnitCostVnd: Number(e.target.value) })}
+                  className="w-full px-3 py-1.5 text-xs font-mono font-bold border border-slate-300 rounded-lg outline-none focus:border-[#E4572E] bg-white"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                  Diện tích làm khung (m²)
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  step="1"
+                  value={project.canopyAreaM2 || calculatedArea}
+                  onChange={(e) => onUpdate({ canopyAreaM2: Number(e.target.value) })}
+                  placeholder={`Mặc định: ${calculatedArea} m²`}
+                  className="w-full px-3 py-1.5 text-xs font-mono font-bold border border-slate-300 rounded-lg outline-none focus:border-[#E4572E] bg-white"
+                />
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Hộp Giải Thích Cách Xác Định Hướng Mái Chính */}
         {showDirGuide && (
