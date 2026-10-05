@@ -1,4 +1,5 @@
 import express from 'express';
+import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -7,7 +8,8 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const isProduction = process.env.NODE_ENV === 'production';
+const hasDist = fs.existsSync(path.join(__dirname, 'dist', 'index.html'));
+const isProduction = process.env.NODE_ENV === 'production' || (process.env.NODE_ENV !== 'development' && hasDist);
 
 app.use(express.json({ limit: '10mb' }));
 
@@ -143,7 +145,7 @@ async function startServer() {
   if (!isProduction) {
     const { createServer } = await import('vite');
     const vite = await createServer({
-      server: { middlewareMode: true },
+      server: { middlewareMode: true, allowedHosts: true },
       appType: 'spa',
     });
     app.use(vite.middlewares);
