@@ -89,6 +89,8 @@ function createInitialProject(name = 'Hồ sơ kỹ thuật mới'): Project {
     includeEvnDocs: false,
     includeTransport: true,
     includeScada: false, // Mặc định không có (ETEK ko cần)
+    sysType: 'zero_export',
+    phases: '3',
   });
 
   const financial = calculateFinancials({
@@ -143,11 +145,12 @@ function createInitialProject(name = 'Hồ sơ kỹ thuật mới'): Project {
 function upgradeProjectIfNeeded(p: Project): Project {
   const hasOldBom = p.bomLines && p.bomLines.some((l: any) => l.categoryCode === 'III' || !l.categoryCode);
   const isMissingRates = !p.financial?.investmentRatePostVatVndPerKwp;
+  const isOldPanel = !INITIAL_PANELS.some((item) => item.id === p.selectedPanelId);
 
-  if (hasOldBom || isMissingRates || !p.bomLines || p.bomLines.length === 0) {
+  if (hasOldBom || isMissingRates || isOldPanel || !p.bomLines || p.bomLines.length === 0) {
     const panel = INITIAL_PANELS.find((item) => item.id === p.selectedPanelId) || INITIAL_PANELS[0];
     const topInv = p.inverterProposals?.[0];
-    const inverter = topInv?.inverter || INITIAL_INVERTERS[0];
+    const inverter = INITIAL_INVERTERS.find((inv) => inv.id === p.selectedInverterId) || topInv?.inverter || INITIAL_INVERTERS[0];
     const layout = p.layoutResult;
     if (layout) {
       const mounting = p.mountingResult || calculateMounting(layout, p.roofType);
@@ -172,6 +175,8 @@ function upgradeProjectIfNeeded(p: Project): Project {
         board: board as any,
         materialsCatalog: INITIAL_MATERIALS,
         marginPct: p.marginPct || 18,
+        sysType: p.sysType,
+        phases: p.phases,
       });
 
       const newFin = calculateFinancials({
@@ -185,6 +190,8 @@ function upgradeProjectIfNeeded(p: Project): Project {
 
       return {
         ...p,
+        selectedPanelId: panel.id,
+        selectedInverterId: inverter.id,
         bomLines: newBom,
         financial: newFin,
       };
@@ -287,7 +294,7 @@ export default function App() {
   const [inverters, setInverters] = useState(INITIAL_INVERTERS);
   const [materials, setMaterials] = useState<MaterialItem[]>(() => {
     try {
-      const saved = localStorage.getItem('hgc_materials_catalog');
+      const saved = localStorage.getItem('hgc_materials_catalog_excel_v1');
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) return parsed;
@@ -301,7 +308,7 @@ export default function App() {
   const handleUpdateMaterials = (newMats: MaterialItem[]) => {
     setMaterials(newMats);
     try {
-      localStorage.setItem('hgc_materials_catalog', JSON.stringify(newMats));
+      localStorage.setItem('hgc_materials_catalog_excel_v1', JSON.stringify(newMats));
     } catch (e) {
       console.error(e);
     }
@@ -458,6 +465,8 @@ export default function App() {
             installCostVndPerKwp: updated.installCostVndPerKwp,
             includeScada: updated.includeScada,
             scadaCostVnd: updated.scadaCostVnd,
+            sysType: updated.sysType,
+            phases: updated.phases,
           });
 
           const financial = calculateFinancials({

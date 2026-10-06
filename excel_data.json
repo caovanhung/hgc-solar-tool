@@ -1,0 +1,1793 @@
+{
+  "Tấm pin ": [
+    [
+      "Brand",
+      "Mã sản phẩm",
+      "Ghi chú",
+      "< 1 Pallet sau VAT",
+      ">= 1 Pallet sau VAT",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      ""
+    ],
+    [
+      "JA",
+      "JAM66D45-630/LB",
+      "630w - 2 mặt kính",
+      "2263690.8",
+      "2240557.2",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      ""
+    ],
+    [
+      "TCL SOLAR",
+      "HSM-ND66-GR620",
+      "620w - 2 mặt kính",
+      "2120623.2",
+      "2099196",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      ""
+    ],
+    [
+      "TCL SOLAR",
+      "HSM-ND66-GR625",
+      "625w - 2 mặt kính",
+      "2133000",
+      "2121525",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      ""
+    ],
+    [
+      "LONGi",
+      "LR8-66HGD-620M",
+      "620w - Himo7 - 2 mặt kính",
+      "2225080.8",
+      "2213697.6",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      ""
+    ],
+    [
+      "LONGi",
+      "LR7-72HVHF-650M",
+      "650w - Himo X10 - 1 mặt kính",
+      "2505438",
+      "2492100",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      ""
+    ],
+    [
+      "*Giá đã bao gồm VAT",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      ""
+    ],
+    [
+      "*Khuyến cáo: Đối tác nên check lại số lượng tồn kho tấm pin với Sale trước khi đặt hàng",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      ""
+    ]
+  ],
+  "SOLAX": [
+    [
+      "Mã sản phẩm",
+      "Tên sản phẩm",
+      "Ghi chú",
+      "Giá bán lẻ khách hàng cuối trước VAT (VND)",
+      "Giá đối tác (DAT thực bán) sau VAT (VND)",
+      "Giá KM Tháng 10 full VAT"
+    ],
+    [
+      "Pin lưu trữ ",
+      "",
+      "",
+      "",
+      "",
+      ""
+    ],
+    [
+      "T-BAT-SYS-LV-D150",
+      "Bộ pin lưu trữ điện Lithium-ion T-BAT-SYS-LV-D150",
+      "áp thấp 15kw",
+      "60,991,000",
+      "4.742604E7",
+      ""
+    ],
+    [
+      "TSYS-LD160",
+      "Bộ pin lưu trữ điện Lithium-ion TSYS-LD160 (TB-LD160)",
+      "áp thấp 16kw IP40",
+      "55,876,000",
+      "4.282848E7",
+      "38,234,063"
+    ],
+    [
+      "LD16-S",
+      "Bộ pin lưu trữ điện Lithium-ion LD16-S",
+      "áp thấp 16kw IP65",
+      "64,633,000",
+      "50,257,800",
+      "44,883,465"
+    ],
+    [
+      "TB-HR140",
+      "Bộ pin lưu trữ điện Lithium-ion TB-HR140",
+      "pin lưu áp cao",
+      "65,433,000",
+      "5.087988E7",
+      ""
+    ],
+    [
+      "TBMS-R15",
+      "Bộ quản lý năng lượng SolaX dòng R15, TBMS-R15",
+      "Bộ điều khiển áp cao",
+      "38,515,000",
+      "2.9949480000000004E7",
+      ""
+    ],
+    [
+      "Biến tần 1 pha áp thấp",
+      "",
+      "",
+      "",
+      "",
+      ""
+    ],
+    [
+      "X1-HYB-5.0-LV-EU",
+      "Biến tần năng lượng mặt trời Hybrid model X1-HYB-5.0-LV-EU",
+      "",
+      "24,242,000",
+      "1.885032E7",
+      "16,623,506"
+    ],
+    [
+      "X1-HYB-6.0-LV",
+      "Biến tần năng lượng mặt trời Hybrid model X1-HYB-6.0-LV",
+      "",
+      "23,754,000",
+      "1.847124E7",
+      ""
+    ],
+    [
+      "X1-HYB-6.0-LV-EU",
+      "Biến tần năng lượng mặt trời Hybrid model X1-HYB-6.0-LV-EU",
+      "",
+      "24,966,000",
+      "1.941408E7",
+      "17,122,211"
+    ],
+    [
+      "X1-RENO-8.0-LV",
+      "Biến tần năng lượng mặt trời Hybrid model X1-RENO-8.0-LV",
+      "",
+      "37,774,000",
+      "2.9070360000000004E7",
+      "25,571,467"
+    ],
+    [
+      "X1-LITE-10.0-LV",
+      "Biến tần năng lượng mặt trời Hybrid model  X1-LITE-10.0-LV",
+      "",
+      "41,218,000",
+      "3.2051160000000004E7",
+      "28,259,960"
+    ],
+    [
+      "X1-LITE-12.0-LV",
+      "Biến tần năng lượng mặt trời Hybrid model X1-LITE-12.0-LV",
+      "",
+      "44,111,000",
+      "3.43008E7",
+      "30,254,780"
+    ],
+    [
+      "Biến tần 3 pha áp thấp",
+      "",
+      "",
+      "",
+      "",
+      ""
+    ],
+    [
+      "X3-NEO-10.0-LV",
+      "Biến tần năng lượng mặt trời Hybrid model X3-NEO-10.0-LV",
+      "",
+      "55,743,000",
+      "4.33458E7",
+      "38,067,828"
+    ],
+    [
+      "X3-NEO-15.0-LV",
+      "Biến tần năng lượng mặt trời Hybrid model X3-NEO-15.0-LV",
+      "",
+      "65,446,000",
+      "5.089068E7",
+      "44,563,012"
+    ],
+    [
+      "X3-NEO-20K-LV",
+      "Biến tần năng lượng mặt trời Hybrid model X3-NEO-20K-LV",
+      "",
+      "72,700,000",
+      "5.653044E7",
+      "49,316,400"
+    ],
+    [
+      "Biến tần 3 pha áp cao",
+      "",
+      "",
+      "",
+      "",
+      ""
+    ],
+    [
+      "X3-AELIO-49.9K(50K)",
+      "Biến tần năng lượng mặt trời Hybrid model X3-AELIO-49.9K (50K)",
+      "",
+      "135,716,000",
+      "1.0553112E8",
+      ""
+    ],
+    [
+      "X3-AELIO-60K",
+      "Biến tần năng lượng mặt trời Hybrid model X3-AELIO-60K",
+      "",
+      "145,413,000",
+      "1.130706E8",
+      ""
+    ],
+    [
+      "Biến tần hòa lưới 3 pha áp cao",
+      "",
+      "",
+      "",
+      "",
+      ""
+    ],
+    [
+      "X3-FTH-99.9K",
+      "Biến tần năng lượng mặt trời hòa lưới model X3-FTH-99.9K",
+      "",
+      "94,523,000",
+      "7.34994E7",
+      ""
+    ],
+    [
+      "X3-FTH-125K",
+      "Biến tần năng lượng mặt trời hòa lưới model X3-FTH-125K",
+      "",
+      "121,183,000",
+      "9.423E7",
+      ""
+    ],
+    [
+      "X3-FTH-150K-P(plus)",
+      "Biến tần năng lượng mặt trời hòa lưới model X3-FTH-150K-P (plus)",
+      "",
+      "145,413,000",
+      "1.130706E8",
+      ""
+    ],
+    [
+      "DTSU666-CT",
+      "Thiết bị đo đại lượng điện từ tấm pin năng lượng mặt trời DTSU666-CT",
+      "metter đi kèm",
+      "3,841,000",
+      "2987280.0",
+      ""
+    ],
+    [
+      "EMS1000PRO",
+      "Phụ kiện của máy biến tần: Module cảm biến, model: EMS1000 PRO",
+      "Bộ quản lý tối đa 120 biến tần",
+      "21,601,000",
+      "16,797,240",
+      ""
+    ]
+  ],
+  "GOODWE": [
+    [
+      "Mã sản phẩm",
+      "Tên sản phẩm",
+      "Ghi chú",
+      "Giá bán lẻ khách hàng cuối trước VAT (VND)",
+      "1-2 bộ sau VAT (VND)",
+      ">=3 bộ sau VAT (VND)",
+      "Giá KM Tháng 10 full VAT"
+    ],
+    [
+      "GIẢI PHÁP C&I",
+      "",
+      "",
+      "",
+      "",
+      "",
+      ""
+    ],
+    [
+      "GW102.4-BAT-AC-G10",
+      "Hệ thống pin lưu trữ năng lượng mặt trời, model GW102.4-BAT-AC-G10",
+      "BAT",
+      "778,780,000",
+      "6.383826E8",
+      "6.2241804E8",
+      ""
+    ],
+    [
+      "GW112.6-BAT-AC-G10",
+      "Hệ thống pin lưu trữ năng lượng mặt trời, model GW112.6-BAT-AC-G10",
+      "BAT",
+      "836,267,000",
+      "6.8550516E8",
+      "6.683634E8",
+      ""
+    ],
+    [
+      "GW125/261-ESA-LCN-G10",
+      "Hệ thống pin lưu trữ năng lượng mặt trời, model GW125/261-ESA-LCN-G10",
+      "ESA",
+      "1,731,025,000",
+      "1.41895584E9",
+      "1.38347352E9",
+      ""
+    ],
+    [
+      "Phụ kiện mua thêm",
+      "",
+      "",
+      "",
+      "",
+      "",
+      ""
+    ],
+    [
+      "EZLINK3000",
+      "Thiết bị giám sát inverter 1 pha dòng ES Series EZLINK3000",
+      "",
+      "2,398,000",
+      "1966680.0000000002",
+      "1917000.0000000002",
+      ""
+    ],
+    [
+      "EZlogger3000C",
+      "Phụ kiện của biến tần Goodwe, thiết bị ghi và truyền dữ liệu thông minh, hỗ trợ kết nối truyền thông giữa nhiều inverter EzLogger3000C",
+      "Accessories",
+      "11,028,000",
+      "9040680.0",
+      "8813880.0",
+      ""
+    ],
+    [
+      "GM330",
+      "Thiết bị đo đại lượng điện được sản xuất từ tấm pin năng lượng mặt trời GM330",
+      "Accessories",
+      "5,275,000",
+      "4324320.0",
+      "4216320.0",
+      ""
+    ],
+    [
+      "GMK110",
+      "Thiết bị đo đại lượng điện được sản xuất từ tấm pin NLMT, model: GMK110",
+      "Accessories",
+      "2,877,000",
+      "2358720.0",
+      "2300400.0",
+      ""
+    ],
+    [
+      "SEC3000C",
+      "Thiết bị giám sát nhiều biến tần năng lượng mặt trời hybrid SEC3000C",
+      "Accessories",
+      "19,802,000",
+      "1.6232400000000002E7",
+      "1.5826320000000002E7",
+      ""
+    ],
+    [
+      "STS200-80-10",
+      "Bộ chuyển mạch tĩnh STS200-80-10",
+      "Accessories",
+      "23,416,000",
+      "1.919484E7",
+      "1.871532E7",
+      ""
+    ],
+    [
+      "GW125K-STS-G10",
+      "Bộ chuyển mạch tĩnh GW125K-STS-G10",
+      "",
+      "52,040,000",
+      "4.265892E7",
+      "4.159188E7",
+      ""
+    ],
+    [
+      "WiFi/LAN-Kit-20",
+      "Phụ kiện của máy biến tần thiết bị giám sát biến tần mô-đun WiFi/LAN Kit-20",
+      "Accessories",
+      "1,103,000",
+      "905040.0000000001",
+      "882360.0",
+      ""
+    ],
+    [
+      "Biến tần áp thấp 1 pha",
+      "",
+      "",
+      "",
+      "",
+      "",
+      ""
+    ],
+    [
+      "GW5000-ES-C10",
+      "Biến tần năng lượng mặt trời Hybrid GW5000-ES-C10",
+      "ES Uniq",
+      "21,982,000",
+      "1.80198E7",
+      "1.756944E7",
+      "15,293,625"
+    ],
+    [
+      "GW6000-ES-C10",
+      "Biến tần năng lượng mặt trời Hybrid GW6000-ES-C10",
+      "ES Uniq",
+      "22,699,000",
+      "1.860732E7",
+      "1.814184E7",
+      "15,792,330"
+    ],
+    [
+      "GW8000-ES-C10",
+      "Inverter Hybrid 1 pha GW8000-ES-C10 (8kW)",
+      "ES Uniq",
+      "32,495,000",
+      "2.663712E7",
+      "2.597076E7",
+      "22,607,968"
+    ],
+    [
+      "GW10K-ES-C10",
+      "Inverter Hybrid 1 pha GW10K-ES-C10 (10kW)",
+      "ES Uniq",
+      "34,885,000",
+      "2.8596240000000004E7",
+      "2.788128E7",
+      "24,270,318"
+    ],
+    [
+      "GW12K-ES-C10",
+      "Inverter Hybrid 1 pha GW12K-ES-C10  (12kW)",
+      "ES Uniq",
+      "37,513,000",
+      "3.0750840000000004E7",
+      "2.9981880000000004E7",
+      "26,098,904"
+    ],
+    [
+      "Biến tần 3 pha áp thấp",
+      "",
+      "",
+      "",
+      "",
+      "",
+      ""
+    ],
+    [
+      "GW10K-ET-L-G10",
+      "Biến tần năng lượng mặt trời Hybrid GW10K-ET-L-G10",
+      "ET-LV",
+      "52,088,000",
+      "4.26978E7",
+      "4.163076E7",
+      "36,239,242"
+    ],
+    [
+      "GW15K-ET-L-G10",
+      "Biến tần năng lượng mặt trời Hybrid GW15K-ET-L-G10",
+      "ET-LV",
+      "56,867,000",
+      "4.661604E7",
+      "4.544964E7",
+      "39,563,943"
+    ],
+    [
+      "GW20K-ET-L-G10",
+      "Biến tần năng lượng mặt trời Hybrid GW20K-ET-L-G10",
+      "ET-LV",
+      "62,362,000",
+      "5.111964E7",
+      "4.9842E7",
+      "43,387,350"
+    ],
+    [
+      "Pin lưu trữ áp thấp",
+      "",
+      "",
+      "",
+      "",
+      "",
+      ""
+    ],
+    [
+      "GW16.1-BAT-LV-G10",
+      "Bộ pin lưu trữ điện Lithium-ion GW16.1-BAT-LV-G10",
+      "BAT Series",
+      "61,776,000",
+      "5.063904E7",
+      "4.937328E7",
+      "45,515,158"
+    ],
+    [
+      "Biến tần 3 pha áp cao",
+      "",
+      "",
+      "",
+      "",
+      "",
+      ""
+    ],
+    [
+      "GW10KN-ET",
+      "Biến tần năng lượng mặt trời Hybrid GW10KN-ET",
+      "ET Plus 16A",
+      "42,674,000",
+      "3.49812E7",
+      "3.41064E7",
+      ""
+    ],
+    [
+      "GW20K-ET",
+      "Biến tần năng lượng mặt trời Hybrid GW20K-ET",
+      "ET 15K-30K",
+      "73,592,000",
+      "6.032556000000001E7",
+      "5.881680000000001E7",
+      ""
+    ],
+    [
+      "GW30K-ET-10",
+      "Biến tần năng lượng mặt trời Hybrid GW30K-ET-10",
+      "ET 15K-30K",
+      "77,415,000",
+      "6.345864000000001E7",
+      "6.187212000000001E7",
+      ""
+    ],
+    [
+      "GW40K-ET-10",
+      "Biến tần năng lượng mặt trời Hybrid GW40K-ET-10",
+      "ET 40k-50k",
+      "89,839,000",
+      "7.364304E7",
+      "7.180164E7",
+      ""
+    ],
+    [
+      "GW50K-ET-10",
+      "Biến tần năng lượng mặt trời Hybrid GW50K-ET-10",
+      "ET 40k-50k",
+      "94,618,000",
+      "7.756128E7",
+      "7.56216E7",
+      ""
+    ],
+    [
+      "GW80KW-ET-G10",
+      "Biến tần năng lượng mặt trời Hybrid GW80KW-ET-G10",
+      "",
+      "129,407,000",
+      "1.060776E8",
+      "1.0342512E8",
+      ""
+    ],
+    [
+      "GW99.99KW-ET-G10",
+      "Biến tần năng lượng mặt trời Hybrid GW99.99KW-ET-G10",
+      "",
+      "133,994,000",
+      "1.0983816E8",
+      "1.0709172E8",
+      ""
+    ],
+    [
+      "Pin lưu trữ áp cao",
+      "",
+      "",
+      "",
+      "",
+      "",
+      ""
+    ],
+    [
+      "GW110/750-PCU-I-G10",
+      "Bộ quản lý bộ pin lưu trữ điện GW110/750-PCU-I-G10",
+      "BAT Series",
+      "24,419,000",
+      "2.16E7",
+      "2.16E7",
+      ""
+    ],
+    [
+      "GW5.1-PACK-I-G10",
+      "Bộ pin lưu trữ điện cho công nghiệp GW5.1-PACK-I-G10, công suất 5.12 kwh",
+      "BAT Series",
+      "25,280,000",
+      "2.072304E7",
+      "2.020464E7",
+      ""
+    ]
+  ],
+  "INVT": [
+    [
+      "Mã sản phẩm",
+      "Tên sản phẩm",
+      "Ghi chú",
+      "Giá bán lẻ \nkhách hàng cuối trước VAT\n(VND)",
+      "Khách hàng cuối tự lắp trước VAT",
+      "1-2 bộ sau VAT",
+      ">=3 bộ sau VAT",
+      "Giá KM Tháng 10 full VAT"
+    ],
+    [
+      "Phụ kiện",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      ""
+    ],
+    [
+      "34007-00042",
+      "Thiết bị đo đại lượng điện được sản xuất từ tấm pin NLMT DTSU666",
+      "",
+      "1,687,000",
+      "1,521,000",
+      "1483920.0",
+      "1447200.0",
+      ""
+    ],
+    [
+      "LSW-5",
+      "Phụ kiện của máy biến tần, thiết bị giám sát, model: LSW-5",
+      "",
+      "675,000",
+      "609,000",
+      "594000.0",
+      "578880.0",
+      ""
+    ],
+    [
+      "SAR-100-5",
+      "Thiết bị giám sát chống đảo chiều cho nhiều biến tần 3 pha SAR-100-5",
+      "",
+      "13,910,000",
+      "12,536,000",
+      "1.223208E7",
+      "1.192644E7",
+      ""
+    ],
+    [
+      "SCT024TS",
+      "Phụ kiện của máy biến tần, thiết bị giám sát SCT024TS",
+      "",
+      "339,000",
+      "306,000",
+      "299160.0",
+      "291600.0",
+      ""
+    ],
+    [
+      "Biến tần hòa lưới 1 pha",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      ""
+    ],
+    [
+      "XG3KTL-S",
+      "Biến tần năng lượng mặt trời hòa lưới XG3KTL-S",
+      "",
+      "7,876,000",
+      "7,099,000",
+      "6926040.0",
+      "6753240.0",
+      "5,851,474"
+    ],
+    [
+      "XG5KTL-S",
+      "Biến tần năng lượng mặt trời hòa lưới XG5KTL-S",
+      "",
+      "9,738,000",
+      "8,777,000",
+      "8563320.0",
+      "8349480.000000001",
+      "7,306,133"
+    ],
+    [
+      "XG10KTL",
+      "Biến tần năng lượng mặt trời hòa lưới XG10KTL",
+      "",
+      "16,230,000",
+      "14,627,000",
+      "1.4272200000000002E7",
+      "1.39158E7",
+      "12,390,746"
+    ],
+    [
+      "Biến tần hòa lưới 3 pha",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      ""
+    ],
+    [
+      "XG10KTR-S",
+      "Biến tần năng lượng mặt trời hòa lưới XG10KTR-S",
+      "",
+      "14,416,000",
+      "12,992,000",
+      "1.267704E7",
+      "1.23606E7",
+      "11,802,689"
+    ],
+    [
+      "XG15KTR1-S",
+      "Biến tần năng lượng mặt trời hòa lưới XG15KTR1-S",
+      "",
+      "21,076,000",
+      "18,995,000",
+      "1.853388E7",
+      "1.807056E7",
+      "15,922,152"
+    ],
+    [
+      "XG20KTR",
+      "Biến tần năng lượng mặt trời hòa lưới XG20KTR",
+      "",
+      "23,184,000",
+      "20,894,000",
+      "2.038716E7",
+      "1.98774E7",
+      ""
+    ],
+    [
+      "XG25KTR",
+      "Biến tần năng lượng mặt trời hòa lưới XG25KTR",
+      "",
+      "25,292,000",
+      "22,794,000",
+      "2.224152E7",
+      "2.168532E7",
+      ""
+    ],
+    [
+      "XG30KTR",
+      "Biến tần năng lượng mặt trời hòa lưới XG30KTR",
+      "",
+      "33,721,000",
+      "30,391,000",
+      "2.9653560000000004E7",
+      "2.8911600000000004E7",
+      ""
+    ],
+    [
+      "XG40KTR-AFCI",
+      "Biến tần năng lượng mặt trời hòa lưới XG40KTR(AFCI)",
+      "",
+      "42,362,000",
+      "38,178,000",
+      "3.725136E7",
+      "3.63204E7",
+      ""
+    ],
+    [
+      "XG50KTR-AFCI",
+      "Biến tần năng lượng mặt trời hòa lưới XG50KTR(AFCI)",
+      "",
+      "53,953,000",
+      "48,624,000",
+      "4.74444E7",
+      "4.625856E7",
+      ""
+    ],
+    [
+      "XG60KTR-AFCI",
+      "Biến tần năng lượng mặt trời hòa lưới XG60KTR(AFCI)",
+      "",
+      "62,385,000",
+      "56,223,000",
+      "5.485968E7",
+      "5.3487E7",
+      ""
+    ],
+    [
+      "XG80KTR-PRO(AFCI)",
+      "Biến tần năng lượng mặt trời hòa lưới XG80KTR-PRO(AFCI)",
+      "",
+      "72,921,000",
+      "65,718,000",
+      "6.412392000000001E7",
+      "6.252120000000001E7",
+      ""
+    ],
+    [
+      "XG110KTR-AFCI",
+      "Biến tần năng lượng mặt trời hòa lưới XG110KTR-F(AFCI)",
+      "",
+      "104,745,000",
+      "94,399,000",
+      "9.210888E7",
+      "8.980524E7",
+      ""
+    ]
+  ],
+  "SUNGROW HYBRID": [
+    [
+      "Mã sản phẩm",
+      "Tên sản phẩm",
+      "Ghi chú",
+      "Giá bán lẻ khách hàng cuối trước VAT ( VND)",
+      "1-2 bộ sau VAT ( VND)",
+      ">= 3 bộ sau VAT (VND)",
+      "Giá KM Tháng 10 full VAT"
+    ],
+    [
+      "MG5RL",
+      "Biến tần năng lượng mặt trời Hybrid MG5RL",
+      "5kw 1 pha",
+      "24,666,000",
+      "1.9893049200000003E7",
+      "1.93857948E7",
+      "17,236,800"
+    ],
+    [
+      "MG6RL",
+      "Biến tần năng lượng mặt trời Hybrid MG6RL",
+      "6kw 1 pha",
+      "25,662,000",
+      "2.0696202E7",
+      "2.0168924400000002E7",
+      "18,005,187"
+    ],
+    [
+      "MG8RL",
+      "Biến tần năng lượng mặt trời Hybrid MG8RL",
+      "8kw 1 pha",
+      "39,613,000",
+      "3.1948128000000004E7",
+      "3.11327388E7",
+      "27,567,540"
+    ],
+    [
+      "MG10RL",
+      "Biến tần năng lượng mặt trời Hybrid MG10RL",
+      "10kw 1 pha",
+      "45,984,000",
+      "3.70863036E7",
+      "3.61396512E7",
+      "31,982,672"
+    ]
+  ],
+  "LITHIUM VALLEY": [
+    [
+      "Mã sản phẩm",
+      "Tên sản phẩm",
+      "Ghi chú",
+      "Giá bán lẻ \nkhách hàng cuối trước VAT\n(VND)",
+      "Khách hàng cuối tự lắp trước VAT",
+      "1-2 bộ sau VAT",
+      ">=3 bộ sau VAT",
+      "Giá KM Tháng 10 full VAT"
+    ],
+    [
+      "Pin áp thấp",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      ""
+    ],
+    [
+      "LV-BAT-W5.12Ac",
+      "Bộ pin lưu trữ điện Lithium-ion LV-BAT-W5.12Ac",
+      "5kw",
+      "22,643,000",
+      "18,916,000",
+      "1.77444E7",
+      "1.73016E7",
+      "16,013,325"
+    ],
+    [
+      "LV-BAT-W10.24Ac",
+      "Bộ pin lưu trữ điện Lithium-ion LV-BAT-W10.24Ac",
+      "10kw",
+      "44,238,000",
+      "36,957,000",
+      "3.4668E7",
+      "3.380076E7",
+      "31,330,419"
+    ],
+    [
+      "W15-5A",
+      "Bộ pin lưu trữ điện Lithium-ion W15-5A",
+      "14.3kw, chỉ để mở rộng",
+      "50,484,000",
+      "42,175,000",
+      "3.956256E7",
+      "3.857328E7",
+      "36,445,752"
+    ],
+    [
+      "W16-5A",
+      "Bộ pin lưu trữ điện Lithium-ion W16-5A",
+      "16kw",
+      "53,043,000",
+      "44,312,000",
+      "4.156704E7",
+      "4.052808E7",
+      "38,292,734"
+    ],
+    [
+      "W21-6AD",
+      "Bộ pin lưu trữ điện Lithium-ion W21-6AD",
+      "21kw",
+      "77,306,000",
+      "64,582,000",
+      "6.058152000000001E7",
+      "5.906628000000001E7",
+      "52,454,716"
+    ]
+  ],
+  "INVT HYBRID": [
+    [
+      "Mã sản phẩm",
+      "Tên sản phẩm",
+      "Ghi chú",
+      "Giá bán lẻ \nkhách hàng cuối trước VAT\n(VND)",
+      "1-2 bộ sau VAT",
+      ">=3 bộ sau VAT",
+      "Giá KM Tháng 10 full VAT"
+    ],
+    [
+      "Biến tần 1 pha áp phấp",
+      "",
+      "",
+      "",
+      "",
+      "",
+      ""
+    ],
+    [
+      "XD5KTL",
+      "Biến tần năng lượng mặt trời hybrid XD5KTL",
+      "",
+      "19,952,000",
+      "1.705752E7",
+      "1.6630920000000002E7",
+      "14,296,215"
+    ],
+    [
+      "XD6KTL",
+      "Biến tần năng lượng mặt trời hybrid XD6KTL",
+      "",
+      "20,184,000",
+      "1.725624E7",
+      "1.682424E7",
+      "14,462,450"
+    ],
+    [
+      "XD10KTL",
+      "Biến tần năng lượng mặt trời hybrid XD10KTL",
+      "",
+      "31,552,000",
+      "2.697408E7",
+      "2.629908E7",
+      "23,272,908"
+    ],
+    [
+      "Biến tần 3 pha áp thấp",
+      "",
+      "",
+      "",
+      "",
+      "",
+      ""
+    ],
+    [
+      "XD10KTR",
+      "Biến tần năng lượng mặt trời hybrid XD10KTR",
+      "",
+      "38,689,000",
+      "3.3076080000000004E7",
+      "3.2248800000000004E7",
+      ""
+    ],
+    [
+      "XD12KTR",
+      "Biến tần năng lượng mặt trời hybrid XD12KTR",
+      "",
+      "41,760,000",
+      "3.570048E7",
+      "3.48084E7",
+      ""
+    ],
+    [
+      "Biến tần 3 pha áp cao",
+      "",
+      "",
+      "",
+      "",
+      "",
+      ""
+    ],
+    [
+      "XD30KTR",
+      "Biến tần năng lượng mặt trời hybrid XD30KTR",
+      "",
+      "95,120,000",
+      "8.13186E7",
+      "7.928388E7",
+      ""
+    ],
+    [
+      "XD40KTR",
+      "Biến tần năng lượng mặt trời hybrid XD40KTR",
+      "",
+      "104,400,000",
+      "8.92512E7",
+      "8.701884E7",
+      ""
+    ],
+    [
+      "XD50KTR",
+      "Biến tần năng lượng mặt trời hybrid XD50KTR",
+      "",
+      "109,040,000",
+      "9.321804E7",
+      "9.088632E7",
+      ""
+    ],
+    [
+      "XD60KTR",
+      "Biến tần năng lượng mặt trời hybrid XD60KTR",
+      "",
+      "113,680,000",
+      "9.718488E7",
+      "9.47538E7",
+      ""
+    ]
+  ],
+  "Valley ESS": [
+    [
+      "Mã sản phẩm",
+      "Tên sản phẩm",
+      "Ghi chú",
+      "Giá bán lẻ khách hàng cuối trước VAT (VND)",
+      "Giá khách hàng cuối tự lắp trước VAT (VND)",
+      "1-2 bộ sau VAT (VND)",
+      ">=3 bộ sau VAT (VND)"
+    ],
+    [
+      "FLEX16-HBOX",
+      "Bộ quản lí pin lưu trữ BMS mô-đun, model FLEX16-HBOX",
+      "",
+      "39,066,000",
+      "32,636,000",
+      "3.0614760000000004E7",
+      "2.9849040000000004E7"
+    ],
+    [
+      "FLEX16-RACK",
+      "Bộ đế lắp đặt battery xếp chồng, model FLEX16",
+      "",
+      "8,816,000",
+      "6,760,000",
+      "7300800.000000001",
+      "7300800.000000001"
+    ],
+    [
+      "FLEX16-UNIT",
+      "Bộ pin lưu trữ điện Lithium-ion, model FLEX16-UNIT",
+      "",
+      "59,149,000",
+      "49,413,000",
+      "4.635252E7",
+      "4.519368E7"
+    ],
+    [
+      "FLEX-RACKS2",
+      "Bộ phụ kiện cho bộ pin lưu trữ lithium-ion dạng xếp chồng, model: FLEX-RACKS2",
+      "",
+      "11,913,000",
+      "9,133,000",
+      "9863640.0",
+      "9863640.0"
+    ],
+    [
+      "FLEX-RACKS3",
+      "Bộ phụ kiện cho bộ pin lưu trữ lithium-ion dạng xếp chồng, model: FLEX-RACKS2",
+      "",
+      "23,253,000",
+      "17,827,000",
+      "1.925316E7",
+      "1.925316E7"
+    ],
+    [
+      "LV-BST-H5.12Aa-Hbox",
+      "Bộ quản lí pin lưu trữ BMS mô-đun LV-BST-H5.12Aa-Hbox",
+      "",
+      "20,792,000",
+      "17,370,000",
+      "1.6293960000000002E7",
+      "1.5886800000000002E7"
+    ],
+    [
+      "LV-BST-H5.12Aa-Unit",
+      "Bộ pin lưu trữ điện Lithium-ion LV-BST-H5.12Aa-Unit",
+      "",
+      "25,620,000",
+      "21,403,000",
+      "2.00772E7",
+      "1.957608E7"
+    ],
+    [
+      "RACK-BATTERY",
+      "Bộ rack (giá đỡ) lắp đặt battery",
+      "",
+      "14,295,000",
+      "10,188,000",
+      "1.100304E7",
+      "1.100304E7"
+    ]
+  ],
+  "PYLONTECH FB": [
+    [
+      "Mã sản phẩm",
+      "Tên sản phẩm",
+      "Ghi chú",
+      "Giá bán lẻ khách hàng cuối trước VAT (VND)",
+      "Khách hàng cuối tự lắp trước VAT (VND)",
+      "1-2 bộ sau VAT (VND)",
+      ">=3 bộ sau VAT (VND)",
+      "Giá KM Tháng 10 full VAT"
+    ],
+    [
+      "FB-L-16-0110",
+      "Bộ pin lưu trữ điện (lithium-ion), model: FB-L-16-0110",
+      "bao gồm cable kit/fire proof",
+      "69,965,000",
+      "60,170,000",
+      "4.964544E7",
+      "4.860216E7",
+      "43,000,200"
+    ]
+  ],
+  "TU DIEN HYBRID": [
+    [
+      "Mã sản phẩm",
+      "Tên sản phẩm",
+      "Ghi chú",
+      "Giá bán lẻ khách hàng cuối (VND)",
+      "1-2 bộ sau VAT",
+      ">= 3 bộ sau VAT",
+      "Giá KM Tháng 10 full VAT"
+    ],
+    [
+      "TD-HB1P0508K2S-ATS",
+      "Tủ điện Hybrid 5KW-8KW, 1 Pha, 2 String tích hợp ATS TD-HB1P0508K2S-ATS",
+      "Dùng cho inverter Hybrid 5KW đến 8KW 1 Pha, 2 String",
+      "5,502,000",
+      "3407400.0",
+      "3319920.0"
+    ],
+    [
+      "TD-HB1P10K2S-ATS",
+      "Tủ điện Hybrid 10KW, 1 Pha, 2 String tích hợp ATS TD-HB1P10K2S-ATS",
+      "Dùng cho inverter Hybrid 10KW 1 Pha, 2 String",
+      "6,132,000",
+      "3797280.0000000005",
+      "3700080.0000000005"
+    ],
+    [
+      "TD-HB1P12K3S-ATS",
+      "Tủ điện Hybrid 12KW, 1 Pha, 3 String tích hợp ATS TD-HB1P12K3S-ATS",
+      "Dùng cho inverter Hybrid 12KW 1 Pha, 3 String",
+      "7,901,000",
+      "4892400.0",
+      "4767120.0"
+    ],
+    [
+      "TD-HB3P1015K3S-ATS",
+      "Tủ điện Hybrid 10KW-15KW, 3 Pha, 3 String tích hợp ATS TD-HB3P1015K3S-ATS",
+      "Dùng cho inverter Hybrid 10KW đến 15KW 3 Pha, 3 String",
+      "8,537,000",
+      "5286600.0",
+      "5150520.0"
+    ],
+    [
+      "TD-HB3P20K4S-ATS",
+      "Tủ điện Hybrid 20KW, 3 Pha, 4 String tích hợp ATS TD-HB3P20K4S-ATS",
+      "Dùng cho inverter Hybrid 20KW 3 Pha, 4 String",
+      "10,096,000",
+      "6252120.0",
+      "6091200.0"
+    ]
+  ],
+  "SUNGROW DU AN": [
+    [
+      "Mã sản phẩm",
+      "Tên sản phẩm",
+      "Mô tả sản phẩm",
+      "Ghi chú",
+      "Giá bán lẻ khách hàng cuối (VND)",
+      "M1 sau VAT",
+      "M2 sau VAT"
+    ],
+    [
+      "SG125CX-P2",
+      "Biến tần năng lượng mặt trời hòa lưới SG125CX-P2",
+      "Inverter hòa lưới SG125CX-P2",
+      "",
+      "148,128,000",
+      "1.2382416E8",
+      "1.1998368000000001E8"
+    ],
+    [
+      "SG150CX",
+      "Biến tần năng lượng mặt trời hòa lưới SG150CX",
+      "Inverter hòa lưới SG150CX",
+      "Sản phẩm mới",
+      "179,384,000",
+      "1.4995152E8",
+      "1.4530104E8"
+    ]
+  ],
+  "GOODWE ON GRID": [
+    [
+      "Mã sản phẩm",
+      "Tên sản phẩm",
+      "Ghi chú",
+      "Giá bán lẻ \nkhách hàng cuối trước VAT\n(VND)",
+      "Khách hàng cuối tự lắp trước VAT",
+      "1-2 bộ sau VAT",
+      ">=3 bộ sau VAT"
+    ],
+    [
+      "GW100K-GT",
+      "Máy biến đổi điện tĩnh 3 pha GW100K-GT (100kw)",
+      "",
+      "102,642,000",
+      "94,636,000",
+      "9.200844E7",
+      "8.881596E7"
+    ],
+    [
+      "GW100K-GT-AFCI",
+      "Máy biến đổi điện tĩnh 3 pha GW100K-GT (AFCI) (100kw)",
+      "",
+      "108,388,000",
+      "99,934,000",
+      "9.716004E7",
+      "9.378828E7"
+    ],
+    [
+      "GW10K-MS-30",
+      "Máy biến đổi điện tĩnh 1 pha GW10K-MS-30 (10kw)",
+      "",
+      "18,572,000",
+      "17,124,000",
+      "1.6648200000000002E7",
+      "1.6070400000000002E7"
+    ],
+    [
+      "GW10K-SDT-30",
+      "Máy biến đổi điện tĩnh 3 pha GW10K-SDT-30 (10kw)",
+      "",
+      "21,153,000",
+      "19,504,000",
+      "1.896156E7",
+      "1.830384E7"
+    ],
+    [
+      "GW10K-SDT-30-AFCI",
+      "Máy biến đổi điện tĩnh 3 pha GW10K-SDT-30 (AFCI) (10kw)",
+      "",
+      "23,194,000",
+      "21,385,000",
+      "2.079216E7",
+      "2.007072E7"
+    ],
+    [
+      "GW110K-GT-AFCI",
+      "Máy biến đổi điện tĩnh 3 pha GW100K-GT (AFCI) (110kw)",
+      "",
+      "112,594,000",
+      "103,812,000",
+      "1.0093032E8",
+      "9.742788E7"
+    ],
+    [
+      "GW125K-GT",
+      "Máy biến đổi điện tĩnh 3 pha GW100K-GT (125kw)",
+      "",
+      "112,301,000",
+      "103,542,000",
+      "1.006668E8",
+      "9.717408E7"
+    ],
+    [
+      "GW125K-GT-AFCI",
+      "Máy biến đổi điện tĩnh 3 pha GW100K-GT (AFCI) (125kw)",
+      "",
+      "118,301,000",
+      "109,074,000",
+      "1.060452E8",
+      "1.0236564E8"
+    ],
+    [
+      "GW12K-SDT-30-AFCI",
+      "Máy biến đổi điện tĩnh 3 pha GW12K-SDT-30 (AFCI) (12kw)",
+      "",
+      "23,943,000",
+      "22,076,000",
+      "2.146284E7",
+      "2.071872E7"
+    ],
+    [
+      "GW15K-SDT-30",
+      "Máy biến đổi điện tĩnh 3 pha GW15K-SDT-30 (15kw)",
+      "",
+      "22,403,000",
+      "20,656,000",
+      "2.00826E7",
+      "1.9386E7"
+    ],
+    [
+      "GW15K-SDT-30-AFCI",
+      "Máy biến đổi điện tĩnh 3 pha GW15K-SDT-30 (AFCI) (15kw)",
+      "",
+      "24,443,000",
+      "22,537,000",
+      "2.191104E7",
+      "2.115072E7"
+    ],
+    [
+      "GW20K-SDT-30",
+      "Máy biến đổi điện tĩnh 3 pha GW20K-SDT-30 (20kw)",
+      "",
+      "24,693,000",
+      "22,767,000",
+      "2.213568E7",
+      "2.13678E7"
+    ],
+    [
+      "GW20K-SDT-30-AFCI",
+      "Máy biến đổi điện tĩnh 3 pha GW20K-SDT-30 (AFCI) (20kw)",
+      "",
+      "26,733,000",
+      "24,648,000",
+      "2.396412E7",
+      "2.313252E7"
+    ],
+    [
+      "GW25K-SDT-C30-AFCI",
+      "Máy biến đổi điện tĩnh 3 pha GW25K-SDT-C30 (AFCI) (25kw)",
+      "",
+      "30,772,000",
+      "28,372,000",
+      "2.758428E7",
+      "2.66274E7"
+    ],
+    [
+      "GW3000-XS-30",
+      "Máy biến đổi điện tĩnh 1 pha GW3000-XS-30 (3kw)",
+      "",
+      "7,912,000",
+      "7,295,000",
+      "7092360.000000001",
+      "6847200.0"
+    ],
+    [
+      "GW30K-SDT-C30",
+      "Máy biến đổi điện tĩnh 3 pha GW30K-SDT-C30 (30kw)",
+      "",
+      "31,230,000",
+      "28,795,000",
+      "2.799468E7",
+      "2.702376E7"
+    ],
+    [
+      "GW30K-SDT-C30-AFCI",
+      "Máy biến đổi điện tĩnh 3 pha GW30K-SDT-C30 (AFCI) (30kw)",
+      "",
+      "33,271,000",
+      "30,676,000",
+      "2.9824200000000004E7",
+      "2.8789560000000004E7"
+    ],
+    [
+      "GW40K-SDT-C30",
+      "Máy biến đổi điện tĩnh 3 pha GW40-SDT-C30 (40kw)",
+      "",
+      "40,141,000",
+      "37,011,000",
+      "3.598344E7",
+      "3.473388E7"
+    ],
+    [
+      "GW40K-SDT-C30-AFCI",
+      "Máy biến đổi điện tĩnh 3 pha GW40-SDT-C30 (AFCI) (40kw)",
+      "",
+      "42,181,000",
+      "38,891,000",
+      "3.781188E7",
+      "3.649968E7"
+    ],
+    [
+      "GW5000-DNS-30",
+      "Máy biến đổi điện tĩnh 1 pha GW5000-DNS-30 (5kw)",
+      "",
+      "12,992,000",
+      "11,979,000",
+      "1.164672E7",
+      "1.12428E7"
+    ],
+    [
+      "GW50KS-MT",
+      "Máy biến đổi điện tĩnh 3 pha GW50KS-MT (50kw)",
+      "",
+      "60,669,000",
+      "55,937,000",
+      "5.438448E7",
+      "5.249772E7"
+    ],
+    [
+      "GW50KS-MT-AFCI",
+      "Máy biến đổi điện tĩnh 3 pha GW50KS-MT (AFCI) (50kw)",
+      "",
+      "63,543,000",
+      "58,587,000",
+      "5.696028000000001E7",
+      "5.498388E7"
+    ],
+    [
+      "GW60KS-MT-AFCI",
+      "Máy biến đổi điện tĩnh 3 pha GW60KS-MT (AFCI) (60kw)",
+      "",
+      "65,749,000",
+      "60,621,000",
+      "5.893776000000001E7",
+      "5.689332000000001E7"
+    ],
+    [
+      "GW8000-SDT-30-AFCI",
+      "Máy biến đổi điện tĩnh 3 pha GW8000-SDT-30 (AFCI) (8kw)",
+      "",
+      "22,736,000",
+      "20,963,000",
+      "2.038068E7",
+      "1.967436E7"
+    ],
+    [
+      "GW80K-SMT",
+      "Máy biến đổi điện tĩnh 3 pha GW80K-SMT (80kw)",
+      "",
+      "75,285,000",
+      "69,413,000",
+      "6.748596E7",
+      "6.514452000000001E7"
+    ],
+    [
+      "Tồn kho chủ yếu mã GW125k , các mã khác thường không có tồn kho, liên hệ sale phụ trách để báo thời gian có hàng"
+    ]
+  ],
+  "SUNGROW GRID": [
+    [
+      "Mã sản phẩm",
+      "Tên sản phẩm",
+      "Ghi chú",
+      "Giá bán lẻ \nkhách hàng cuối trước VAT\n(VND)",
+      "Khách hàng cuối tự lắp trước VAT",
+      "1-2 bộ sau VAT",
+      ">=3 bộ sau VAT"
+    ],
+    [
+      "Phụ kiện",
+      "",
+      "",
+      "",
+      "",
+      "",
+      ""
+    ],
+    [
+      "COM100",
+      "Thiết bị giám sát Inverter của Sungrow COM100E",
+      "",
+      "31,654,000",
+      "24,452,000",
+      "2.385936E7",
+      "2.32632E7"
+    ],
+    [
+      "DTSD1352-C/1(6)A",
+      "Thiết bị đo đại lượng điện được sản xuất từ tấm pin năng lượng mặt trời (không kèm thiết bị ghi) DTSD1352-C/1(6)A",
+      "",
+      "3,618,000",
+      "2,795,000",
+      "2727000.0",
+      "2658960.0"
+    ],
+    [
+      "DTSU666",
+      "Thiết bị đo đại lượng điện từ tấm pin năng lượng mặt trời DTSU666",
+      "",
+      "5,427,000",
+      "4,193,000",
+      "4091040.0000000005",
+      "3988440.0000000005"
+    ],
+    [
+      "RT1",
+      "Thiết bị quan trắc bức xạ nhiệt năng lượng mặt trời RT1",
+      "",
+      "33,334,000",
+      "23,000,000",
+      "2.484E7",
+      "2.484E7"
+    ],
+    [
+      "S100",
+      "Thiết bị đo đại lượng điện được sản xuất từ tấm pin năng lượng mặt trời (không kèm thiết bị ghi) S100",
+      "",
+      "4,522,000",
+      "3,494,000",
+      "3408480.0",
+      "3324240.0"
+    ],
+    [
+      "WINET-S",
+      "Thiết bị giám sát sungrow Winet-S",
+      "",
+      "3,166,000",
+      "2,446,000",
+      "2386800.0",
+      "2327400.0"
+    ],
+    [
+      "Biến tần hòa lưới",
+      "",
+      "",
+      "",
+      "",
+      "",
+      ""
+    ],
+    [
+      "SG15RT-P2",
+      "Biến tần năng lượng mặt trời hòa lưới SG15RT-P2",
+      "Thêm chức năng phát hiện hồ quang và loại bỏ lỗi",
+      "51,551,000",
+      "39,822,000",
+      "3.885516E7",
+      "3.788532E7"
+    ],
+    [
+      "SG20RT-P2",
+      "Biến tần năng lượng mặt trời hòa lưới SG20RT-P2",
+      "Thêm chức năng phát hiện hồ quang và loại bỏ lỗi",
+      "57,430,000",
+      "44,363,000",
+      "4.32864E7",
+      "4.220532E7"
+    ],
+    [
+      "SG33CX-P2",
+      "Biến tần năng lượng mặt trời hòa lưới SG33CX-P2",
+      "",
+      "74,613,000",
+      "57,636,000",
+      "5.623776E7",
+      "5.483376E7"
+    ],
+    [
+      "SG40CX-P2",
+      "Biến tần năng lượng mặt trời hòa lưới SG40CX-P2",
+      "",
+      "81,396,000",
+      "62,876,000",
+      "6.135048000000001E7",
+      "5.981796000000001E7"
+    ],
+    [
+      "SG50CX-P2",
+      "Biến tần năng lượng mặt trời hòa lưới SG50CX-P2",
+      "",
+      "85,918,000",
+      "66,369,000",
+      "6.475896000000001E7",
+      "6.314112000000001E7"
+    ],
+    [
+      "SG8.0RS",
+      "Biến tần năng lượng mặt trời hòa lưới SG8.0RS",
+      "",
+      "27,585,000",
+      "21,309,000",
+      "2.079216E7",
+      "2.027268E7"
+    ],
+    [
+      "SG10RS",
+      "Biến tần năng lượng mặt trời hòa lưới SG10RS",
+      "",
+      "30,750,000",
+      "23,754,000",
+      "2.317788E7",
+      "2.2599E7"
+    ]
+  ]
+}

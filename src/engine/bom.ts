@@ -32,6 +32,8 @@ export interface GenerateBomParams {
   installCostVndPerKwp?: number;
   includeScada?: boolean;
   scadaCostVnd?: number;
+  sysType?: string;
+  phases?: string;
 }
 
 export function generateProjectBom(params: GenerateBomParams): BomLine[] {
