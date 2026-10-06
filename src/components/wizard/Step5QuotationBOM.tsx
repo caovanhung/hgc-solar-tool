@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Project, BomLine } from '../../types/solar';
-import { getStandardGroupedBom, exportErpBomCsv } from '../../engine/bom';
+import { getStandardGroupedBom, exportErpBomCsv, exportSummaryQuotationCsv } from '../../engine/bom';
 import { CashflowChart } from '../financial/CashflowChart';
 import { RechartsRoiSavingsChart } from '../financial/RechartsRoiSavingsChart';
 import { CustomerValueProposalPrint } from '../proposal/CustomerValueProposalPrint';
@@ -84,6 +84,23 @@ export const Step5QuotationBOM: React.FC<Step5Props> = ({
     document.body.removeChild(link);
   };
 
+  const handleExportSummaryExcel = () => {
+    const csvContent = exportSummaryQuotationCsv(
+      bomLines,
+      project.name || 'HGC_Solar_Project',
+      project.layoutResult?.installedKwp || 1,
+      project.financial
+    );
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `BaoGia_TongHop_8Nhom_${(project.name || 'DuAn').replace(/\s+/g, '_')}_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   // Thực hiện in theo loại tài liệu đã chọn
   const handleConfirmPrint = (docType: PrintDocumentType) => {
     setSelectedPrintDoc(docType);
@@ -145,6 +162,15 @@ export const Step5QuotationBOM: React.FC<Step5Props> = ({
                 BOM Nội Bộ (Giá Vốn)
               </button>
             </div>
+
+            <button
+              onClick={handleExportSummaryExcel}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs shadow-sm transition-all"
+              title="Xuất file Excel / CSV Bảng Báo Giá Tổng Hợp Theo 8 Nhóm Hạng Mục"
+            >
+              <FileSpreadsheet size={15} />
+              <span>Xuất Excel 8 Nhóm</span>
+            </button>
 
             <button
               onClick={handleExportErpExcel}
@@ -641,8 +667,18 @@ export const Step5QuotationBOM: React.FC<Step5Props> = ({
 
         <div className="flex items-center gap-3">
           <button
+            onClick={handleExportSummaryExcel}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-teal-600 text-teal-700 hover:bg-teal-50 font-bold text-sm shadow-sm transition-all"
+            title="Xuất file Excel / CSV Báo Giá Tổng Hợp Theo 8 Nhóm Hạng Mục"
+          >
+            <FileSpreadsheet size={16} />
+            <span>Xuất Excel 8 Nhóm</span>
+          </button>
+
+          <button
             onClick={handleExportErpExcel}
             className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-emerald-600 text-emerald-700 hover:bg-emerald-50 font-bold text-sm shadow-sm transition-all"
+            title="Xuất file Excel / CSV 17 cột chuẩn phần mềm ERP"
           >
             <FileSpreadsheet size={16} />
             <span>Xuất Excel ERP</span>
