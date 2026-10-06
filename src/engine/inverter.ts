@@ -36,6 +36,10 @@ export function selectInverters(params: InverterSelectionParams): InverterPropos
   const compatibleInverters = availableInverters.filter((inv) => {
     if (inv.phases !== phases) return false;
     if (sysType === 'zero_export' && !inv.supportsZeroExport) return false;
+    if (sysType === 'hybrid') {
+      const hasHybrid = availableInverters.some((i) => i.phases === phases && i.type === 'hybrid');
+      if (hasHybrid) return inv.type === 'hybrid';
+    }
     return true;
   });
 

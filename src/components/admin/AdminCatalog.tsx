@@ -13,6 +13,8 @@ import {
   Download,
   ShieldCheck,
   ArrowLeft,
+  FileSpreadsheet,
+  Upload,
 } from 'lucide-react';
 
 interface AdminCatalogProps {
@@ -113,6 +115,72 @@ export const AdminCatalog: React.FC<AdminCatalogProps> = ({
     downloadAnchor.remove();
   };
 
+  // Xuất bảng vật tư ra file CSV/Excel
+  const handleExportMaterialsCsv = () => {
+    const headers = ['Mã Nhóm', 'Tên Nhóm', 'ID', 'Tên Hàng / Thiết Bị', 'Quy Cách / Thông Số', 'Mã SKU', 'ĐVT', 'Đơn Giá Vốn (đ)'];
+    const rows = materials.map((m) => [
+      `"${m.categoryCode}"`,
+      `"${m.categoryName}"`,
+      `"${m.id}"`,
+      `"${m.name.replace(/"/g, '""')}"`,
+      `"${m.spec.replace(/"/g, '""')}"`,
+      `"${m.sku}"`,
+      `"${m.unit}"`,
+      m.costVnd,
+    ]);
+    const csvContent = '\ufeff' + [headers.join(','), ...rows.map((r) => r.join(','))].join('\r\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `HGC_Catalog_VatTu_${Date.now()}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // Nhập bảng vật tư từ file CSV/Excel để cập nhật đơn giá
+  const handleImportMaterialsCsv = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const text = event.target?.result as string;
+        const lines = text.split(/\r?\n/).filter((l) => l.trim().length > 0);
+        if (lines.length <= 1) return;
+
+        let count = 0;
+        const updated = [...materials];
+        for (let i = 1; i < lines.length; i++) {
+          const parts = lines[i].split(',').map((p) => p.replace(/^"|"$/g, '').trim());
+          if (parts.length >= 8) {
+            const [, , id, name, spec, sku, unit, costStr] = parts;
+            const cost = Number(costStr.replace(/[^0-9]/g, '')) || 0;
+            const existingIdx = updated.findIndex((m) => m.id === id || m.sku === sku);
+            if (existingIdx >= 0) {
+              updated[existingIdx] = {
+                ...updated[existingIdx],
+                costVnd: cost > 0 ? cost : updated[existingIdx].costVnd,
+                name: name || updated[existingIdx].name,
+                spec: spec || updated[existingIdx].spec,
+                unit: unit || updated[existingIdx].unit,
+              };
+              count++;
+            }
+          }
+        }
+        onUpdateMaterials(updated);
+        // Success
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6 animate-fadeIn">
       {/* Top Banner */}
@@ -134,12 +202,32 @@ export const AdminCatalog: React.FC<AdminCatalogProps> = ({
         </div>
 
         <div className="flex items-center gap-2">
+          <label className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs font-semibold cursor-pointer transition-colors">
+            <Upload size={14} className="text-teal-600" />
+            <span>Nhập Excel (CSV)</span>
+            <input
+              type="file"
+              accept=".csv"
+              onChange={handleImportMaterialsCsv}
+              className="hidden"
+            />
+          </label>
+
+          <button
+            onClick={handleExportMaterialsCsv}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-teal-600 text-teal-700 hover:bg-teal-50 text-xs font-semibold transition-colors"
+            title="Xuất bảng giá vật tư ra file Excel / CSV để chỉnh sửa đơn giá"
+          >
+            <FileSpreadsheet size={14} />
+            <span>Xuất Excel Vật Tư</span>
+          </button>
+
           <button
             onClick={handleExportData}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs font-semibold"
+            className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs font-semibold transition-colors"
           >
             <Download size={14} />
-            <span>Xuất file Catalog JSON</span>
+            <span>Xuất JSON</span>
           </button>
         </div>
       </div>

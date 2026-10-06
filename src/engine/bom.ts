@@ -228,6 +228,48 @@ export function generateProjectBom(params: GenerateBomParams): BomLine[] {
     note: 'Bấm cos và đấu nối chuỗi chuỗi string',
   });
 
+  // Đối với hệ thống Hybrid ESS: Bổ sung bộ ATS chuyển nguồn tự động & cáp động lực Battery theo chuẩn HGC
+  if (params.sysType === 'hybrid') {
+    const atsMat = findMat('e-ats-63a', 2200000);
+    lines.push({
+      id: 'bom-ats-switch',
+      categoryCode: 'IV',
+      categoryName: 'Hệ thống điện',
+      name: 'Bộ chuyển đổi nguồn tự động ATS (Lưới & Cổng Back-up EPS)',
+      spec: params.phases === '3' ? 'ATS 4P 100A chuyển mạch phụ tải ưu tiên' : 'ATS 2P 63A chuyển mạch tức thời khi mất điện lưới',
+      sku: atsMat.sku,
+      unit: 'bộ',
+      qty: 1,
+      unitCostVnd: atsMat.cost,
+      totalCostVnd: atsMat.cost,
+      unitSellVnd: Math.round(atsMat.cost * multiplier),
+      totalSellVnd: Math.round(atsMat.cost * multiplier),
+      brand: 'Chint / Schneider',
+      origin: 'Trung Quốc / Pháp',
+      note: 'Tự động chuyển nguồn phụ tải ưu tiên khi mất lưới EVN',
+    });
+
+    const batCableMat = findMat('e-bat-cable', 180000);
+    const batCableLen = 6; // 6m cặp đỏ/đen
+    lines.push({
+      id: 'bom-bat-cable',
+      categoryCode: 'IV',
+      categoryName: 'Hệ thống điện',
+      name: 'Cáp mềm chuyên dụng động lực Battery Lithium (35 - 50 mm²)',
+      spec: 'Ruột đồng mềm mạ thiếc, chịu dòng sạc xả lớn 150A - 200A ở 51.2V',
+      sku: batCableMat.sku,
+      unit: 'm',
+      qty: batCableLen,
+      unitCostVnd: batCableMat.cost,
+      totalCostVnd: batCableMat.cost * batCableLen,
+      unitSellVnd: Math.round(batCableMat.cost * multiplier),
+      totalSellVnd: Math.round(batCableMat.cost * batCableLen * multiplier),
+      brand: 'Cadivi / Leader',
+      origin: 'Việt Nam',
+      note: 'Kết nối an toàn khối Pin lưu trữ Lithium với Inverter Hybrid',
+    });
+  }
+
   // =========================================================================
   // NHÓM V - HỆ THỐNG MÁNG CÁP (Máng Trunking, Phụ kiện, Ống HDPE)
   // =========================================================================
@@ -331,6 +373,26 @@ export function generateProjectBom(params: GenerateBomParams): BomLine[] {
     brand: 'Erico / San Earth',
     origin: 'Mỹ / Nhật Bản',
     note: 'Xử lý bãi cọc tiếp địa an toàn',
+  });
+
+  const groundLugMat = findMat('g-ground-lug', 15000);
+  const groundLugQty = Math.max(mounting.groundingLugQty, layout.panelQty * 2);
+  lines.push({
+    id: 'bom-ground-lug',
+    categoryCode: 'VI',
+    categoryName: 'Hệ thống phụ trợ',
+    name: 'Kẹp tiếp địa & Lá tiếp địa Inox 304 liên kết khung nhôm pin',
+    spec: 'Thép không gỉ 304, xuyên thủng lớp nhôm Anode tạo liên kết đẳng thế ngăn ngừa tích điện',
+    sku: groundLugMat.sku,
+    unit: 'bộ',
+    qty: groundLugQty,
+    unitCostVnd: groundLugMat.cost,
+    totalCostVnd: groundLugMat.cost * groundLugQty,
+    unitSellVnd: Math.round(groundLugMat.cost * multiplier),
+    totalSellVnd: Math.round(groundLugMat.cost * groundLugQty * multiplier),
+    brand: 'HGC Mounting',
+    origin: 'Việt Nam',
+    note: 'Liên kết đẳng thế bảo vệ an toàn giàn pin',
   });
 
   // =========================================================================
@@ -446,6 +508,29 @@ export function generateProjectBom(params: GenerateBomParams): BomLine[] {
     brand: 'HGC Mounting',
     origin: 'Việt Nam',
   });
+
+  // Bổ sung keo trung tính Sikaflex chống dột mái theo tài liệu HGC (mái tôn & ngói)
+  if (mounting.roofType === 'tole' || mounting.roofType === 'tile') {
+    const sikaMat = findMat('m-sikaflex', 185000);
+    const sikaQty = Math.max(2, Math.ceil(mounting.lFeetQty / 12));
+    lines.push({
+      id: 'bom-m-sikaflex',
+      categoryCode: 'VII',
+      categoryName: 'Hạng mục xây dựng',
+      name: 'Keo trung tính chuyên dụng chống dột mái tôn (Sikaflex)',
+      spec: 'Bơm trám chân bu lông L-feet / vít xà gồ, kháng thời tiết UV, chống co ngót',
+      sku: sikaMat.sku,
+      unit: 'tuýp',
+      qty: sikaQty,
+      unitCostVnd: sikaMat.cost,
+      totalCostVnd: sikaMat.cost * sikaQty,
+      unitSellVnd: Math.round(sikaMat.cost * multiplier),
+      totalSellVnd: Math.round(sikaMat.cost * sikaQty * multiplier),
+      brand: 'Sika',
+      origin: 'Thụy Sĩ / Việt Nam',
+      note: 'Xử lý chống dột 100% tại các lỗ khoan ngàm xà gồ',
+    });
+  }
 
   // HẠNG MỤC MÁI KHUNG GIÀN NÂNG CAO (CANOPY) - TÙY CHỈNH THEO CÔNG TRÌNH
   const isCanopy = params.roofType === 'canopy' || Boolean(params.hasCanopyFrame);
@@ -650,4 +735,55 @@ export function exportErpBomCsv(lines: BomLine[], projectName: string): string {
 
   // Chèn BOM UTF-8 để Excel hiển thị đúng tiếng Việt có dấu
   return '\ufeff' + [headers.join(','), ...rows].join('\r\n');
+}
+
+/**
+ * Xuất file Excel / CSV Bảng Dự Toán Báo Giá Tổng Hợp Theo 8 Nhóm Hạng Mục
+ * (Chuẩn bản tóm tắt quản trị cho Ban Giám Đốc và Khách Hàng)
+ */
+export function exportSummaryQuotationCsv(
+  lines: BomLine[],
+  projectName: string,
+  installedKwp: number,
+  financial: any
+): string {
+  const standardGroups = getStandardGroupedBom(lines);
+  const headers = [
+    'STT',
+    'Tên Hạng Mục Đầu Tư',
+    'Quy Cách / Thành Phần Chính',
+    'ĐVT',
+    'Số Lượng',
+    'Đơn Giá (đ)',
+    'Thành Tiền (đ)',
+  ];
+
+  const rows = standardGroups.map((g) => {
+    return [
+      `"${g.group.code}"`,
+      `"${g.group.name}"`,
+      `"${g.group.description.replace(/"/g, '""')}"`,
+      '"Lot"',
+      1,
+      g.subtotalSellVnd,
+      g.subtotalSellVnd,
+    ].join(',');
+  });
+
+  const ratePreVat = financial?.investmentRatePreVatVndPerKwp || Math.round((financial?.capexSellVnd || 0) / (installedKwp || 1));
+  const ratePostVat = financial?.investmentRatePostVatVndPerKwp || Math.round((financial?.grandTotalVnd || 0) / (installedKwp || 1));
+
+  const summaryRows = [
+    '',
+    `"TỈ SUẤT ĐẦU TƯ (CHƯA VAT) / kWp:","${ratePreVat.toLocaleString('vi-VN')} Vnđ / kWp"`,
+    `"TỈ SUẤT ĐẦU TƯ TRỌN GÓI (ĐÃ GỒM VAT 10%) / kWp:","${ratePostVat.toLocaleString('vi-VN')} Vnđ / kWp"`,
+    '',
+    `"Tổng cộng (chưa VAT):","${(financial?.capexSellVnd || 0).toLocaleString('vi-VN')} đ"`,
+    `"Thuế VAT (10%):","${(financial?.vatVnd || 0).toLocaleString('vi-VN')} đ"`,
+    `"Tổng Cộng Thanh Toán:","${(financial?.grandTotalVnd || 0).toLocaleString('vi-VN')} đ"`,
+    '',
+    `"* Ghi chú: Báo giá đã bao gồm toàn bộ thiết bị chính hãng, phụ kiện mounting nhôm Anodized Al6005-T5, cáp điện Cadivi, tủ điện bám tải Zero-Export, nhân công lắp đặt và hồ sơ thỏa thuận Điện lực EVN."`,
+  ];
+
+  return '\ufeff' + [headers.join(','), ...rows, ...summaryRows].join('\r\n');
 }

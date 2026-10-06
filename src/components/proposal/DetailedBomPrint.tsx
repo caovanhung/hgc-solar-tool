@@ -18,7 +18,9 @@ export const DetailedBomPrint: React.FC<DetailedBomPrintProps> = ({
   const bomLines = project.bomLines || [];
   const installedKwp = layout?.installedKwp || 1;
 
-  const standardGroups = getStandardGroupedBom(bomLines);
+  const standardGroups = getStandardGroupedBom(bomLines).filter(
+    (g) => g.items.length > 0 && g.subtotalSellVnd > 0
+  );
 
   const ratePreVat = fin?.investmentRatePreVatVndPerKwp || Math.round((fin?.capexSellVnd || 0) / installedKwp);
   const ratePostVat = fin?.investmentRatePostVatVndPerKwp || Math.round((fin?.grandTotalVnd || 0) / installedKwp);
@@ -105,12 +107,12 @@ export const DetailedBomPrint: React.FC<DetailedBomPrintProps> = ({
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
-            {standardGroups.map((gData) => (
+            {standardGroups.map((gData, groupIdx) => (
               <React.Fragment key={gData.group.code}>
-                {/* Header Nhóm La Mã */}
+                {/* Header Nhóm */}
                 <tr className="bg-emerald-50/80 font-bold text-slate-900 text-[11px] border-t-2 border-slate-200">
                   <td className="px-2.5 py-1.5 text-center font-mono text-[#065f46] font-bold">
-                    {gData.group.code}
+                    {groupIdx + 1}
                   </td>
                   <td colSpan={2} className="px-2.5 py-1.5 text-[#065f46] uppercase">
                     {gData.group.name}
@@ -140,7 +142,7 @@ export const DetailedBomPrint: React.FC<DetailedBomPrintProps> = ({
                 {gData.items.map((line, idx) => (
                   <tr key={line.id} className="hover:bg-slate-50 transition-colors text-[10.5px]">
                     <td className="px-2.5 py-1.5 text-center text-slate-400 font-mono">
-                      {gData.group.code}.{idx + 1}
+                      {groupIdx + 1}.{idx + 1}
                     </td>
                     <td className="px-2.5 py-1.5 pl-5">
                       <div className="font-semibold text-slate-900">{line.name}</div>

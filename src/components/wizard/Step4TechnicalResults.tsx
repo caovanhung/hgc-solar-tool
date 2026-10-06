@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Project, InverterProposal, CableResult, DistributionBoardResult, MountingResult, PanelModel } from '../../types/solar';
 import { INITIAL_INVERTERS, INITIAL_PANELS } from '../../data/catalog';
 import { SingleLineDiagram } from '../layout/SingleLineDiagram';
+import { HgcCommissioningModal } from './HgcCommissioningModal';
 import {
   Zap,
   Cable,
@@ -16,6 +17,7 @@ import {
   ArrowRight,
   ExternalLink,
   Info,
+  FileCheck,
 } from 'lucide-react';
 
 interface Step4Props {
@@ -37,6 +39,7 @@ export const Step4TechnicalResults: React.FC<Step4Props> = ({
 }) => {
   // Toggle Đơn giản / Chi tiết
   const [detailMode, setDetailMode] = useState<boolean>(userRole === 'ky_su');
+  const [showHgcGuide, setShowHgcGuide] = useState<boolean>(false);
 
   // Trạng thái mở/đóng từng thẻ
   const [expandedCards, setExpandedCards] = useState<Record<string, boolean>>({
@@ -79,29 +82,41 @@ export const Step4TechnicalResults: React.FC<Step4Props> = ({
           </p>
         </div>
 
-        {/* View Toggle: Đơn Giản (Sales) vs Chi Tiết (Kỹ Sư) */}
-        <div className="flex items-center gap-2 bg-slate-100 p-1 rounded-xl border border-slate-200">
+        {/* Buttons & View Toggle */}
+        <div className="flex items-center gap-2.5">
           <button
-            onClick={() => setDetailMode(false)}
-            className={`px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all ${
-              !detailMode
-                ? 'bg-white text-[#0F2A45] shadow-sm'
-                : 'text-slate-600 hover:text-slate-900'
-            }`}
+            onClick={() => setShowHgcGuide(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-emerald-600 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 font-bold text-xs shadow-2xs transition-all"
+            title="Xem quy trình đóng điện 6 bước, chuẩn kẹp CT và cẩm nang xử lý 5 sự cố thường gặp HGC"
           >
-            Đơn Giản (Sales)
+            <FileCheck size={14} className="text-emerald-700" />
+            <span>Cẩm Nang Nghiệm Thu & Sự Cố HGC</span>
           </button>
-          <button
-            onClick={() => setDetailMode(true)}
-            className={`px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 ${
-              detailMode
-                ? 'bg-[#0F2A45] text-white shadow-sm'
-                : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            <SlidersHorizontal size={13} />
-            <span>Chi Tiết (Kỹ Sư)</span>
-          </button>
+
+          {/* View Toggle: Đơn Giản (Sales) vs Chi Tiết (Kỹ Sư) */}
+          <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200">
+            <button
+              onClick={() => setDetailMode(false)}
+              className={`px-3 py-1 text-xs font-bold rounded-lg transition-all ${
+                !detailMode
+                  ? 'bg-white text-[#0F2A45] shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              Sales
+            </button>
+            <button
+              onClick={() => setDetailMode(true)}
+              className={`px-3 py-1 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 ${
+                detailMode
+                  ? 'bg-[#0F2A45] text-white shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <SlidersHorizontal size={12} />
+              <span>Kỹ Sư</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -475,6 +490,15 @@ export const Step4TechnicalResults: React.FC<Step4Props> = ({
           <ArrowRight size={16} />
         </button>
       </div>
+
+      {/* Modal Cẩm Nang Kỹ Thuật Đào Tạo & Nghiệm Thu HGC */}
+      <HgcCommissioningModal
+        isOpen={showHgcGuide}
+        onClose={() => setShowHgcGuide(false)}
+        projectName={project.name}
+        installedKwp={project.layoutResult?.installedKwp || 10}
+        sysType={project.sysType}
+      />
     </div>
   );
 };
