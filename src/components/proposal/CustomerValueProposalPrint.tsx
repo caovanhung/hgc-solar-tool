@@ -279,7 +279,7 @@ export const CustomerValueProposalPrint: React.FC<CustomerValueProposalPrintProp
             <tbody className="divide-y divide-slate-100">
               {standardGroups.map((gData) => (
                 <tr key={gData.group.code} className="hover:bg-slate-50 transition-colors">
-                  <td className="px-3 py-2.5 text-center font-mono font-bold text-slate-500">
+                  <td className="px-3 py-2.5 text-center font-mono font-bold text-slate-700">
                     {gData.group.code}
                   </td>
                   <td className="px-3 py-2.5 font-bold text-[#0F2A45]">
