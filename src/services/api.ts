@@ -1,4 +1,4 @@
-import { Project } from '../types/solar';
+import { Project, MaterialItem } from '../types/solar';
 
 const API_BASE = '/api';
 
@@ -51,3 +51,44 @@ export async function deleteProjectFromServer(id: string, userEmail?: string, us
     return false;
   }
 }
+
+export async function fetchMaterialsFromServer(): Promise<MaterialItem[] | null> {
+  try {
+    const res = await fetch(`${API_BASE}/materials`);
+    if (!res.ok) return null;
+    const data = await res.json();
+    return Array.isArray(data) ? data : null;
+  } catch (err) {
+    console.warn('[API] Could not fetch materials from server:', err);
+    return null;
+  }
+}
+
+export async function saveMaterialToServer(material: MaterialItem): Promise<boolean> {
+  try {
+    const res = await fetch(`${API_BASE}/materials/${material.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(material),
+    });
+    return res.ok;
+  } catch (err) {
+    console.warn('[API] Failed to save material to server:', err);
+    return false;
+  }
+}
+
+export async function saveMaterialsBatchToServer(materials: MaterialItem[]): Promise<boolean> {
+  try {
+    const res = await fetch(`${API_BASE}/materials/batch`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(materials),
+    });
+    return res.ok;
+  } catch (err) {
+    console.warn('[API] Failed to batch save materials to server:', err);
+    return false;
+  }
+}
+

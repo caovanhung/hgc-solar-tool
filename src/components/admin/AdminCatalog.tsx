@@ -57,6 +57,8 @@ export const AdminCatalog: React.FC<AdminCatalogProps> = ({
       sku: m.sku,
       unit: m.unit,
       costVnd: m.costVnd,
+      technicalDescription: m.technicalDescription,
+      costBreakdown: m.costBreakdown,
     });
   };
 
@@ -89,6 +91,8 @@ export const AdminCatalog: React.FC<AdminCatalogProps> = ({
       unit: newMatForm.unit || 'bộ',
       costVnd: Number(newMatForm.costVnd || 0),
       source: 'demo_ui_observed',
+      technicalDescription: newMatForm.technicalDescription || '',
+      costBreakdown: newMatForm.costBreakdown || '',
     };
 
     onUpdateMaterials([...materials, newItem]);
@@ -405,7 +409,8 @@ export const AdminCatalog: React.FC<AdminCatalogProps> = ({
                   .map((m) => {
                     const isEditing = editingItemId === m.id;
                     return (
-                      <tr key={m.id} className={isEditing ? 'bg-orange-50/40' : 'hover:bg-slate-50 transition-colors'}>
+                      <React.Fragment key={m.id}>
+                        <tr className={isEditing ? 'bg-orange-50/40' : 'hover:bg-slate-50 transition-colors'}>
                         <td className="px-3.5 py-2.5 font-bold text-[#0F2A45] whitespace-nowrap">{m.categoryName}</td>
                         <td className="px-3.5 py-2.5 font-semibold text-slate-900">
                           {isEditing ? (
@@ -522,8 +527,41 @@ export const AdminCatalog: React.FC<AdminCatalogProps> = ({
                           )}
                         </td>
                       </tr>
-                    );
-                  })}
+                      {isEditing && (
+                        <tr className="bg-orange-50/40 border-b-2 border-orange-200 animate-fadeIn">
+                          <td colSpan={8} className="px-4 py-3">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                              <div>
+                                <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                                  📋 Mô Tả Kỹ Thuật Chi Tiết (Lưu trong Database):
+                                </label>
+                                <textarea
+                                  rows={3}
+                                  value={editForm.technicalDescription ?? m.technicalDescription ?? ''}
+                                  onChange={(e) => setEditForm({ ...editForm, technicalDescription: e.target.value })}
+                                  placeholder="Nhập thông số, tiêu chuẩn kỹ thuật chi tiết của vật tư/thiết bị..."
+                                  className="w-full p-2 border border-slate-300 rounded-lg text-xs bg-white text-slate-800 focus:border-[#E4572E] focus:ring-1 focus:ring-[#E4572E]"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-[11px] font-bold text-[#E4572E] mb-1">
+                                  💰 Chi Phí Cấu Thành & Nội Dung Thực Hiện (Lưu trong Database):
+                                </label>
+                                <textarea
+                                  rows={3}
+                                  value={editForm.costBreakdown ?? m.costBreakdown ?? ''}
+                                  onChange={(e) => setEditForm({ ...editForm, costBreakdown: e.target.value })}
+                                  placeholder="Ví dụ: Nhân công cơ khí (40%), Nhân công điện (35%), Giám sát an toàn (15%), Quản lý dự án (10%)..."
+                                  className="w-full p-2 border border-slate-300 rounded-lg text-xs bg-white text-slate-800 focus:border-[#E4572E] focus:ring-1 focus:ring-[#E4572E]"
+                                />
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -624,6 +662,28 @@ export const AdminCatalog: React.FC<AdminCatalogProps> = ({
                     className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none focus:border-[#E4572E] font-mono font-bold"
                   />
                 </div>
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">📋 Mô Tả Kỹ Thuật Chi Tiết (Lưu vào DB)</label>
+                <textarea
+                  rows={2}
+                  placeholder="Nhập thông số, tiêu chuẩn kỹ thuật chi tiết của thiết bị/vật tư..."
+                  value={newMatForm.technicalDescription || ''}
+                  onChange={(e) => setNewMatForm({ ...newMatForm, technicalDescription: e.target.value })}
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none focus:border-[#E4572E] text-xs"
+                />
+              </div>
+
+              <div>
+                <label className="block font-bold text-[#E4572E] mb-1">💰 Cấu Thành Chi Phí (Lưu vào DB)</label>
+                <textarea
+                  rows={2}
+                  placeholder="VD: Chi phí vật tư (60%), Nhân công chế tạo (25%), Vận chuyển và hao hụt (15%)..."
+                  value={newMatForm.costBreakdown || ''}
+                  onChange={(e) => setNewMatForm({ ...newMatForm, costBreakdown: e.target.value })}
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none focus:border-[#E4572E] text-xs"
+                />
               </div>
 
               <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">

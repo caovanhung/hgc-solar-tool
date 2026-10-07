@@ -5,6 +5,7 @@ import { fileURLToPath } from 'url';
 import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
 import pg from 'pg';
+import { getSeedCatalogMaterials } from './src/data/materialsDescriptions.js';
 
 dotenv.config();
 
@@ -120,6 +121,7 @@ export interface ServerUser {
 const DATA_DIR = path.resolve(process.cwd(), 'data_storage');
 const USERS_FILE = path.join(DATA_DIR, 'users.json');
 const PROJECTS_FILE = path.join(DATA_DIR, 'projects.json');
+const MATERIALS_FILE = path.join(DATA_DIR, 'materials.json');
 
 if (!fs.existsSync(DATA_DIR)) {
   try {
@@ -190,8 +192,32 @@ function saveFallbackProjects(projects: any[]) {
   }
 }
 
+function loadFallbackMaterials(): any[] {
+  try {
+    if (fs.existsSync(MATERIALS_FILE)) {
+      const content = fs.readFileSync(MATERIALS_FILE, 'utf-8');
+      const parsed = JSON.parse(content);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+  } catch (err) {
+    console.error('Error loading fallback materials:', err);
+  }
+  const defaults = getSeedCatalogMaterials();
+  saveFallbackMaterials(defaults);
+  return defaults;
+}
+
+function saveFallbackMaterials(materials: any[]) {
+  try {
+    fs.writeFileSync(MATERIALS_FILE, JSON.stringify(materials, null, 2), 'utf-8');
+  } catch (err) {
+    console.error('Error saving fallback materials:', err);
+  }
+}
+
 let fallbackUsers: ServerUser[] = loadFallbackUsers();
 let fallbackProjects: any[] = loadFallbackProjects();
+let fallbackMaterials: any[] = loadFallbackMaterials();
 
 async function initDatabase(): Promise<boolean> {
   const databaseUrl = process.env.DATABASE_URL;
@@ -354,9 +380,57 @@ async function initDatabase(): Promise<boolean> {
       }
     }
 
+    // 6. Tạo bảng catalog_materials lưu thông số kỹ thuật & cấu thành chi phí
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS catalog_materials (
+        id VARCHAR(255) PRIMARY KEY,
+        category_code VARCHAR(50),
+        category_name VARCHAR(255),
+        name TEXT NOT NULL,
+        spec TEXT,
+        sku VARCHAR(255),
+        unit VARCHAR(50),
+        cost_vnd NUMERIC DEFAULT 0,
+        brand VARCHAR(255) DEFAULT 'VN',
+        origin VARCHAR(255) DEFAULT 'Việt Nam',
+        technical_description TEXT,
+        cost_breakdown TEXT,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+      );
+      CREATE INDEX IF NOT EXISTS idx_catalog_materials_sku ON catalog_materials(sku);
+    `);
+
+    // Đồng bộ danh mục vật tư chuẩn kèm mô tả kỹ thuật và cấu thành chi phí
+    const seedMaterials = getSeedCatalogMaterials();
+    for (const m of seedMaterials) {
+      await client.query(`
+        INSERT INTO catalog_materials (id, category_code, category_name, name, spec, sku, unit, cost_vnd, brand, origin, technical_description, cost_breakdown, created_at, updated_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW(), NOW())
+        ON CONFLICT (id) DO UPDATE SET
+          technical_description = COALESCE(NULLIF(EXCLUDED.technical_description, ''), catalog_materials.technical_description),
+          cost_breakdown = COALESCE(NULLIF(EXCLUDED.cost_breakdown, ''), catalog_materials.cost_breakdown),
+          updated_at = NOW();
+      `, [
+        m.id,
+        m.categoryCode,
+        m.categoryName,
+        m.name,
+        m.spec,
+        m.sku,
+        m.unit,
+        m.costVnd,
+        m.brand || 'VN',
+        m.origin || 'Việt Nam',
+        m.technicalDescription || '',
+        m.costBreakdown || '',
+      ]);
+    }
+    console.log(`[HGC Solar DB] ✓ Đã đồng bộ ${seedMaterials.length} vật tư catalog kèm mô tả kỹ thuật & cấu thành chi phí vào PostgreSQL.`);
+
     client.release();
     pgConnected = true;
-    console.log('[HGC Solar DB] ✓ Cấu trúc bảng PostgreSQL (users, projects) đã sẵn sàng hoạt động.');
+    console.log('[HGC Solar DB] ✓ Cấu trúc bảng PostgreSQL (users, projects, catalog_materials) đã sẵn sàng hoạt động.');
     return true;
   } catch (error) {
     console.error('[HGC Solar DB] ✗ Không thể kết nối tới PostgreSQL:', (error as Error).message);
@@ -650,6 +724,7 @@ async function deleteUser(id: string): Promise<boolean> {
 async function getDbHealth() {
   let projectsCount = 0;
   let usersCount = 0;
+  let materialsCount = 0;
 
   if (pgConnected && pool) {
     try {
@@ -659,11 +734,15 @@ async function getDbHealth() {
       const uRes = await pool.query('SELECT COUNT(*) AS count FROM users');
       usersCount = Number(uRes.rows[0]?.count || 0);
 
+      const mRes = await pool.query('SELECT COUNT(*) AS count FROM catalog_materials');
+      materialsCount = Number(mRes.rows[0]?.count || 0);
+
       return {
         database: 'PostgreSQL',
         connected: true,
         projectsCount,
         usersCount,
+        materialsCount,
       };
     } catch (err) {
       console.error('[DB Error] getDbHealth PG:', err);
@@ -675,6 +754,7 @@ async function getDbHealth() {
     connected: false,
     projectsCount: fallbackProjects.length,
     usersCount: fallbackUsers.length,
+    materialsCount: fallbackMaterials.length,
   };
 }
 
@@ -683,9 +763,127 @@ function sanitizeUser(u: ServerUser) {
   return rest;
 }
 
+// ==========================================
+// CƠ SỞ DỮ LIỆU VẬT TƯ (CATALOG MATERIALS)
+// ==========================================
+async function getMaterials(): Promise<any[]> {
+  if (pgConnected && pool) {
+    try {
+      const res = await pool.query('SELECT * FROM catalog_materials ORDER BY category_code ASC, name ASC');
+      if (res.rows.length > 0) {
+        return res.rows.map((row) => ({
+          id: row.id,
+          categoryCode: row.category_code,
+          categoryName: row.category_name,
+          name: row.name,
+          spec: row.spec,
+          sku: row.sku,
+          unit: row.unit,
+          costVnd: Number(row.cost_vnd || 0),
+          brand: row.brand,
+          origin: row.origin,
+          technicalDescription: row.technical_description || '',
+          costBreakdown: row.cost_breakdown || '',
+          source: 'catalog',
+        }));
+      }
+    } catch (err) {
+      console.error('[DB Error] getMaterials PG:', err);
+    }
+  }
+  return fallbackMaterials;
+}
+
+async function saveMaterial(mat: any): Promise<any> {
+  const item = {
+    ...mat,
+    updatedAt: new Date().toISOString(),
+  };
+
+  if (pgConnected && pool) {
+    try {
+      await pool.query(
+        `
+        INSERT INTO catalog_materials (id, category_code, category_name, name, spec, sku, unit, cost_vnd, brand, origin, technical_description, cost_breakdown, created_at, updated_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW(), NOW())
+        ON CONFLICT (id) DO UPDATE SET
+          category_code = EXCLUDED.category_code,
+          category_name = EXCLUDED.category_name,
+          name = EXCLUDED.name,
+          spec = EXCLUDED.spec,
+          sku = EXCLUDED.sku,
+          unit = EXCLUDED.unit,
+          cost_vnd = EXCLUDED.cost_vnd,
+          brand = EXCLUDED.brand,
+          origin = EXCLUDED.origin,
+          technical_description = EXCLUDED.technical_description,
+          cost_breakdown = EXCLUDED.cost_breakdown,
+          updated_at = NOW();
+      `,
+        [
+          item.id,
+          item.categoryCode || 'VII',
+          item.categoryName || 'Hạng mục xây dựng',
+          item.name,
+          item.spec || '',
+          item.sku || item.id,
+          item.unit || 'Cái',
+          Number(item.costVnd || 0),
+          item.brand || 'VN',
+          item.origin || 'Việt Nam',
+          item.technicalDescription || '',
+          item.costBreakdown || '',
+        ]
+      );
+      return item;
+    } catch (err) {
+      console.error('[DB Error] saveMaterial PG:', err);
+    }
+  }
+
+  const idx = fallbackMaterials.findIndex((m) => m.id === item.id);
+  if (idx >= 0) {
+    fallbackMaterials[idx] = item;
+  } else {
+    fallbackMaterials.push(item);
+  }
+  saveFallbackMaterials(fallbackMaterials);
+  return item;
+}
+
 // ========================
 // REST API ROUTES
 // ========================
+
+// Materials APIs
+app.get('/api/materials', async (req, res) => {
+  const mats = await getMaterials();
+  res.json(mats);
+});
+
+app.put('/api/materials/:id', async (req, res) => {
+  const mat = req.body;
+  mat.id = req.params.id;
+  const saved = await saveMaterial(mat);
+  res.json(saved);
+});
+
+app.post('/api/materials', async (req, res) => {
+  const mat = req.body;
+  if (!mat.id) mat.id = `mat-${Date.now()}`;
+  const saved = await saveMaterial(mat);
+  res.status(201).json(saved);
+});
+
+app.post('/api/materials/batch', async (req, res) => {
+  const items = req.body;
+  if (Array.isArray(items)) {
+    for (const item of items) {
+      await saveMaterial(item);
+    }
+  }
+  res.json({ success: true, count: Array.isArray(items) ? items.length : 0 });
+});
 
 app.get('/api/health', async (req, res) => {
   const dbHealth = await getDbHealth();

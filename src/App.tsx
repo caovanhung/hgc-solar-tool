@@ -13,6 +13,8 @@ import {
   fetchProjectsFromServer,
   saveProjectToServer,
   deleteProjectFromServer,
+  fetchMaterialsFromServer,
+  saveMaterialsBatchToServer,
 } from './services/api';
 import { UserProfile, UserRole } from './types/user';
 import { getLocalStoredUser, removeLocalStoredUser } from './services/authApi';
@@ -149,9 +151,10 @@ function upgradeProjectIfNeeded(p: Project): Project {
   const isMissingRates = !p.financial?.investmentRatePostVatVndPerKwp;
   const isOldPanel = !INITIAL_PANELS.some((item) => item.id === p.selectedPanelId);
   const hasMissingHgcSection = p.bomLines && p.bomLines.some((l: any) => !l.hgcSectionCode);
+  const isMissingDescriptions = p.bomLines && p.bomLines.some((l: any) => !l.technicalDescription || !l.costBreakdown);
   const isMissingSurvey = !p.surveyChecklist || p.surveyChecklist.length === 0;
 
-  if (hasOldBom || isMissingRates || isOldPanel || hasMissingHgcSection || !p.bomLines || p.bomLines.length === 0) {
+  if (hasOldBom || isMissingRates || isOldPanel || hasMissingHgcSection || isMissingDescriptions || !p.bomLines || p.bomLines.length === 0) {
     const panel = INITIAL_PANELS.find((item) => item.id === p.selectedPanelId) || INITIAL_PANELS[0];
     const topInv = p.inverterProposals?.[0];
     const inverter = INITIAL_INVERTERS.find((inv) => inv.id === p.selectedInverterId) || topInv?.inverter || INITIAL_INVERTERS[0];
@@ -327,8 +330,25 @@ export default function App() {
     } catch (e) {
       console.error(e);
     }
-    showToast('✓ Đã lưu bảng giá vật tư Catalog mới');
+    saveMaterialsBatchToServer(newMats).catch((err) => {
+      console.warn('[Catalog] Error syncing materials to server DB:', err);
+    });
+    showToast('✓ Đã lưu bảng giá vật tư Catalog mới vào Cơ sở dữ liệu');
   };
+
+  // Đồng bộ danh mục vật tư từ Cơ sở dữ liệu Server (PostgreSQL) khi tải ứng dụng
+  useEffect(() => {
+    fetchMaterialsFromServer().then((serverMats) => {
+      if (serverMats && Array.isArray(serverMats) && serverMats.length > 0) {
+        setMaterials(serverMats);
+        try {
+          localStorage.setItem('hgc_materials_catalog_excel_v1', JSON.stringify(serverMats));
+        } catch (e) {
+          console.error(e);
+        }
+      }
+    });
+  }, []);
 
   // Khởi tạo & Cập nhật khi tài khoản thay đổi: Đồng bộ dữ liệu dự án của riêng tài khoản từ Backend Server
   useEffect(() => {

@@ -13,6 +13,7 @@ import {
   Project,
   DEFAULT_SURVEY_CHECKLIST,
 } from '../types/solar';
+import { getItemDescriptionAndCostBreakdown } from '../data/materialsDescriptions';
 
 export interface GenerateBomParams {
   panel: PanelModel;
@@ -89,13 +90,16 @@ export function generateProjectBom(params: GenerateBomParams): BomLine[] {
     const found = materialsCatalog.find(
       (m) => m.id === key || m.sku.toLowerCase() === key.toLowerCase() || m.name.toLowerCase().includes(key.toLowerCase())
     );
+    const descInfo = getItemDescriptionAndCostBreakdown(key, found?.categoryCode, found?.name || fallbackName);
     return {
       cost: found ? found.costVnd : fallbackCost,
       name: found ? found.name : fallbackName || key,
       spec: found ? found.spec : fallbackSpec || '',
       sku: found ? found.sku : key,
       unit: found ? found.unit : fallbackUnit || 'Cái',
-      brand: fallbackBrand || 'VN',
+      brand: fallbackBrand || found?.brand || 'VN',
+      technicalDescription: found?.technicalDescription || descInfo.technicalDescription,
+      costBreakdown: found?.costBreakdown || descInfo.costBreakdown,
     };
   };
 
@@ -1241,7 +1245,20 @@ export function generateProjectBom(params: GenerateBomParams): BomLine[] {
     });
   }
 
-  return lines;
+  return lines.map((line) => {
+    const fromCat = materialsCatalog.find(
+      (m) =>
+        m.id === line.id ||
+        (line.sku && m.sku?.toLowerCase() === line.sku.toLowerCase()) ||
+        m.name.toLowerCase() === line.name.toLowerCase()
+    );
+    const desc = getItemDescriptionAndCostBreakdown(line.sku || line.id, line.categoryCode, line.name);
+    return {
+      ...line,
+      technicalDescription: line.technicalDescription || fromCat?.technicalDescription || desc.technicalDescription,
+      costBreakdown: line.costBreakdown || fromCat?.costBreakdown || desc.costBreakdown,
+    };
+  });
 }
 
 /**

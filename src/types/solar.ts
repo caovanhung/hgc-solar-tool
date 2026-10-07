@@ -113,6 +113,10 @@ export interface MaterialItem {
   unit: string;
   costVnd: number;
   source: 'demo_ui_observed' | 'derived_from_demo_total' | 'catalog';
+  brand?: string;
+  origin?: string;
+  technicalDescription?: string; // Mô tả kỹ thuật chi tiết
+  costBreakdown?: string; // Diễn giải cấu thành chi phí (nhân công, vật tư, máy móc...)
 }
 
 export interface LayoutResult {
@@ -207,6 +211,8 @@ export interface BomLine {
   note?: string;
   hgcSectionCode?: HgcSectionCode;
   hgcSubsection?: string;
+  technicalDescription?: string; // Mô tả kỹ thuật chi tiết
+  costBreakdown?: string; // Diễn giải cấu thành chi phí (nhân công, vật tư, máy móc...)
 }
 
 export interface FinancialResult {
