@@ -3,6 +3,17 @@ import { Project } from '../../types/solar';
 import { getHgcSectionGroupedBom } from '../../engine/bom';
 import { Logo } from '../common/Logo';
 import {
+  ResponsiveContainer,
+  ComposedChart,
+  Bar,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ReferenceLine,
+} from 'recharts';
+import {
   TrendingUp,
   Clock,
   ShieldCheck,
@@ -15,6 +26,7 @@ import {
   Leaf,
   Layers,
   FileSpreadsheet,
+  BarChart3,
 } from 'lucide-react';
 
 interface CustomerValueProposalPrintProps {
@@ -35,6 +47,52 @@ export const CustomerValueProposalPrint: React.FC<CustomerValueProposalPrintProp
   const ratePreVat = fin?.investmentRatePreVatVndPerKwp || Math.round((fin?.capexSellVnd || 0) / installedKwp);
   const ratePostVat = fin?.investmentRatePostVatVndPerKwp || Math.round((fin?.grandTotalVnd || 0) / installedKwp);
   const ratePerWp = Math.round(ratePostVat / 1000);
+  const initialCapexMillion = Number(((fin?.grandTotalVnd || 0) / 1000000).toFixed(1));
+
+  // Dữ liệu biểu đồ Recharts dự phóng 20 năm
+  const proposalChartData = fin?.cashflow20Years
+    ? fin.cashflow20Years.map((cf) => ({
+        yearLabel: `N.${cf.year}`,
+        yearNum: cf.year,
+        annualSavingsMillion: Number((cf.annualSavingsVnd / 1000000).toFixed(1)),
+        cumulativeSavingsMillion: Number((cf.cumulativeSavingsVnd / 1000000).toFixed(1)),
+        netCashflowMillion: Number((cf.netCashflowVnd / 1000000).toFixed(1)),
+        generatedKwh: cf.generatedKwh,
+      }))
+    : [];
+
+  const ProposalCustomTooltip = ({ active, payload }: any) => {
+    if (active && payload && payload.length) {
+      const data = payload[0].payload;
+      return (
+        <div className="bg-white p-3 rounded-lg border border-slate-300 shadow-xl text-xs text-slate-800">
+          <div className="font-bold text-[#0F2A45] border-b border-slate-100 pb-1 mb-1.5 flex justify-between gap-4">
+            <span>Năm thứ {data.yearNum}</span>
+            <span className="text-slate-500 font-mono text-[10.5px]">
+              {data.generatedKwh.toLocaleString('vi-VN')} kWh
+            </span>
+          </div>
+          <div className="space-y-1 font-mono text-[11px]">
+            <div className="flex justify-between gap-3">
+              <span className="text-slate-500 font-sans">Tiết kiệm trong năm:</span>
+              <strong className="text-emerald-700">+{data.annualSavingsMillion} tr đ</strong>
+            </div>
+            <div className="flex justify-between gap-3">
+              <span className="text-slate-500 font-sans">Lũy kế tiết kiệm:</span>
+              <strong className="text-sky-700">{data.cumulativeSavingsMillion} tr đ</strong>
+            </div>
+            <div className="flex justify-between gap-3">
+              <span className="text-slate-500 font-sans">Dòng tiền ròng:</span>
+              <strong className={data.netCashflowMillion >= 0 ? 'text-emerald-600' : 'text-slate-500'}>
+                {data.netCashflowMillion >= 0 ? `+${data.netCashflowMillion}` : data.netCashflowMillion} tr đ
+              </strong>
+            </div>
+          </div>
+        </div>
+      );
+    }
+    return null;
+  };
 
   // Lọc một số năm tiêu biểu trong dòng tiền 20 năm
   const keyCashflowYears = fin?.cashflow20Years
@@ -207,6 +265,99 @@ export const CustomerValueProposalPrint: React.FC<CustomerValueProposalPrintProp
                 {Math.round(fin.year1SavingsVnd / 1000000).toLocaleString('vi-VN')} triệu
               </strong>
               <span className="text-[10px] text-slate-400">~{Math.round(fin.year1SavingsVnd / 12).toLocaleString('vi-VN')} đ/tháng</span>
+            </div>
+          </div>
+        )}
+
+        {/* Biểu đồ Recharts: Dự Phóng Dòng Tiền & Tích Lũy Tiết Kiệm (20 Năm) */}
+        {proposalChartData.length > 0 && (
+          <div className="mb-4 p-3 bg-slate-50/90 rounded-xl border border-slate-200">
+            <div className="flex flex-wrap items-center justify-between gap-2 mb-2 pb-1.5 border-b border-slate-200">
+              <div className="flex items-center gap-1.5">
+                <BarChart3 size={14} className="text-[#E4572E]" />
+                <span className="text-[11px] font-bold text-[#0F2A45] uppercase tracking-wide">
+                  BIỂU ĐỒ RECHARTS DỰ PHÓNG TIẾT KIỆM & DÒNG TIỀN HOÀN VỐN (20 NĂM)
+                </span>
+              </div>
+              <div className="flex items-center gap-3 text-[10px] text-slate-500 font-medium">
+                <span className="flex items-center gap-1">
+                  <span className="w-2.5 h-2.5 rounded-xs bg-[#10B981] inline-block"></span>
+                  Tiết kiệm năm (tr đ)
+                </span>
+                <span className="flex items-center gap-1">
+                  <span className="w-2.5 h-0.5 bg-[#0284C7] inline-block"></span>
+                  Lũy kế tiết kiệm (tr đ)
+                </span>
+                <span className="flex items-center gap-1">
+                  <span className="w-2.5 h-0.5 border-t border-dashed border-[#E4572E] inline-block"></span>
+                  Vốn đầu tư ban đầu
+                </span>
+              </div>
+            </div>
+
+            <div className="w-full h-64 print:h-60" style={{ minHeight: '240px' }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <ComposedChart
+                  data={proposalChartData}
+                  margin={{ top: 12, right: 15, bottom: 5, left: 5 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" stroke="#CBD5E1" opacity={0.6} />
+                  <XAxis
+                    dataKey="yearLabel"
+                    stroke="#64748B"
+                    fontSize={10}
+                    tickLine={false}
+                  />
+                  <YAxis
+                    yAxisId="left"
+                    stroke="#059669"
+                    fontSize={10}
+                    tickLine={false}
+                    tickFormatter={(v) => `${v} tr`}
+                  />
+                  <YAxis
+                    yAxisId="right"
+                    orientation="right"
+                    stroke="#0284C7"
+                    fontSize={10}
+                    tickLine={false}
+                    tickFormatter={(v) => `${v} tr`}
+                  />
+                  <Tooltip content={<ProposalCustomTooltip />} />
+                  <ReferenceLine
+                    yAxisId="right"
+                    y={initialCapexMillion}
+                    stroke="#E4572E"
+                    strokeDasharray="4 4"
+                    label={{
+                      value: `Điểm thu hồi vốn: ${initialCapexMillion} tr đ`,
+                      fill: '#E4572E',
+                      fontSize: 10,
+                      position: 'insideTopLeft',
+                    }}
+                  />
+                  <Bar
+                    yAxisId="left"
+                    dataKey="annualSavingsMillion"
+                    name="Tiết kiệm trong năm"
+                    fill="#10B981"
+                    radius={[3, 3, 0, 0]}
+                    maxBarSize={22}
+                  />
+                  <Line
+                    yAxisId="right"
+                    type="monotone"
+                    dataKey="cumulativeSavingsMillion"
+                    name="Lũy kế tiết kiệm"
+                    stroke="#0284C7"
+                    strokeWidth={2.5}
+                    dot={{ r: 2.5, fill: '#0284C7' }}
+                  />
+                </ComposedChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="text-[10px] text-slate-500 italic text-right mt-1">
+              * Biểu đồ mô phỏng doanh thu tiết kiệm thực tế có tính suy hao công suất quang điện 0.7%/năm theo chuẩn bảo hành nhà sản xuất.
             </div>
           </div>
         )}
