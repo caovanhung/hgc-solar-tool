@@ -1,35 +1,27 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Project } from '../../types/solar';
-import { getStandardGroupedBom, getHgcSectionGroupedBom } from '../../engine/bom';
+import { getHgcSectionGroupedBom } from '../../engine/bom';
 import { Logo } from '../common/Logo';
-import { Coins, Zap, Layers, FileSpreadsheet } from 'lucide-react';
+import { Coins, Zap } from 'lucide-react';
 
 interface DetailedBomPrintProps {
   project: Project;
   viewType?: 'customer' | 'internal';
-  initialMode?: 'sample_excel' | '8_groups';
+  initialMode?: string;
 }
 
 export const DetailedBomPrint: React.FC<DetailedBomPrintProps> = ({
   project,
   viewType = 'customer',
-  initialMode = 'sample_excel',
 }) => {
-  const [bomMode, setBomMode] = useState<'sample_excel' | '8_groups'>(initialMode);
-
   const fin = project.financial;
   const layout = project.layoutResult;
   const bomLines = project.bomLines || [];
   const installedKwp = layout?.installedKwp || 1;
 
-  // 1. Nhóm theo 4 Phần Chuẩn Mẫu File 'Bảng kê vật tư mẫu.xlsx' (A, B, C, D)
+  // Nhóm theo 4 Phần Chuẩn Mẫu File 'Bảng kê vật tư mẫu.xlsx' của công ty (Phần A, B, C, D)
   const hgcSections = getHgcSectionGroupedBom(bomLines).filter(
     (s) => s.items.length > 0
-  );
-
-  // 2. Nhóm theo 8 Nhóm Chuẩn Quản Trị ERP
-  const standardGroups = getStandardGroupedBom(bomLines).filter(
-    (g) => g.items.length > 0 && g.subtotalSellVnd > 0
   );
 
   const ratePreVat = fin?.investmentRatePreVatVndPerKwp || Math.round((fin?.capexSellVnd || 0) / installedKwp);
@@ -62,45 +54,16 @@ export const DetailedBomPrint: React.FC<DetailedBomPrintProps> = ({
         </div>
       </div>
 
-      {/* Document Title & Layout Switcher */}
+      {/* Document Title */}
       <div className="text-center my-3">
-        <div className="flex items-center justify-center gap-2 mb-1.5 print:hidden">
-          <button
-            type="button"
-            onClick={() => setBomMode('sample_excel')}
-            className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[10.5px] font-bold border transition-all ${
-              bomMode === 'sample_excel'
-                ? 'bg-[#0F2A45] text-white border-[#0F2A45] shadow-xs'
-                : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200'
-            }`}
-          >
-            <FileSpreadsheet size={12} />
-            <span>Mẫu File Bảng Kê Vật Tư (Phần A - B - C - D)</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setBomMode('8_groups')}
-            className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[10.5px] font-bold border transition-all ${
-              bomMode === '8_groups'
-                ? 'bg-[#0F2A45] text-white border-[#0F2A45] shadow-xs'
-                : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200'
-            }`}
-          >
-            <Layers size={12} />
-            <span>Mẫu Báo Giá 8 Nhóm Quản Trị</span>
-          </button>
+        <div className="inline-block bg-orange-50 text-[#E4572E] text-[10px] font-bold uppercase px-3 py-1 rounded-full border border-orange-200 mb-1.5">
+          HỒ SƠ BẢNG KÊ VẬT TƯ & DỰ TOÁN KỸ THUẬT TIÊU CHUẨN HGC
         </div>
-
         <h2 className="text-lg sm:text-xl font-black text-[#0F2A45] uppercase tracking-wide">
-          {bomMode === 'sample_excel'
-            ? 'BẢNG KÊ VẬT TƯ THIẾT BỊ HỆ THỐNG ĐIỆN NĂNG LƯỢNG MẶT TRỜI'
-            : 'BẢNG DỰ TOÁN BÓC TÁCH 8 NHÓM HẠNG MỤC (ENGINEERING BOM)'}
+          BẢNG KÊ VẬT TƯ THIẾT BỊ HỆ THỐNG ĐIỆN NĂNG LƯỢNG MẶT TRỜI
         </h2>
         <p className="text-[11px] text-slate-500 font-medium mt-0.5">
-          {bomMode === 'sample_excel'
-            ? 'Chuẩn theo mẫu file Bảng Kê Vật Tư (ON-GRID / HYBRID) của công ty'
-            : 'Áp dụng cho công tác nghiệm thu khối lượng, quản trị kho và giám sát thi công'}
+          Chuẩn theo mẫu file Bảng Kê Vật Tư ({project.sysType === 'hybrid' ? 'HYBRID' : 'ON-GRID'} {project.phases === '3' ? '3P' : '1P'}) của công ty
         </p>
       </div>
 
@@ -111,326 +74,201 @@ export const DetailedBomPrint: React.FC<DetailedBomPrintProps> = ({
           <strong className="text-slate-900">{project.customerName || 'Khách Hàng'}</strong>
         </div>
         <div>
-          <span className="text-slate-400 block text-[10px]">Công Suất:</span>
+          <span className="text-slate-400 block text-[10px]">Công Suất Lắp Đặt:</span>
           <strong className="text-[#E4572E] font-mono font-bold">{installedKwp} kWp</strong>
           <span className="text-[10px] text-slate-500"> ({layout?.panelQty} tấm pin)</span>
         </div>
         <div>
-          <span className="text-slate-400 block text-[10px]">Cấu Hình:</span>
+          <span className="text-slate-400 block text-[10px]">Cấu Hình Hệ Thống:</span>
           <strong className="text-slate-900">
-            {project.sysType === 'hybrid' ? 'Hybrid ESS' : 'Hòa lưới On-Grid'} ({project.phases === '3' ? '3 Pha' : '1 Pha'})
+            {project.sysType === 'hybrid' ? 'Hybrid ESS (Lưu trữ)' : 'Hòa lưới On-Grid'} ({project.phases === '3' ? '3 Pha 380V' : '1 Pha 220V'})
           </strong>
         </div>
         <div>
-          <span className="text-slate-400 block text-[10px]">Cơ Chế:</span>
-          <strong className="text-emerald-700 font-semibold">Zero-Export (Bám tải)</strong>
+          <span className="text-slate-400 block text-[10px]">Cơ Chế Vận Hành:</span>
+          <strong className="text-emerald-700 font-semibold">Zero-Export (Bám tải phụ tải)</strong>
         </div>
       </div>
 
-      {/* ========================================================================= */}
-      {/* 1. HIỂN THỊ THEO MẪU FILE BẢNG KÊ VẬT TƯ (A - B - C - D)                  */}
-      {/* ========================================================================= */}
-      {bomMode === 'sample_excel' ? (
-        <div className="overflow-x-auto rounded-lg border border-slate-200 mb-4">
-          <table className="w-full text-xs text-left">
-            <thead className="bg-[#0F2A45] text-white text-[10px] uppercase font-bold font-mono">
-              <tr>
-                <th className="px-2 py-2 w-10 text-center">STT</th>
-                <th className="px-2.5 py-2">TÊN THIẾT BỊ</th>
-                <th className="px-2 py-2 w-36">Mã hàng</th>
-                <th className="px-2 py-2 w-24">Hãng</th>
-                <th className="px-1.5 py-2 text-center w-12">ĐVT</th>
-                <th className="px-1.5 py-2 text-right w-12">Số lượng</th>
-                {viewType === 'internal' && (
-                  <>
-                    <th className="px-2 py-2 text-right text-slate-300 w-24">Giá vốn (đ)</th>
-                    <th className="px-2 py-2 text-right text-slate-300 w-24">Tổng vốn (đ)</th>
-                  </>
-                )}
-                <th className="px-2 py-2 text-right w-24">Đơn giá (đ)</th>
-                <th className="px-2 py-2 text-right w-24">Thành tiền (đ)</th>
-                <th className="px-2 py-2 w-28">Ghi chú</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {hgcSections.map((secGroup) => (
-                <React.Fragment key={secGroup.section.code}>
-                  {/* Dòng Header Nhóm lớn A, B, C, D */}
-                  <tr className="bg-emerald-100/80 font-black text-slate-900 text-[11px] border-t-2 border-emerald-600">
-                    <td className="px-2 py-1.5 text-center font-mono text-[#065f46]">
-                      {secGroup.section.code}
-                    </td>
-                    <td colSpan={viewType === 'internal' ? 5 : 3} className="px-2.5 py-1.5 text-[#065f46] uppercase tracking-wide">
-                      {secGroup.section.name}
-                    </td>
-                    {viewType === 'internal' && (
-                      <>
-                        <td className="px-2 py-1.5 text-right font-mono text-slate-600"></td>
-                        <td className="px-2 py-1.5 text-right font-mono text-slate-700 font-bold">
-                          {secGroup.subtotalCostVnd.toLocaleString('vi-VN')}
-                        </td>
-                      </>
-                    )}
-                    <td className="px-2 py-1.5 text-right font-mono text-[#065f46]"></td>
-                    <td className="px-2 py-1.5 text-right font-mono text-[#065f46] font-bold">
-                      {secGroup.subtotalSellVnd.toLocaleString('vi-VN')}
-                    </td>
-                    <td className="px-2 py-1.5"></td>
-                  </tr>
+      {/* BẢNG KÊ VẬT TƯ THIẾT BỊ CHUẨN MẪU FILE (PHẦN A - B - C - D) */}
+      <div className="overflow-x-auto rounded-lg border border-slate-200 mb-4">
+        <table className="w-full text-xs text-left">
+          <thead className="bg-[#0F2A45] text-white text-[10px] uppercase font-bold font-mono">
+            <tr>
+              <th className="px-2 py-2 w-10 text-center">STT</th>
+              <th className="px-2.5 py-2">TÊN THIẾT BỊ</th>
+              <th className="px-2 py-2 w-36">Mã hàng</th>
+              <th className="px-2 py-2 w-24">Hãng</th>
+              <th className="px-1.5 py-2 text-center w-12">ĐVT</th>
+              <th className="px-1.5 py-2 text-right w-12">Số lượng</th>
+              {viewType === 'internal' && (
+                <>
+                  <th className="px-2 py-2 text-right text-slate-300 w-24">Giá vốn (đ)</th>
+                  <th className="px-2 py-2 text-right text-slate-300 w-24">Tổng vốn (đ)</th>
+                </>
+              )}
+              <th className="px-2 py-2 text-right w-24">Đơn giá (đ)</th>
+              <th className="px-2 py-2 text-right w-24">Thành tiền (đ)</th>
+              <th className="px-2 py-2 w-28">Ghi chú</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-100">
+            {hgcSections.map((secGroup) => (
+              <React.Fragment key={secGroup.section.code}>
+                {/* Dòng Header Nhóm lớn A, B, C, D */}
+                <tr className="bg-emerald-100/80 font-black text-slate-900 text-[11px] border-t-2 border-emerald-600">
+                  <td className="px-2 py-1.5 text-center font-mono text-[#065f46]">
+                    {secGroup.section.code}
+                  </td>
+                  <td colSpan={viewType === 'internal' ? 5 : 3} className="px-2.5 py-1.5 text-[#065f46] uppercase tracking-wide">
+                    {secGroup.section.name}
+                  </td>
+                  {viewType === 'internal' && (
+                    <>
+                      <td className="px-2 py-1.5 text-right font-mono text-slate-600"></td>
+                      <td className="px-2 py-1.5 text-right font-mono text-slate-700 font-bold">
+                        {secGroup.subtotalCostVnd.toLocaleString('vi-VN')}
+                      </td>
+                    </>
+                  )}
+                  <td className="px-2 py-1.5 text-right font-mono text-[#065f46]"></td>
+                  <td className="px-2 py-1.5 text-right font-mono text-[#065f46] font-bold">
+                    {secGroup.subtotalSellVnd.toLocaleString('vi-VN')}
+                  </td>
+                  <td className="px-2 py-1.5"></td>
+                </tr>
 
-                  {/* Nếu nhóm có phân mục (vd Phần B có Hệ Rail Nhôm & Hệ Rail Giàn Khung) */}
-                  {secGroup.subsections ? (
-                    secGroup.subsections.map((subSec) => (
-                      <React.Fragment key={subSec.title}>
-                        <tr className="bg-slate-100/90 font-bold text-slate-800 text-[10.5px]">
-                          <td></td>
-                          <td colSpan={viewType === 'internal' ? 9 : 7} className="px-2.5 py-1 text-slate-700 uppercase">
-                            ▸ {subSec.title}
-                          </td>
-                        </tr>
-
-                        {subSec.items.map((line, idx) => (
-                          <tr key={line.id} className="hover:bg-slate-50 transition-colors text-[10.5px]">
-                            <td className="px-2 py-1.5 text-center text-slate-500 font-mono">
-                              {idx + 1}
-                            </td>
-                            <td className="px-2.5 py-1.5 font-medium text-slate-900">
-                              {line.name}
-                            </td>
-                            <td className="px-2 py-1.5 text-slate-600 font-mono text-[10px]">
-                              {line.sku}
-                            </td>
-                            <td className="px-2 py-1.5 text-slate-600 font-medium">
-                              {line.brand || 'VN'}
-                            </td>
-                            <td className="px-1.5 py-1.5 text-center text-slate-600">
-                              {line.unit}
-                            </td>
-                            <td className="px-1.5 py-1.5 text-right font-mono font-bold text-slate-900">
-                              {line.qty}
-                            </td>
-                            {viewType === 'internal' && (
-                              <>
-                                <td className="px-2 py-1.5 text-right font-mono text-slate-500">
-                                  {line.unitCostVnd.toLocaleString('vi-VN')}
-                                </td>
-                                <td className="px-2 py-1.5 text-right font-mono text-slate-600 font-semibold">
-                                  {line.totalCostVnd.toLocaleString('vi-VN')}
-                                </td>
-                              </>
-                            )}
-                            <td className="px-2 py-1.5 text-right font-mono text-slate-700">
-                              {line.unitSellVnd.toLocaleString('vi-VN')}
-                            </td>
-                            <td className="px-2 py-1.5 text-right font-mono font-bold text-slate-900">
-                              {line.totalSellVnd.toLocaleString('vi-VN')}
-                            </td>
-                            <td className="px-2 py-1.5 text-slate-400 text-[10px]">
-                              {line.note || ''}
-                            </td>
-                          </tr>
-                        ))}
-                      </React.Fragment>
-                    ))
-                  ) : (
-                    /* Nhóm không có phân mục (A, C, D) */
-                    secGroup.items.map((line, idx) => (
-                      <tr key={line.id} className="hover:bg-slate-50 transition-colors text-[10.5px]">
-                        <td className="px-2 py-1.5 text-center text-slate-500 font-mono">
-                          {idx + 1}
-                        </td>
-                        <td className="px-2.5 py-1.5 font-medium text-slate-900">
-                          {line.name}
-                        </td>
-                        <td className="px-2 py-1.5 text-slate-600 font-mono text-[10px]">
-                          {line.sku}
-                        </td>
-                        <td className="px-2 py-1.5 text-slate-600 font-medium">
-                          {line.brand || 'VN'}
-                        </td>
-                        <td className="px-1.5 py-1.5 text-center text-slate-600">
-                          {line.unit}
-                        </td>
-                        <td className="px-1.5 py-1.5 text-right font-mono font-bold text-slate-900">
-                          {line.qty}
-                        </td>
-                        {viewType === 'internal' && (
-                          <>
-                            <td className="px-2 py-1.5 text-right font-mono text-slate-500">
-                              {line.unitCostVnd.toLocaleString('vi-VN')}
-                            </td>
-                            <td className="px-2 py-1.5 text-right font-mono text-slate-600 font-semibold">
-                              {line.totalCostVnd.toLocaleString('vi-VN')}
-                            </td>
-                          </>
-                        )}
-                        <td className="px-2 py-1.5 text-right font-mono text-slate-700">
-                          {line.unitSellVnd.toLocaleString('vi-VN')}
-                        </td>
-                        <td className="px-2 py-1.5 text-right font-mono font-bold text-slate-900">
-                          {line.totalSellVnd.toLocaleString('vi-VN')}
-                        </td>
-                        <td className="px-2 py-1.5 text-slate-400 text-[10px]">
-                          {line.note || ''}
+                {/* Phân mục nếu có (vd Phần B có Hệ Rail Nhôm & Hệ Rail Giàn Khung) */}
+                {secGroup.subsections ? (
+                  secGroup.subsections.map((subSec) => (
+                    <React.Fragment key={subSec.title}>
+                      <tr className="bg-slate-100/90 font-bold text-slate-800 text-[10.5px]">
+                        <td></td>
+                        <td colSpan={viewType === 'internal' ? 9 : 7} className="px-2.5 py-1 text-slate-700 uppercase">
+                          ▸ {subSec.title}
                         </td>
                       </tr>
-                    ))
-                  )}
-                </React.Fragment>
-              ))}
 
-              {/* Suất đầu tư Chưa VAT */}
-              <tr className="bg-emerald-100/70 border-t-2 border-emerald-400 font-bold text-xs text-emerald-950">
-                <td colSpan={viewType === 'internal' ? 6 : 5} className="px-2.5 py-2">
-                  <div className="flex items-center gap-1.5 uppercase tracking-wide">
-                    <Coins size={13} className="text-emerald-700" />
-                    <span>TỈ SUẤT ĐẦU TƯ (CHƯA VAT) / kWp:</span>
-                  </div>
-                </td>
-                <td colSpan={viewType === 'internal' ? 4 : 3} className="px-2.5 py-2 text-right font-mono font-black text-emerald-900 text-sm">
-                  {ratePreVat.toLocaleString('vi-VN')} Vnđ / kWp
-                </td>
-                <td></td>
-              </tr>
-
-              {/* Suất đầu tư Có VAT */}
-              <tr className="bg-orange-100/70 border-t border-orange-300 font-bold text-xs text-orange-950">
-                <td colSpan={viewType === 'internal' ? 6 : 5} className="px-2.5 py-2">
-                  <div className="flex items-center gap-1.5 uppercase tracking-wide">
-                    <Zap size={13} className="text-[#E4572E]" />
-                    <span>TỈ SUẤT ĐẦU TƯ TRỌN GÓI (ĐÃ GỒM VAT 10%) / kWp:</span>
-                  </div>
-                </td>
-                <td colSpan={viewType === 'internal' ? 4 : 3} className="px-2.5 py-2 text-right font-mono font-black text-[#E4572E] text-base">
-                  {ratePostVat.toLocaleString('vi-VN')} Vnđ / kWp
-                </td>
-                <td></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      ) : (
-        /* ========================================================================= */
-        /* 2. HIỂN THỊ THEO 8 NHÓM HẠNG MỤC QUẢN TRỊ                                */
-        /* ========================================================================= */
-        <div className="overflow-x-auto rounded-lg border border-slate-200 mb-4">
-          <table className="w-full text-xs text-left">
-            <thead className="bg-[#0F2A45] text-white text-[10.5px] uppercase font-bold font-mono">
-              <tr>
-                <th className="px-2.5 py-2 w-10 text-center">STT</th>
-                <th className="px-2.5 py-2">Tên Vật Tư / Thiết Bị</th>
-                <th className="px-2.5 py-2">Thông Số Kỹ Thuật / Model</th>
-                <th className="px-2.5 py-2 text-center w-14">ĐVT</th>
-                <th className="px-2.5 py-2 text-right w-14">SL</th>
-                {viewType === 'internal' && (
-                  <>
-                    <th className="px-2.5 py-2 text-right text-slate-300">Giá Vốn (đ)</th>
-                    <th className="px-2.5 py-2 text-right text-slate-300">Tổng Vốn (đ)</th>
-                  </>
-                )}
-                <th className="px-2.5 py-2 text-right">Đơn Giá (đ)</th>
-                <th className="px-2.5 py-2 text-right">Thành Tiền (đ)</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {standardGroups.map((gData, groupIdx) => (
-                <React.Fragment key={gData.group.code}>
-                  {/* Header Nhóm */}
-                  <tr className="bg-emerald-50/80 font-bold text-slate-900 text-[11px] border-t-2 border-slate-200">
-                    <td className="px-2.5 py-1.5 text-center font-mono text-[#065f46] font-bold">
-                      {groupIdx + 1}
-                    </td>
-                    <td colSpan={2} className="px-2.5 py-1.5 text-[#065f46] uppercase">
-                      {gData.group.name}
-                      <span className="text-[10px] text-slate-500 font-normal ml-1">· {gData.group.description}</span>
-                    </td>
-                    <td className="px-2.5 py-1.5 text-center text-slate-500 font-mono">Lot</td>
-                    <td className="px-2.5 py-1.5 text-right font-mono font-bold text-slate-700">1</td>
-                    {viewType === 'internal' && (
-                      <>
-                        <td className="px-2.5 py-1.5 text-right font-mono text-slate-600">
-                          {gData.subtotalCostVnd.toLocaleString('vi-VN')}
-                        </td>
-                        <td className="px-2.5 py-1.5 text-right font-mono text-slate-700 font-bold">
-                          {gData.subtotalCostVnd.toLocaleString('vi-VN')}
-                        </td>
-                      </>
-                    )}
-                    <td className="px-2.5 py-1.5 text-right font-mono text-[#065f46] font-bold">
-                      {gData.subtotalSellVnd.toLocaleString('vi-VN')}
-                    </td>
-                    <td className="px-2.5 py-1.5 text-right font-mono text-[#065f46] font-bold">
-                      {gData.subtotalSellVnd.toLocaleString('vi-VN')}
-                    </td>
-                  </tr>
-
-                  {/* Từng dòng vật tư chi tiết */}
-                  {gData.items.map((line, idx) => (
+                      {subSec.items.map((line, idx) => (
+                        <tr key={line.id} className="hover:bg-slate-50 transition-colors text-[10.5px]">
+                          <td className="px-2 py-1.5 text-center text-slate-500 font-mono">
+                            {idx + 1}
+                          </td>
+                          <td className="px-2.5 py-1.5 font-medium text-slate-900">
+                            {line.name}
+                          </td>
+                          <td className="px-2 py-1.5 text-slate-600 font-mono text-[10px]">
+                            {line.sku}
+                          </td>
+                          <td className="px-2 py-1.5 text-slate-600 font-medium">
+                            {line.brand || 'VN'}
+                          </td>
+                          <td className="px-1.5 py-1.5 text-center text-slate-600">
+                            {line.unit}
+                          </td>
+                          <td className="px-1.5 py-1.5 text-right font-mono font-bold text-slate-900">
+                            {line.qty}
+                          </td>
+                          {viewType === 'internal' && (
+                            <>
+                              <td className="px-2 py-1.5 text-right font-mono text-slate-500">
+                                {line.unitCostVnd.toLocaleString('vi-VN')}
+                              </td>
+                              <td className="px-2 py-1.5 text-right font-mono text-slate-600 font-semibold">
+                                {line.totalCostVnd.toLocaleString('vi-VN')}
+                              </td>
+                            </>
+                          )}
+                          <td className="px-2 py-1.5 text-right font-mono text-slate-700">
+                            {line.unitSellVnd.toLocaleString('vi-VN')}
+                          </td>
+                          <td className="px-2 py-1.5 text-right font-mono font-bold text-slate-900">
+                            {line.totalSellVnd.toLocaleString('vi-VN')}
+                          </td>
+                          <td className="px-2 py-1.5 text-slate-400 text-[10px]">
+                            {line.note || ''}
+                          </td>
+                        </tr>
+                      ))}
+                    </React.Fragment>
+                  ))
+                ) : (
+                  /* Nhóm không có phân mục (A, C, D) */
+                  secGroup.items.map((line, idx) => (
                     <tr key={line.id} className="hover:bg-slate-50 transition-colors text-[10.5px]">
-                      <td className="px-2.5 py-1.5 text-center text-slate-400 font-mono">
-                        {groupIdx + 1}.{idx + 1}
+                      <td className="px-2 py-1.5 text-center text-slate-500 font-mono">
+                        {idx + 1}
                       </td>
-                      <td className="px-2.5 py-1.5 pl-5">
-                        <div className="font-semibold text-slate-900">{line.name}</div>
-                        {line.note && <div className="text-[9.5px] text-slate-400">{line.note}</div>}
+                      <td className="px-2.5 py-1.5 font-medium text-slate-900">
+                        {line.name}
                       </td>
-                      <td className="px-2.5 py-1.5 text-slate-600 font-mono text-[10px]">
-                        {line.spec}
+                      <td className="px-2 py-1.5 text-slate-600 font-mono text-[10px]">
+                        {line.sku}
                       </td>
-                      <td className="px-2.5 py-1.5 text-center text-slate-600">{line.unit}</td>
-                      <td className="px-2.5 py-1.5 text-right font-mono font-bold text-slate-800">
+                      <td className="px-2 py-1.5 text-slate-600 font-medium">
+                        {line.brand || 'VN'}
+                      </td>
+                      <td className="px-1.5 py-1.5 text-center text-slate-600">
+                        {line.unit}
+                      </td>
+                      <td className="px-1.5 py-1.5 text-right font-mono font-bold text-slate-900">
                         {line.qty}
                       </td>
                       {viewType === 'internal' && (
                         <>
-                          <td className="px-2.5 py-1.5 text-right font-mono text-slate-500">
+                          <td className="px-2 py-1.5 text-right font-mono text-slate-500">
                             {line.unitCostVnd.toLocaleString('vi-VN')}
                           </td>
-                          <td className="px-2.5 py-1.5 text-right font-mono text-slate-600 font-semibold">
+                          <td className="px-2 py-1.5 text-right font-mono text-slate-600 font-semibold">
                             {line.totalCostVnd.toLocaleString('vi-VN')}
                           </td>
                         </>
                       )}
-                      <td className="px-2.5 py-1.5 text-right font-mono text-slate-700">
+                      <td className="px-2 py-1.5 text-right font-mono text-slate-700">
                         {line.unitSellVnd.toLocaleString('vi-VN')}
                       </td>
-                      <td className="px-2.5 py-1.5 text-right font-mono font-bold text-slate-900">
+                      <td className="px-2 py-1.5 text-right font-mono font-bold text-slate-900">
                         {line.totalSellVnd.toLocaleString('vi-VN')}
                       </td>
+                      <td className="px-2 py-1.5 text-slate-400 text-[10px]">
+                        {line.note || ''}
+                      </td>
                     </tr>
-                  ))}
-                </React.Fragment>
-              ))}
+                  ))
+                )}
+              </React.Fragment>
+            ))}
 
-              {/* Suất đầu tư Chưa VAT */}
-              <tr className="bg-emerald-100/70 border-t-2 border-emerald-400 font-bold text-xs text-emerald-950">
-                <td colSpan={viewType === 'internal' ? 6 : 4} className="px-2.5 py-2">
-                  <div className="flex items-center gap-1.5 uppercase tracking-wide">
-                    <Coins size={13} className="text-emerald-700" />
-                    <span>TỈ SUẤT ĐẦU TƯ (CHƯA VAT) / kWp:</span>
-                  </div>
-                </td>
-                <td colSpan={viewType === 'internal' ? 3 : 2} className="px-2.5 py-2 text-right font-mono font-black text-emerald-900 text-sm">
-                  {ratePreVat.toLocaleString('vi-VN')} Vnđ / kWp
-                </td>
-              </tr>
+            {/* Suất đầu tư Chưa VAT */}
+            <tr className="bg-emerald-100/70 border-t-2 border-emerald-400 font-bold text-xs text-emerald-950">
+              <td colSpan={viewType === 'internal' ? 6 : 5} className="px-2.5 py-2">
+                <div className="flex items-center gap-1.5 uppercase tracking-wide">
+                  <Coins size={13} className="text-emerald-700" />
+                  <span>TỈ SUẤT ĐẦU TƯ (CHƯA VAT) / kWp:</span>
+                </div>
+              </td>
+              <td colSpan={viewType === 'internal' ? 4 : 3} className="px-2.5 py-2 text-right font-mono font-black text-emerald-900 text-sm">
+                {ratePreVat.toLocaleString('vi-VN')} Vnđ / kWp
+              </td>
+              <td></td>
+            </tr>
 
-              {/* Suất đầu tư Có VAT */}
-              <tr className="bg-orange-100/70 border-t border-orange-300 font-bold text-xs text-orange-950">
-                <td colSpan={viewType === 'internal' ? 6 : 4} className="px-2.5 py-2">
-                  <div className="flex items-center gap-1.5 uppercase tracking-wide">
-                    <Zap size={13} className="text-[#E4572E]" />
-                    <span>TỈ SUẤT ĐẦU TƯ TRỌN GÓI (ĐÃ GỒM VAT 10%) / kWp:</span>
-                  </div>
-                </td>
-                <td colSpan={viewType === 'internal' ? 3 : 2} className="px-2.5 py-2 text-right font-mono font-black text-[#E4572E] text-base">
-                  {ratePostVat.toLocaleString('vi-VN')} Vnđ / kWp
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      )}
+            {/* Suất đầu tư Có VAT */}
+            <tr className="bg-orange-100/70 border-t border-orange-300 font-bold text-xs text-orange-950">
+              <td colSpan={viewType === 'internal' ? 6 : 5} className="px-2.5 py-2">
+                <div className="flex items-center gap-1.5 uppercase tracking-wide">
+                  <Zap size={13} className="text-[#E4572E]" />
+                  <span>TỈ SUẤT ĐẦU TƯ TRỌN GÓI (ĐÃ GỒM VAT 10%) / kWp:</span>
+                </div>
+              </td>
+              <td colSpan={viewType === 'internal' ? 4 : 3} className="px-2.5 py-2 text-right font-mono font-black text-[#E4572E] text-base">
+                {ratePostVat.toLocaleString('vi-VN')} Vnđ / kWp
+              </td>
+              <td></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
 
       {/* Commercial Total Summary Calculation Box */}
       {fin && (

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Project } from '../../types/solar';
-import { getStandardGroupedBom } from '../../engine/bom';
+import { getHgcSectionGroupedBom } from '../../engine/bom';
 import { Logo } from '../common/Logo';
 import {
   TrendingUp,
@@ -14,6 +14,7 @@ import {
   SunMedium,
   Leaf,
   Layers,
+  FileSpreadsheet,
 } from 'lucide-react';
 
 interface CustomerValueProposalPrintProps {
@@ -26,8 +27,10 @@ export const CustomerValueProposalPrint: React.FC<CustomerValueProposalPrintProp
   const bomLines = project.bomLines || [];
   const installedKwp = layout?.installedKwp || 1;
 
-  // 8 nhóm BOM chuẩn Etek Power
-  const standardGroups = getStandardGroupedBom(bomLines);
+  // 4 Phần Chuẩn Mẫu File 'Bảng kê vật tư mẫu.xlsx' của công ty (Phần A, B, C, D)
+  const hgcSections = getHgcSectionGroupedBom(bomLines).filter(
+    (s) => s.items.length > 0
+  );
 
   const ratePreVat = fin?.investmentRatePreVatVndPerKwp || Math.round((fin?.capexSellVnd || 0) / installedKwp);
   const ratePostVat = fin?.investmentRatePostVatVndPerKwp || Math.round((fin?.grandTotalVnd || 0) / installedKwp);
@@ -249,20 +252,20 @@ export const CustomerValueProposalPrint: React.FC<CustomerValueProposalPrintProp
       </div>
 
       {/* ========================================================================= */}
-      {/* TRANG 3: BẢNG BÁO GIÁ TỔNG HỢP 8 NHÓM (DẠNG LOT 1) & CHÍNH SÁCH BẢO HÀNH */}
+      {/* TRANG 3: BẢNG BÁO GIÁ TỔNG HỢP THEO MẪU BẢNG KÊ VẬT TƯ & BẢO HÀNH        */}
       {/* ========================================================================= */}
       <div>
         <div className="text-xs font-bold text-[#0F2A45] uppercase tracking-wide mb-3 flex items-center justify-between">
           <div className="flex items-center gap-1.5">
-            <Layers size={15} className="text-[#E4572E]" />
-            <span>Bảng Dự Toán Báo Giá Tổng Hợp Theo 8 Nhóm Hạng Mục:</span>
+            <FileSpreadsheet size={15} className="text-[#E4572E]" />
+            <span>Bảng Dự Toán Báo Giá Theo Mẫu Bảng Kê Vật Tư Thiết Bị (Phần A - B - C - D):</span>
           </div>
           <span className="text-[10.5px] text-slate-500 font-normal italic">
-            (Bản tóm tắt quản trị · Chi tiết thiết bị xem tại Bảng Dự Toán Kỹ Thuật đính kèm)
+            (Bản tóm tắt · Chi tiết từng mã hàng xem tại Bảng Kê Vật Tư đính kèm)
           </span>
         </div>
 
-        {/* 8-Group High-Level Summary Table (Lot 1 Format) */}
+        {/* 4-Section High-Level Summary Table (Lot 1 Format) */}
         <div className="overflow-x-auto rounded-lg border border-slate-200 mb-4">
           <table className="w-full text-xs text-left">
             <thead className="bg-[#0F2A45] text-white text-[11px] uppercase font-bold font-mono">
@@ -277,27 +280,31 @@ export const CustomerValueProposalPrint: React.FC<CustomerValueProposalPrintProp
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {standardGroups.map((gData) => (
-                <tr key={gData.group.code} className="hover:bg-slate-50 transition-colors">
-                  <td className="px-3 py-2.5 text-center font-mono font-bold text-slate-700">
-                    {gData.group.code}
-                  </td>
-                  <td className="px-3 py-2.5 font-bold text-[#0F2A45]">
-                    {gData.group.name}
-                  </td>
-                  <td className="px-3 py-2.5 text-[11px] text-slate-600">
-                    {gData.group.description}
-                  </td>
-                  <td className="px-3 py-2.5 text-center font-mono text-slate-500">Lot</td>
-                  <td className="px-3 py-2.5 text-right font-mono font-bold text-slate-700">1</td>
-                  <td className="px-3 py-2.5 text-right font-mono text-slate-800">
-                    {gData.subtotalSellVnd.toLocaleString('vi-VN')}
-                  </td>
-                  <td className="px-3 py-2.5 text-right font-mono font-bold text-[#0F2A45]">
-                    {gData.subtotalSellVnd.toLocaleString('vi-VN')}
-                  </td>
-                </tr>
-              ))}
+              {hgcSections.map((secGroup) => {
+                const sampleItems = secGroup.items.slice(0, 3).map((it) => it.name).join(', ');
+                const desc = sampleItems ? `${sampleItems}... (${secGroup.items.length} hạng mục)` : '';
+                return (
+                  <tr key={secGroup.section.code} className="hover:bg-slate-50 transition-colors">
+                    <td className="px-3 py-2.5 text-center font-mono font-bold text-slate-700">
+                      {secGroup.section.code}
+                    </td>
+                    <td className="px-3 py-2.5 font-bold text-[#0F2A45]">
+                      {secGroup.section.name}
+                    </td>
+                    <td className="px-3 py-2.5 text-[11px] text-slate-600">
+                      {desc}
+                    </td>
+                    <td className="px-3 py-2.5 text-center font-mono text-slate-500">Lot</td>
+                    <td className="px-3 py-2.5 text-right font-mono font-bold text-slate-700">1</td>
+                    <td className="px-3 py-2.5 text-right font-mono text-slate-800">
+                      {secGroup.subtotalSellVnd.toLocaleString('vi-VN')}
+                    </td>
+                    <td className="px-3 py-2.5 text-right font-mono font-bold text-[#0F2A45]">
+                      {secGroup.subtotalSellVnd.toLocaleString('vi-VN')}
+                    </td>
+                  </tr>
+                );
+              })}
 
               {/* Dòng Suất đầu tư Chưa VAT */}
               <tr className="bg-emerald-100/70 border-t-2 border-emerald-400 font-bold text-xs text-emerald-950">

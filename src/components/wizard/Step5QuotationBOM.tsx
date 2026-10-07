@@ -1,9 +1,7 @@
 import React, { useState } from 'react';
 import { Project, BomLine } from '../../types/solar';
 import {
-  getStandardGroupedBom,
   exportErpBomCsv,
-  exportSummaryQuotationCsv,
   exportHgcSampleBomCsv,
   exportSurveyChecklistCsv,
 } from '../../engine/bom';
@@ -46,7 +44,6 @@ interface Step5Props {
 export type PrintDocumentType =
   | 'sample_bom'
   | 'value_proposal'
-  | 'detailed_bom'
   | 'checklist'
   | 'full_bundle';
 
@@ -58,11 +55,10 @@ export const Step5QuotationBOM: React.FC<Step5Props> = ({
   userRole,
 }) => {
   // Chế độ xem trên màn hình:
-  // 'sample_bom' (Mẫu Bảng Kê Vật Tư A-B-C-D theo đúng docs/Bảng kê vật tư mẫu.xlsx)
+  // 'sample_bom' (BẢNG KÊ VẬT TƯ THIẾT BỊ HỆ THỐNG ĐIỆN NĂNG LƯỢNG MẶT TRỜI theo đúng docs/Bảng kê vật tư mẫu.xlsx)
   // 'value_proposal' (Hồ sơ giá trị khách hàng)
-  // 'detailed_bom' (Dự toán 8 nhóm quản trị)
   // 'checklist' (Phiếu khảo sát hiện trường chuẩn)
-  const [activeDocView, setActiveDocView] = useState<'sample_bom' | 'value_proposal' | 'detailed_bom' | 'checklist'>('sample_bom');
+  const [activeDocView, setActiveDocView] = useState<'sample_bom' | 'value_proposal' | 'checklist'>('sample_bom');
   // Chế độ xem nội bộ (hiện giá vốn) hay xem khách hàng
   const [viewType, setViewType] = useState<'customer' | 'internal'>('customer');
   // Modal chọn loại tài liệu in PDF
@@ -133,24 +129,6 @@ export const Step5QuotationBOM: React.FC<Step5Props> = ({
     document.body.removeChild(link);
   };
 
-  // 4. Xuất file Báo Giá 8 Nhóm Tổng Hợp
-  const handleExportSummaryExcel = () => {
-    const csvContent = exportSummaryQuotationCsv(
-      bomLines,
-      project.name || 'HGC_Solar_Project',
-      project.layoutResult?.installedKwp || 1,
-      project.financial
-    );
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.setAttribute('href', url);
-    link.setAttribute('download', `BaoGia_TongHop_8Nhom_${(project.name || 'DuAn').replace(/\s+/g, '_')}_${new Date().toISOString().slice(0, 10)}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
   // Thực hiện in theo loại tài liệu đã chọn
   const handleConfirmPrint = (docType: PrintDocumentType) => {
     setSelectedPrintDoc(docType);
@@ -158,8 +136,6 @@ export const Step5QuotationBOM: React.FC<Step5Props> = ({
     // Đồng bộ view hiển thị tương ứng
     if (docType === 'sample_bom') {
       setActiveDocView('sample_bom');
-    } else if (docType === 'detailed_bom') {
-      setActiveDocView('detailed_bom');
     } else if (docType === 'value_proposal') {
       setActiveDocView('value_proposal');
     } else if (docType === 'checklist') {
@@ -184,11 +160,11 @@ export const Step5QuotationBOM: React.FC<Step5Props> = ({
                 5
               </span>
               <h3 className="text-base font-bold text-[#0F2A45]">
-                Định Giá Thương Mại & Báo Giá 8 Nhóm BOM
+                Định Giá Thương Mại & Bảng Kê Vật Tư Thiết Bị
               </h3>
             </div>
             <p className="text-xs text-slate-500 mt-0.5">
-              Chuẩn hóa 8 nhóm BOM · Tách riêng Hồ sơ Giá trị Khách hàng & Dự toán chi tiết · Suất đầu tư rõ ràng
+              Chuẩn theo mẫu file Bảng Kê Vật Tư (ON-GRID / HYBRID) của công ty · Suất đầu tư công khai · Hồ sơ chuyên nghiệp
             </p>
           </div>
 
@@ -218,12 +194,12 @@ export const Step5QuotationBOM: React.FC<Step5Props> = ({
             </div>
 
             <button
-              onClick={handleExportSummaryExcel}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs shadow-sm transition-all"
-              title="Xuất file Excel / CSV Bảng Báo Giá Tổng Hợp Theo 8 Nhóm Hạng Mục"
+              onClick={handleExportSampleExcel}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-[#E4572E] hover:bg-[#d04922] text-white font-bold text-xs shadow-sm transition-all"
+              title="Xuất file Excel / CSV bám sát 100% mẫu file Bảng Kê Vật Tư (Phần A - B - C - D) của công ty"
             >
               <FileSpreadsheet size={15} />
-              <span>Xuất Excel 8 Nhóm</span>
+              <span>Xuất Excel Mẫu Bảng Kê</span>
             </button>
 
             <button
@@ -655,7 +631,7 @@ export const Step5QuotationBOM: React.FC<Step5Props> = ({
         </div>
       )}
 
-      {/* DOCUMENT PREVIEW SWITCHER (TÁCH BIỆT MẪU BẢNG KÊ A-B-C-D, 8 NHÓM ERP, CHECKLIST & GIÁ TRỊ) */}
+      {/* DOCUMENT PREVIEW SWITCHER (TÁCH BIỆT MẪU BẢNG KÊ A-B-C-D, CHECKLIST & GIÁ TRỊ) */}
       <div className="bg-slate-100 p-1.5 rounded-xl flex flex-wrap items-center justify-between gap-2 print:hidden">
         <div className="flex flex-wrap items-center gap-1.5">
           <button
@@ -667,19 +643,19 @@ export const Step5QuotationBOM: React.FC<Step5Props> = ({
             }`}
           >
             <FileSpreadsheet size={14} className={activeDocView === 'sample_bom' ? 'text-amber-400' : 'text-[#E4572E]'} />
-            <span>1. Mẫu Bảng Kê Vật Tư (Phần A - B - C - D)</span>
+            <span>1. Bảng Kê Vật Tư Thiết Bị (Phần A - B - C - D)</span>
           </button>
 
           <button
-            onClick={() => setActiveDocView('detailed_bom')}
+            onClick={() => setActiveDocView('value_proposal')}
             className={`flex items-center gap-1.5 px-3.5 py-2 rounded-lg font-bold text-xs transition-all ${
-              activeDocView === 'detailed_bom'
+              activeDocView === 'value_proposal'
                 ? 'bg-[#0F2A45] text-white shadow-sm'
                 : 'text-slate-600 hover:text-slate-900 bg-white/50'
             }`}
           >
-            <Layers size={14} className={activeDocView === 'detailed_bom' ? 'text-emerald-300' : 'text-emerald-700'} />
-            <span>2. Dự Toán 8 Nhóm Quản Trị ERP</span>
+            <Sparkles size={14} className={activeDocView === 'value_proposal' ? 'text-amber-300' : 'text-amber-500'} />
+            <span>2. Hồ Sơ Đề Xuất Giá Trị Khách Hàng (Proposal)</span>
           </button>
 
           <button
@@ -693,25 +669,12 @@ export const Step5QuotationBOM: React.FC<Step5Props> = ({
             <ClipboardCheck size={14} className={activeDocView === 'checklist' ? 'text-blue-300' : 'text-blue-600'} />
             <span>3. Phiếu Khảo Sát Hiện Trường (Checklist)</span>
           </button>
-
-          <button
-            onClick={() => setActiveDocView('value_proposal')}
-            className={`flex items-center gap-1.5 px-3.5 py-2 rounded-lg font-bold text-xs transition-all ${
-              activeDocView === 'value_proposal'
-                ? 'bg-[#0F2A45] text-white shadow-sm'
-                : 'text-slate-600 hover:text-slate-900 bg-white/50'
-            }`}
-          >
-            <Sparkles size={14} className={activeDocView === 'value_proposal' ? 'text-amber-300' : 'text-amber-500'} />
-            <span>4. Hồ Sơ Đề Xuất Giá Trị Khách Hàng (Proposal)</span>
-          </button>
         </div>
 
         <div className="text-xs text-slate-500 hidden xl:block pr-2 font-medium">
-          {activeDocView === 'sample_bom' && '📋 Chuẩn 100% mẫu file Bảng Kê Vật Tư (ON-GRID / HYBRID)'}
-          {activeDocView === 'detailed_bom' && '📊 Bóc tách theo 8 nhóm hạng mục chuẩn quản trị ERP'}
-          {activeDocView === 'checklist' && '✅ Phiếu khảo sát hiện trường chuẩn quy trình 4 bước HGC'}
+          {activeDocView === 'sample_bom' && '📋 Bảng Kê Vật Tư Thiết Bị Chuẩn theo mẫu file (ON-GRID / HYBRID) của công ty'}
           {activeDocView === 'value_proposal' && '✨ Tập trung 4 Lợi ích & Giá trị cốt lõi cho Chủ Đầu Tư'}
+          {activeDocView === 'checklist' && '✅ Phiếu khảo sát hiện trường chuẩn quy trình 4 bước HGC'}
         </div>
       </div>
 
@@ -721,7 +684,7 @@ export const Step5QuotationBOM: React.FC<Step5Props> = ({
           <div className="space-y-8">
             <CustomerValueProposalPrint project={project} />
             <div className="page-break my-8 border-t-2 border-dashed border-slate-300 print:border-none print:m-0" style={{ pageBreakBefore: 'always' }}>
-              <DetailedBomPrint project={project} viewType={viewType} initialMode="sample_excel" />
+              <DetailedBomPrint project={project} viewType={viewType} />
             </div>
             <div className="page-break my-8 border-t-2 border-dashed border-slate-300 print:border-none print:m-0" style={{ pageBreakBefore: 'always' }}>
               <SurveyChecklistPrint
@@ -731,19 +694,16 @@ export const Step5QuotationBOM: React.FC<Step5Props> = ({
             </div>
           </div>
         ) : activeDocView === 'sample_bom' || selectedPrintDoc === 'sample_bom' ? (
-          /* 1. Mẫu Bảng Kê Vật Tư theo mẫu file Excel A-B-C-D */
-          <DetailedBomPrint project={project} viewType={viewType} initialMode="sample_excel" />
-        ) : activeDocView === 'detailed_bom' || selectedPrintDoc === 'detailed_bom' ? (
-          /* 2. Bảng Dự Toán 8 Nhóm Quản Trị ERP */
-          <DetailedBomPrint project={project} viewType={viewType} initialMode="8_groups" />
+          /* 1. Mẫu Bảng Kê Vật Tư Thiết Bị theo mẫu file Excel A-B-C-D */
+          <DetailedBomPrint project={project} viewType={viewType} />
         ) : activeDocView === 'checklist' || selectedPrintDoc === 'checklist' ? (
-          /* 3. Phiếu Khảo Sát Hiện Trường Checklist */
+          /* 2. Phiếu Khảo Sát Hiện Trường Checklist */
           <SurveyChecklistPrint
             project={project}
             onUpdateChecklist={(updated) => onUpdate({ surveyChecklist: updated })}
           />
         ) : (
-          /* 4. Hồ Sơ Đề Xuất Giá Trị Khách Hàng */
+          /* 3. Hồ Sơ Đề Xuất Giá Trị Khách Hàng */
           <CustomerValueProposalPrint project={project} />
         )}
       </div>
@@ -777,16 +737,6 @@ export const Step5QuotationBOM: React.FC<Step5Props> = ({
           >
             <ClipboardCheck size={15} />
             <span>Xuất Checklist Khảo Sát</span>
-          </button>
-
-          {/* Xuất Báo Giá 8 Nhóm */}
-          <button
-            onClick={handleExportSummaryExcel}
-            className="flex items-center gap-1.5 px-3 py-2.5 rounded-lg border border-teal-600 text-teal-700 hover:bg-teal-50 font-bold text-xs shadow-xs transition-all"
-            title="Xuất file Excel / CSV Báo Giá Tổng Hợp Theo 8 Nhóm Hạng Mục"
-          >
-            <FileSpreadsheet size={15} />
-            <span>Xuất Excel 8 Nhóm</span>
           </button>
 
           {/* Xuất ERP */}
@@ -837,7 +787,7 @@ export const Step5QuotationBOM: React.FC<Step5Props> = ({
 
             {/* Document Options */}
             <div className="space-y-2.5 mb-6">
-              {/* Option 1: Mẫu Bảng Kê Vật Tư (Phần A-B-C-D) */}
+              {/* Option 1: Bảng Kê Vật Tư Thiết Bị (Phần A-B-C-D) */}
               <div
                 onClick={() => setSelectedPrintDoc('sample_bom')}
                 className={`p-3 rounded-xl border-2 cursor-pointer transition-all relative ${
@@ -849,7 +799,7 @@ export const Step5QuotationBOM: React.FC<Step5Props> = ({
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#E4572E] text-white">
-                      Mẫu Chuẩn Dự Án
+                      Mẫu Chuẩn Công Ty
                     </span>
                     <strong className="text-sm text-[#0F2A45]">
                       1. Bảng Kê Vật Tư Thiết Bị (Phần A - B - C - D)
@@ -862,7 +812,7 @@ export const Step5QuotationBOM: React.FC<Step5Props> = ({
                   )}
                 </div>
                 <p className="text-xs text-slate-600 mt-1 leading-relaxed">
-                  Bảng kê vật tư bám sát 100% mẫu file <code>docs/Bảng kê vật tư mẫu.xlsx</code>: Thiết bị chính, Hệ rail nhôm, Giàn khung, Thiết bị ngoại vi và Chi phí khác.
+                  Bảng kê vật tư bám sát 100% mẫu file <code>docs/Bảng kê vật tư mẫu.xlsx</code> (ON-GRID / HYBRID): Thiết bị chính, Hệ rail nhôm, Giàn khung, Thiết bị ngoại vi và Chi phí khác.
                 </p>
               </div>
 
@@ -895,36 +845,7 @@ export const Step5QuotationBOM: React.FC<Step5Props> = ({
                 </p>
               </div>
 
-              {/* Option 3: Bảng Dự Toán Kỹ Thuật 8 Nhóm */}
-              <div
-                onClick={() => setSelectedPrintDoc('detailed_bom')}
-                className={`p-3 rounded-xl border-2 cursor-pointer transition-all relative ${
-                  selectedPrintDoc === 'detailed_bom'
-                    ? 'border-emerald-600 bg-emerald-50/20 shadow-xs'
-                    : 'border-slate-200 hover:border-slate-300'
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-700 text-white">
-                      Quản Trị ERP
-                    </span>
-                    <strong className="text-sm text-[#0F2A45]">
-                      3. Bảng Dự Toán 8 Nhóm Hạng Mục (Engineering BOM)
-                    </strong>
-                  </div>
-                  {selectedPrintDoc === 'detailed_bom' && (
-                    <div className="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center">
-                      <Check size={12} strokeWidth={3} />
-                    </div>
-                  )}
-                </div>
-                <p className="text-xs text-slate-600 mt-1 leading-relaxed">
-                  Bóc tách đầy đủ theo 8 nhóm hạng mục ERP: mã hàng cha, hàng con, định mức và đơn giá.
-                </p>
-              </div>
-
-              {/* Option 4: Phiếu Khảo Sát Hiện Trường */}
+              {/* Option 3: Phiếu Khảo Sát Hiện Trường */}
               <div
                 onClick={() => setSelectedPrintDoc('checklist')}
                 className={`p-3 rounded-xl border-2 cursor-pointer transition-all relative ${
@@ -936,10 +857,10 @@ export const Step5QuotationBOM: React.FC<Step5Props> = ({
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-600 text-white">
-                      Khảo Sát
+                      Khảo Sát Hiện Trường
                     </span>
                     <strong className="text-sm text-[#0F2A45]">
-                      4. Phiếu Khảo Sát Hiện Trường & Dự Án (Checklist)
+                      3. Phiếu Khảo Sát Hiện Trường & Dự Án (Checklist)
                     </strong>
                   </div>
                   {selectedPrintDoc === 'checklist' && (
@@ -953,32 +874,32 @@ export const Step5QuotationBOM: React.FC<Step5Props> = ({
                 </p>
               </div>
 
-              {/* Option 5: Trọn Bộ Tất Cả */}
+              {/* Option 4: Trọn Bộ Tất Cả */}
               <div
                 onClick={() => setSelectedPrintDoc('full_bundle')}
                 className={`p-3 rounded-xl border-2 cursor-pointer transition-all relative ${
                   selectedPrintDoc === 'full_bundle'
-                    ? 'border-indigo-600 bg-indigo-50/20 shadow-xs'
+                    ? 'border-[#0F2A45] bg-slate-100 shadow-xs'
                     : 'border-slate-200 hover:border-slate-300'
                 }`}
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-700 text-white">
+                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#0F2A45] text-white">
                       Trọn Bộ Trình Ký
                     </span>
                     <strong className="text-sm text-[#0F2A45]">
-                      5. Bộ Hồ Sơ Dự Án Đầy Đủ (Proposal + Bảng Kê + Checklist)
+                      4. Bộ Hồ Sơ Dự Án Đầy Đủ (Proposal + Bảng Kê Vật Tư Mẫu + Checklist)
                     </strong>
                   </div>
                   {selectedPrintDoc === 'full_bundle' && (
-                    <div className="w-5 h-5 rounded-full bg-indigo-600 text-white flex items-center justify-center">
+                    <div className="w-5 h-5 rounded-full bg-[#0F2A45] text-white flex items-center justify-center">
                       <Check size={12} strokeWidth={3} />
                     </div>
                   )}
                 </div>
                 <p className="text-xs text-slate-600 mt-1 leading-relaxed">
-                  In tự động cả 3 tài liệu: Hồ sơ giá trị khách hàng, Bảng kê chi tiết theo mẫu file, và Phiếu khảo sát hiện trường.
+                  In tự động cả 3 tài liệu: Hồ sơ đề xuất giá trị khách hàng, Bảng kê chi tiết theo mẫu file công ty, và Phiếu khảo sát hiện trường.
                 </p>
               </div>
             </div>

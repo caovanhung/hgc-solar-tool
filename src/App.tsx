@@ -707,9 +707,9 @@ export default function App() {
                 <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-lg">
                   📄
                 </div>
-                <h3 className="font-bold text-slate-900 text-sm">Dự Toán BOM 8 Nhóm Vật Tư</h3>
+                <h3 className="font-bold text-slate-900 text-sm">Bảng Kê Vật Tư Thiết Bị Chuẩn</h3>
                 <p className="text-xs text-slate-500 leading-relaxed">
-                  Xuất bảng vật tư chi tiết, tính toán dây cáp AC/DC, tủ điện phân phối và in PDF hồ sơ báo giá chuyên nghiệp.
+                  Bảng kê vật tư bám sát 100% mẫu file dự án (Phần A-B-C-D), cáp điện Cadivi/Helukabel, tủ điện và in PDF chuyên nghiệp.
                 </p>
               </div>
             </div>
