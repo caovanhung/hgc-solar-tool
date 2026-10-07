@@ -5,8 +5,8 @@ import { Logo } from '../common/Logo';
 import {
   ResponsiveContainer,
   ComposedChart,
-  Bar,
   Line,
+  Area,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -64,8 +64,10 @@ export const CustomerValueProposalPrint: React.FC<CustomerValueProposalPrintProp
   const ProposalCustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
+      const isRecovered = data.cumulativeSavingsMillion >= initialCapexMillion;
+      const diffMillion = Number((data.cumulativeSavingsMillion - initialCapexMillion).toFixed(1));
       return (
-        <div className="bg-white p-3 rounded-lg border border-slate-300 shadow-xl text-xs text-slate-800">
+        <div className="bg-white p-3 rounded-lg border border-slate-300 shadow-xl text-xs text-slate-800 min-w-[210px]">
           <div className="font-bold text-[#0F2A45] border-b border-slate-100 pb-1 mb-1.5 flex justify-between gap-4">
             <span>Năm thứ {data.yearNum}</span>
             <span className="text-slate-500 font-mono text-[10.5px]">
@@ -74,18 +76,28 @@ export const CustomerValueProposalPrint: React.FC<CustomerValueProposalPrintProp
           </div>
           <div className="space-y-1 font-mono text-[11px]">
             <div className="flex justify-between gap-3">
-              <span className="text-slate-500 font-sans">Tiết kiệm trong năm:</span>
+              <span className="text-slate-500 font-sans">Tiết kiệm năm:</span>
               <strong className="text-emerald-700">+{data.annualSavingsMillion} tr đ</strong>
             </div>
             <div className="flex justify-between gap-3">
               <span className="text-slate-500 font-sans">Lũy kế tiết kiệm:</span>
-              <strong className="text-sky-700">{data.cumulativeSavingsMillion} tr đ</strong>
+              <strong className="text-sky-700">+{data.cumulativeSavingsMillion} tr đ</strong>
             </div>
-            <div className="flex justify-between gap-3">
-              <span className="text-slate-500 font-sans">Dòng tiền ròng:</span>
-              <strong className={data.netCashflowMillion >= 0 ? 'text-emerald-600' : 'text-slate-500'}>
-                {data.netCashflowMillion >= 0 ? `+${data.netCashflowMillion}` : data.netCashflowMillion} tr đ
-              </strong>
+            <div className="flex justify-between gap-3 pt-1 border-t border-slate-100">
+              <span className="text-slate-500 font-sans">Vốn ban đầu:</span>
+              <strong className="text-[#E4572E]">{initialCapexMillion} tr đ</strong>
+            </div>
+            <div className="flex justify-between gap-3 pt-0.5">
+              <span className="text-slate-500 font-sans">Hoàn vốn:</span>
+              {isRecovered ? (
+                <strong className="text-emerald-600 font-bold">
+                  Đã hoàn vốn (+{diffMillion} tr)
+                </strong>
+              ) : (
+                <strong className="text-amber-600 font-bold">
+                  Đang thu hồi ({Math.round((data.cumulativeSavingsMillion / initialCapexMillion) * 100)}%)
+                </strong>
+              )}
             </div>
           </div>
         </div>
@@ -269,38 +281,59 @@ export const CustomerValueProposalPrint: React.FC<CustomerValueProposalPrintProp
           </div>
         )}
 
-        {/* Biểu đồ Recharts: Dự Phóng Dòng Tiền & Tích Lũy Tiết Kiệm (20 Năm) */}
+        {/* Biểu đồ Recharts: Dự Phóng Dòng Tiền & Tích Lũy Tiết Kiệm (20 Năm) - LỰA CHỌN A */}
         {proposalChartData.length > 0 && (
-          <div className="mb-4 p-3 bg-slate-50/90 rounded-xl border border-slate-200">
-            <div className="flex flex-wrap items-center justify-between gap-2 mb-2 pb-1.5 border-b border-slate-200">
+          <div className="mb-4 p-3.5 bg-slate-50/90 rounded-xl border border-slate-200">
+            <div className="flex flex-wrap items-center justify-between gap-2 mb-2 pb-2 border-b border-slate-200">
               <div className="flex items-center gap-1.5">
-                <BarChart3 size={14} className="text-[#E4572E]" />
+                <BarChart3 size={15} className="text-[#E4572E]" />
                 <span className="text-[11px] font-bold text-[#0F2A45] uppercase tracking-wide">
-                  BIỂU ĐỒ RECHARTS DỰ PHÓNG TIẾT KIỆM & DÒNG TIỀN HOÀN VỐN (20 NĂM)
+                  BIỂU ĐỒ RECHARTS DỰ PHÓNG TIẾT KIỆM TÍCH LŨY & HOÀN VỐN ĐẦU TƯ (20 NĂM)
                 </span>
               </div>
-              <div className="flex items-center gap-3 text-[10px] text-slate-500 font-medium">
-                <span className="flex items-center gap-1">
-                  <span className="w-2.5 h-2.5 rounded-xs bg-[#10B981] inline-block"></span>
-                  Tiết kiệm năm (tr đ)
-                </span>
-                <span className="flex items-center gap-1">
-                  <span className="w-2.5 h-0.5 bg-[#0284C7] inline-block"></span>
-                  Lũy kế tiết kiệm (tr đ)
-                </span>
-                <span className="flex items-center gap-1">
-                  <span className="w-2.5 h-0.5 border-t border-dashed border-[#E4572E] inline-block"></span>
-                  Vốn đầu tư ban đầu
-                </span>
+              <div className="text-[10px] font-semibold text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200">
+                🎯 Mốc hòa vốn: {fin?.paybackYears} năm · {20 - Math.ceil(fin?.paybackYears || 4)} năm sau sinh lời tự do 100%
               </div>
             </div>
 
+            {/* Chú giải ý nghĩa các đường */}
+            <div className="flex flex-wrap items-center justify-between gap-2 text-[10.5px] text-slate-600 mb-2 px-1">
+              <div className="flex flex-wrap items-center gap-4">
+                <span className="flex items-center gap-1.5">
+                  <span className="w-3.5 h-0.5 border-t-2 border-dashed border-[#E4572E] inline-block"></span>
+                  <strong className="text-[#E4572E]">Mức Vốn Đầu Tư ({initialCapexMillion} tr đ)</strong>
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span className="w-3 h-2 rounded-xs bg-[#0284C7] inline-block"></span>
+                  <strong className="text-[#0284C7]">Lũy Kế Tiết Kiệm (Tăng dần theo năm)</strong>
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span className="w-2.5 h-0.5 bg-[#10B981] inline-block"></span>
+                  <span className="text-emerald-700 font-medium">Tiền điện tiết kiệm từng năm</span>
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span className="w-2.5 h-2.5 border-l-2 border-dashed border-[#059669] inline-block"></span>
+                  <span className="text-emerald-800 font-medium">Cột mốc hòa vốn ({fin?.paybackYears} năm)</span>
+                </span>
+              </div>
+              <span className="text-[10px] text-slate-400 italic">
+                (Đã tính tỷ lệ suy hao tấm pin 0.7%/năm)
+              </span>
+            </div>
+
+            {/* Vùng vẽ Biểu đồ Recharts */}
             <div className="w-full h-64 print:h-60" style={{ minHeight: '240px' }}>
               <ResponsiveContainer width="100%" height="100%">
                 <ComposedChart
                   data={proposalChartData}
-                  margin={{ top: 12, right: 15, bottom: 5, left: 5 }}
+                  margin={{ top: 16, right: 15, bottom: 5, left: 10 }}
                 >
+                  <defs>
+                    <linearGradient id="cumulativeSavingsGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#0284C7" stopOpacity={0.35} />
+                      <stop offset="95%" stopColor="#0284C7" stopOpacity={0.03} />
+                    </linearGradient>
+                  </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="#CBD5E1" opacity={0.6} />
                   <XAxis
                     dataKey="yearLabel"
@@ -309,55 +342,66 @@ export const CustomerValueProposalPrint: React.FC<CustomerValueProposalPrintProp
                     tickLine={false}
                   />
                   <YAxis
-                    yAxisId="left"
-                    stroke="#059669"
-                    fontSize={10}
-                    tickLine={false}
-                    tickFormatter={(v) => `${v} tr`}
-                  />
-                  <YAxis
-                    yAxisId="right"
-                    orientation="right"
                     stroke="#0284C7"
                     fontSize={10}
                     tickLine={false}
+                    domain={[0, 'auto']}
                     tickFormatter={(v) => `${v} tr`}
                   />
                   <Tooltip content={<ProposalCustomTooltip />} />
+                  {/* Đường mức vốn đầu tư ban đầu cố định */}
                   <ReferenceLine
-                    yAxisId="right"
                     y={initialCapexMillion}
                     stroke="#E4572E"
-                    strokeDasharray="4 4"
+                    strokeWidth={2}
+                    strokeDasharray="5 5"
                     label={{
-                      value: `Điểm thu hồi vốn: ${initialCapexMillion} tr đ`,
+                      value: `Vốn ban đầu: ${initialCapexMillion} tr đ`,
                       fill: '#E4572E',
                       fontSize: 10,
+                      fontWeight: 'bold',
                       position: 'insideTopLeft',
                     }}
                   />
-                  <Bar
-                    yAxisId="left"
-                    dataKey="annualSavingsMillion"
-                    name="Tiết kiệm trong năm"
-                    fill="#10B981"
-                    radius={[3, 3, 0, 0]}
-                    maxBarSize={22}
+                  {/* Cột mốc hoàn vốn thẳng đứng */}
+                  <ReferenceLine
+                    x={`N.${Math.ceil(fin?.paybackYears || 4)}`}
+                    stroke="#059669"
+                    strokeWidth={1.5}
+                    strokeDasharray="3 3"
+                    label={{
+                      value: `🎯 Hòa vốn (${fin?.paybackYears} năm)`,
+                      fill: '#059669',
+                      fontSize: 10,
+                      fontWeight: 'bold',
+                      position: 'insideTopRight',
+                    }}
                   />
-                  <Line
-                    yAxisId="right"
+                  {/* Vùng diện tích tích lũy dốc lên */}
+                  <Area
                     type="monotone"
                     dataKey="cumulativeSavingsMillion"
-                    name="Lũy kế tiết kiệm"
+                    name="Lũy kế tiết kiệm (tr đ)"
                     stroke="#0284C7"
-                    strokeWidth={2.5}
+                    strokeWidth={3}
+                    fill="url(#cumulativeSavingsGradient)"
                     dot={{ r: 2.5, fill: '#0284C7' }}
+                  />
+                  {/* Đường tiết kiệm từng năm mỏng ở dưới */}
+                  <Line
+                    type="monotone"
+                    dataKey="annualSavingsMillion"
+                    name="Tiết kiệm trong năm (tr đ)"
+                    stroke="#10B981"
+                    strokeWidth={1.5}
+                    dot={false}
                   />
                 </ComposedChart>
               </ResponsiveContainer>
             </div>
+
             <div className="text-[10px] text-slate-500 italic text-right mt-1">
-              * Biểu đồ mô phỏng doanh thu tiết kiệm thực tế có tính suy hao công suất quang điện 0.7%/năm theo chuẩn bảo hành nhà sản xuất.
+              * Dự toán tính toán chính xác có trừ suy hao công suất tấm pin 0.7%/năm theo cam kết hiệu suất 25 năm của hãng sản xuất.
             </div>
           </div>
         )}
