@@ -31,7 +31,9 @@ import {
   Eye,
   Wrench,
   ClipboardCheck,
+  BookOpen,
 } from 'lucide-react';
+import { SystemTechnicalDocModal } from '../docs/SystemTechnicalDocModal';
 
 interface Step5Props {
   project: Project;
@@ -64,6 +66,7 @@ export const Step5QuotationBOM: React.FC<Step5Props> = ({
   // Modal chọn loại tài liệu in PDF
   const [showPrintModal, setShowPrintModal] = useState<boolean>(false);
   const [selectedPrintDoc, setSelectedPrintDoc] = useState<PrintDocumentType>('sample_bom');
+  const [showDocModal, setShowDocModal] = useState<boolean>(false);
 
   const [activeChartTab, setActiveChartTab] = useState<'recharts_roi' | 'cashflow'>('recharts_roi');
 
@@ -669,6 +672,15 @@ export const Step5QuotationBOM: React.FC<Step5Props> = ({
             <ClipboardCheck size={14} className={activeDocView === 'checklist' ? 'text-blue-300' : 'text-blue-600'} />
             <span>3. Phiếu Khảo Sát Hiện Trường (Checklist)</span>
           </button>
+
+          <button
+            onClick={() => setShowDocModal(true)}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-lg font-bold text-xs bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 transition-all shadow-xs ml-1"
+            title="Xem toàn bộ tài liệu nghiệp vụ, công thức tính toán và logic bóc tách vật tư"
+          >
+            <BookOpen size={14} className="text-amber-600" />
+            <span>Sổ Tay Nghiệp Vụ & Công Thức</span>
+          </button>
         </div>
 
         <div className="text-xs text-slate-500 hidden xl:block pr-2 font-medium">
@@ -923,6 +935,12 @@ export const Step5QuotationBOM: React.FC<Step5Props> = ({
           </div>
         </div>
       )}
+
+      {/* Sổ Tay Nghiệp Vụ & Toàn Bộ Công Thức Tính Toán Modal */}
+      <SystemTechnicalDocModal
+        isOpen={showDocModal}
+        onClose={() => setShowDocModal(false)}
+      />
     </div>
   );
 };

@@ -27,6 +27,7 @@ import { Step5QuotationBOM } from './components/wizard/Step5QuotationBOM';
 import { ProjectList } from './components/projects/ProjectList';
 import { AdminCatalog } from './components/admin/AdminCatalog';
 import { QuickProposalModal } from './components/quick/QuickProposalModal';
+import { SystemTechnicalDocModal } from './components/docs/SystemTechnicalDocModal';
 import { Check, CheckCircle2, ChevronRight, Layers, Sun } from 'lucide-react';
 
 const STORAGE_KEY = 'hgc_solar_projects_v1';
@@ -241,6 +242,7 @@ export default function App() {
   const [showAuthModal, setShowAuthModal] = useState<boolean>(false);
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving'>('saved');
   const [showQuickModal, setShowQuickModal] = useState<boolean>(false);
+  const [showDocModal, setShowDocModal] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const showToast = (msg: string) => {
@@ -636,6 +638,7 @@ export default function App() {
         onOpenProjects={() => setActiveView('projects')}
         onOpenAdmin={() => setActiveView('admin')}
         onOpenQuickProposal={() => setShowQuickModal(true)}
+        onOpenDocModal={() => setShowDocModal(true)}
         onPrint={handlePrint}
         onClearCache={handleClearCache}
         activeView={activeView}
@@ -908,6 +911,12 @@ export default function App() {
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
         onLoginSuccess={handleLoginSuccess}
+      />
+
+      {/* 5. System Technical & Calculation Engine Documentation Modal */}
+      <SystemTechnicalDocModal
+        isOpen={showDocModal}
+        onClose={() => setShowDocModal(false)}
       />
     </div>
   );

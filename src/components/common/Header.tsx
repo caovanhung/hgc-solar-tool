@@ -17,6 +17,7 @@ import {
   Phone,
   MapPin,
   Mail,
+  BookOpen,
 } from 'lucide-react';
 import { Project } from '../../types/solar';
 import { UserProfile, UserRole } from '../../types/user';
@@ -26,6 +27,7 @@ interface HeaderProps {
   onOpenProjects: () => void;
   onOpenAdmin: () => void;
   onOpenQuickProposal: () => void;
+  onOpenDocModal?: () => void;
   onPrint: () => void;
   onClearCache?: () => void;
   activeView: 'wizard' | 'projects' | 'admin';
@@ -42,6 +44,7 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenProjects,
   onOpenAdmin,
   onOpenQuickProposal,
+  onOpenDocModal,
   onPrint,
   onClearCache,
   activeView,
@@ -138,6 +141,18 @@ export const Header: React.FC<HeaderProps> = ({
                 <Settings size={14} />
                 <span className="hidden md:inline">Danh mục</span>
               </button>
+
+              {/* Tài liệu & Công thức tính toán Button */}
+              {onOpenDocModal && (
+                <button
+                  onClick={onOpenDocModal}
+                  className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 text-xs font-semibold rounded-lg bg-[#0A1C2E] border border-amber-500/40 text-amber-300 hover:bg-[#153454] transition-colors"
+                  title="Tra cứu toàn bộ tài liệu nghiệp vụ, công thức tính toán 1P/3P & bảng kê BOM"
+                >
+                  <BookOpen size={14} className="text-amber-400" />
+                  <span className="hidden lg:inline">Tài liệu & Công thức</span>
+                </button>
+              )}
 
               {/* Xóa Cache Button */}
               {onClearCache && (
@@ -401,6 +416,17 @@ export const Header: React.FC<HeaderProps> = ({
             >
               <Settings size={16} /> Cấu hình danh mục thiết bị
             </button>
+            {onOpenDocModal && (
+              <button
+                onClick={() => {
+                  onOpenDocModal();
+                  setMobileMenuOpen(false);
+                }}
+                className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#0F2A45] text-amber-300 font-semibold"
+              >
+                <BookOpen size={16} /> Tài liệu nghiệp vụ & Công thức
+              </button>
+            )}
             <button
               onClick={() => {
                 onOpenQuickProposal();
