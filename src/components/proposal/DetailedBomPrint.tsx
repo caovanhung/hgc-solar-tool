@@ -239,29 +239,15 @@ export const DetailedBomPrint: React.FC<DetailedBomPrintProps> = ({
               </React.Fragment>
             ))}
 
-            {/* Suất đầu tư Chưa VAT */}
-            <tr className="bg-emerald-100/70 border-t-2 border-emerald-400 font-bold text-xs text-emerald-950">
-              <td colSpan={viewType === 'internal' ? 6 : 5} className="px-2.5 py-2">
-                <div className="flex items-center gap-1.5 uppercase tracking-wide">
-                  <Coins size={13} className="text-emerald-700" />
-                  <span>TỈ SUẤT ĐẦU TƯ (CHƯA VAT) / kWp:</span>
-                </div>
-              </td>
-              <td colSpan={viewType === 'internal' ? 4 : 3} className="px-2.5 py-2 text-right font-mono font-black text-emerald-900 text-sm">
-                {ratePreVat.toLocaleString('vi-VN')} Vnđ / kWp
-              </td>
-              <td></td>
-            </tr>
-
-            {/* Suất đầu tư Có VAT */}
-            <tr className="bg-orange-100/70 border-t border-orange-300 font-bold text-xs text-orange-950">
-              <td colSpan={viewType === 'internal' ? 6 : 5} className="px-2.5 py-2">
+            {/* Suất đầu tư Trọn gói Đã gồm VAT */}
+            <tr className="bg-orange-100/70 border-t-2 border-orange-300 font-bold text-xs text-orange-950">
+              <td colSpan={viewType === 'internal' ? 6 : 5} className="px-2.5 py-2.5">
                 <div className="flex items-center gap-1.5 uppercase tracking-wide">
                   <Zap size={13} className="text-[#E4572E]" />
-                  <span>TỈ SUẤT ĐẦU TƯ TRỌN GÓI (ĐÃ GỒM VAT 10%) / kWp:</span>
+                  <span>TỈ SUẤT ĐẦU TƯ TRỌN GÓI (ĐÃ BAO GỒM VAT) / kWp:</span>
                 </div>
               </td>
-              <td colSpan={viewType === 'internal' ? 4 : 3} className="px-2.5 py-2 text-right font-mono font-black text-[#E4572E] text-base">
+              <td colSpan={viewType === 'internal' ? 4 : 3} className="px-2.5 py-2.5 text-right font-mono font-black text-[#E4572E] text-base">
                 {ratePostVat.toLocaleString('vi-VN')} Vnđ / kWp
               </td>
               <td></td>
@@ -273,9 +259,9 @@ export const DetailedBomPrint: React.FC<DetailedBomPrintProps> = ({
       {/* Commercial Total Summary Calculation Box */}
       {fin && (
         <div className="flex justify-end mb-6">
-          <div className="w-full sm:w-80 space-y-1.5 text-xs bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+          <div className="w-full sm:w-84 space-y-1.5 text-xs bg-slate-50 p-3.5 rounded-xl border border-slate-200">
             <div className="flex justify-between py-1 border-b border-slate-200">
-              <span className="text-slate-600">Tổng cộng vật tư & dịch vụ:</span>
+              <span className="text-slate-600">Tổng cộng thiết bị & dịch vụ (đã gồm VAT):</span>
               <span className="font-mono font-bold text-slate-900">
                 {fin.capexSellVnd.toLocaleString('vi-VN')} đ
               </span>
@@ -290,18 +276,15 @@ export const DetailedBomPrint: React.FC<DetailedBomPrintProps> = ({
               </div>
             )}
 
-            <div className="flex justify-between py-1 border-b border-slate-200 text-slate-600">
-              <span>Thuế VAT (10%):</span>
-              <span className="font-mono font-bold text-slate-800">
-                +{fin.vatVnd.toLocaleString('vi-VN')} đ
-              </span>
-            </div>
-
             <div className="flex justify-between py-1.5 text-sm border-t-2 border-[#0F2A45]">
-              <span className="font-bold text-[#0F2A45] uppercase">Tổng Cộng Dự Toán:</span>
+              <span className="font-bold text-[#0F2A45] uppercase">Tổng Cộng Thanh Toán (Đã gồm VAT):</span>
               <span className="font-mono font-extrabold text-[#E4572E] text-base">
                 {fin.grandTotalVnd.toLocaleString('vi-VN')} đ
               </span>
+            </div>
+
+            <div className="text-[10px] text-slate-500 italic text-right pt-0.5">
+              * Giá thiết bị, vật tư và nhân công mặc định đã bao gồm thuế VAT
             </div>
           </div>
         </div>

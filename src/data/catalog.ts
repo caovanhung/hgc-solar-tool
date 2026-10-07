@@ -2641,6 +2641,116 @@ export const INITIAL_MATERIALS: MaterialItem[] = [
     "source": "catalog"
   },
   {
+    "id": "e-cv-4mm2",
+    "categoryCode": "IV",
+    "categoryName": "Hệ thống điện",
+    "name": "Dây cáp động lực 1Cx4 mm²/ (cáp 01 lõi, cáp CV)",
+    "spec": "0.6/1kV ruột đồng cách điện PVC Cadivi",
+    "sku": "CV-4mm2",
+    "unit": "Mét",
+    "costVnd": 28000,
+    "source": "catalog"
+  },
+  {
+    "id": "e-cv-16mm2",
+    "categoryCode": "IV",
+    "categoryName": "Hệ thống điện",
+    "name": "Dây cáp động lực 1Cx16 mm²/ (cáp 01 lõi, cáp CV)",
+    "spec": "0.6/1kV ruột đồng cách điện PVC Cadivi",
+    "sku": "CV-16mm2",
+    "unit": "Mét",
+    "costVnd": 108000,
+    "source": "catalog"
+  },
+  {
+    "id": "e-cv-25mm2",
+    "categoryCode": "IV",
+    "categoryName": "Hệ thống điện",
+    "name": "Dây cáp động lực 1Cx25 mm²/ (cáp 01 lõi, cáp CV)",
+    "spec": "0.6/1kV ruột đồng cách điện PVC Cadivi",
+    "sku": "CV-25mm2",
+    "unit": "Mét",
+    "costVnd": 168000,
+    "source": "catalog"
+  },
+  {
+    "id": "e-cv-35mm2",
+    "categoryCode": "IV",
+    "categoryName": "Hệ thống điện",
+    "name": "Dây cáp động lực 1Cx35 mm²/ (cáp 01 lõi, cáp CV)",
+    "spec": "0.6/1kV ruột đồng cách điện PVC Cadivi",
+    "sku": "CV-35mm2",
+    "unit": "Mét",
+    "costVnd": 235000,
+    "source": "catalog"
+  },
+  {
+    "id": "e-cv-50mm2",
+    "categoryCode": "IV",
+    "categoryName": "Hệ thống điện",
+    "name": "Dây cáp động lực 1Cx50 mm²/ (cáp 01 lõi, cáp CV)",
+    "spec": "0.6/1kV ruột đồng cách điện PVC Cadivi",
+    "sku": "CV-50mm2",
+    "unit": "Mét",
+    "costVnd": 320000,
+    "source": "catalog"
+  },
+  {
+    "id": "e-pe-10mm2",
+    "categoryCode": "IV",
+    "categoryName": "Hệ thống điện",
+    "name": "Dây cáp động lực PE 10 mm² (Màu Te / Vàng - Xanh)",
+    "spec": "Dây đồng tiếp địa bảo vệ Cadivi",
+    "sku": "CV-10mm2-PE",
+    "unit": "Mét",
+    "costVnd": 68000,
+    "source": "catalog"
+  },
+  {
+    "id": "e-pe-16mm2",
+    "categoryCode": "IV",
+    "categoryName": "Hệ thống điện",
+    "name": "Dây cáp động lực PE 16 mm² (Màu Te / Vàng - Xanh)",
+    "spec": "Dây đồng tiếp địa bảo vệ Cadivi",
+    "sku": "CV-16mm2-PE",
+    "unit": "Mét",
+    "costVnd": 108000,
+    "source": "catalog"
+  },
+  {
+    "id": "e-pe-25mm2",
+    "categoryCode": "IV",
+    "categoryName": "Hệ thống điện",
+    "name": "Dây cáp động lực PE 25 mm² (Màu Te / Vàng - Xanh)",
+    "spec": "Dây đồng tiếp địa bảo vệ Cadivi",
+    "sku": "CV-25mm2-PE",
+    "unit": "Mét",
+    "costVnd": 168000,
+    "source": "catalog"
+  },
+  {
+    "id": "e-dc-helukabel-red-6mm2",
+    "categoryCode": "IV",
+    "categoryName": "Hệ thống điện",
+    "name": "Dây cáp động lực chuyên dụng solar 1x6mm² / (cáp đơn, màu đỏ)",
+    "spec": "1500V DC đồng mạ thiếc, vỏ kép chịu tia UV Helukabel Đức",
+    "sku": "RT-RED-6MM2-HELU",
+    "unit": "Mét",
+    "costVnd": 24500,
+    "source": "catalog"
+  },
+  {
+    "id": "e-dc-helukabel-black-6mm2",
+    "categoryCode": "IV",
+    "categoryName": "Hệ thống điện",
+    "name": "Dây cáp động lực chuyên dụng solar 1x6mm² / (cáp đơn, màu đen)",
+    "spec": "1500V DC đồng mạ thiếc, vỏ kép chịu tia UV Helukabel Đức",
+    "sku": "SW-BLACK-6MM2-HELU",
+    "unit": "Mét",
+    "costVnd": 24500,
+    "source": "catalog"
+  },
+  {
     "id": "e-meter-cable-1.5",
     "categoryCode": "IV",
     "categoryName": "Hệ thống điện",
@@ -2806,6 +2916,17 @@ export const INITIAL_MATERIALS: MaterialItem[] = [
     "source": "catalog"
   },
   {
+    "id": "td-gt-05k1p",
+    "categoryCode": "IV",
+    "categoryName": "Hệ thống điện",
+    "name": "TỦ ĐIỆN HÒA LƯỚI 5KW-6KW 1PHA",
+    "spec": "Kèm MCB 32A 2P + SPD Chống sét Type 2 275V + Đèn báo pha",
+    "sku": "TD-GT-05K1P-2S-SPD",
+    "unit": "Bộ",
+    "costVnd": 2400000,
+    "source": "catalog"
+  },
+  {
     "id": "td-gt-10k1p",
     "categoryCode": "IV",
     "categoryName": "Hệ thống điện",
@@ -2817,6 +2938,17 @@ export const INITIAL_MATERIALS: MaterialItem[] = [
     "source": "catalog"
   },
   {
+    "id": "td-gt-15k3p",
+    "categoryCode": "IV",
+    "categoryName": "Hệ thống điện",
+    "name": "TỦ ĐIỆN HÒA LƯỚI 10KW-15KW 3PHA",
+    "spec": "Kèm MCB/MCCB 40A 3P + SPD Type 2 385V + Đèn báo pha, cầu chì DC",
+    "sku": "TD-GT-15K3P-2S2M",
+    "unit": "Bộ",
+    "costVnd": 4500000,
+    "source": "catalog"
+  },
+  {
     "id": "td-gt-20k3p",
     "categoryCode": "IV",
     "categoryName": "Hệ thống điện",
@@ -2825,6 +2957,50 @@ export const INITIAL_MATERIALS: MaterialItem[] = [
     "sku": "TD-GT-20K3P-2S2M",
     "unit": "Bộ",
     "costVnd": 5800000,
+    "source": "catalog"
+  },
+  {
+    "id": "td-gt-30k3p",
+    "categoryCode": "IV",
+    "categoryName": "Hệ thống điện",
+    "name": "TỦ ĐIỆN HÒA LƯỚI 30KW 3PHA",
+    "spec": "Kèm MCCB 100A 3P + SPD Type 2 385V + Đèn báo pha, cầu chì DC",
+    "sku": "TD-GT-30K3P-3S3M",
+    "unit": "Bộ",
+    "costVnd": 7800000,
+    "source": "catalog"
+  },
+  {
+    "id": "td-gt-50k3p",
+    "categoryCode": "IV",
+    "categoryName": "Hệ thống điện",
+    "name": "TỦ ĐIỆN HÒA LƯỚI 50KW 3PHA",
+    "spec": "Kèm MCCB 160A 3P + SPD Type 2 385V + Đèn báo pha, chống phát ngược Zero-Export",
+    "sku": "TD-GT-50K3P-4S4M",
+    "unit": "Bộ",
+    "costVnd": 10500000,
+    "source": "catalog"
+  },
+  {
+    "id": "td-hb-3p-30",
+    "categoryCode": "IV",
+    "categoryName": "Hệ thống điện",
+    "name": "Tủ điện Hybrid 30KW, 3 Pha tích hợp ATS TD-HB3P30K-ATS",
+    "spec": "Tích hợp ATS 4P 100A, MCCB 100A, CB AC/DC, SPD chống sét Type 2",
+    "sku": "TD-HB3P30K-ATS",
+    "unit": "tủ",
+    "costVnd": 8800000,
+    "source": "catalog"
+  },
+  {
+    "id": "td-hb-3p-50",
+    "categoryCode": "IV",
+    "categoryName": "Hệ thống điện",
+    "name": "Tủ điện Hybrid 50KW, 3 Pha tích hợp ATS TD-HB3P50K-ATS",
+    "spec": "Tích hợp ATS 4P 160A, MCCB 160A, CB AC/DC, SPD chống sét Type 2",
+    "sku": "TD-HB3P50K-ATS",
+    "unit": "tủ",
+    "costVnd": 13500000,
     "source": "catalog"
   },
   {

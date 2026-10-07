@@ -105,7 +105,7 @@ export const QuickProposalModal: React.FC<QuickProposalModalProps> = ({
       dailyKwh: layout.dailyKwh,
       tariffVnd,
       discountPct: tier === 'economy' ? 3 : 0,
-      vatPct: 10,
+      vatPct: 0,
     });
 
     const proj: Project = {
@@ -353,7 +353,7 @@ export const QuickProposalModal: React.FC<QuickProposalModalProps> = ({
             </div>
 
             <div>
-              <span className="text-[11px] text-slate-400 block uppercase">Tổng Báo Giá (VAT):</span>
+              <span className="text-[11px] text-slate-400 block uppercase">Tổng Báo Giá (Đã Gồm VAT):</span>
               <strong className="text-xl font-mono font-black text-[#0F2A45]">
                 {Math.round(fin.grandTotalVnd / 1000000)} tr
               </strong>

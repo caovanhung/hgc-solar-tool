@@ -6,7 +6,7 @@ export interface FinancialCalculationParams {
   dailyKwh: number;
   tariffVnd: number;
   discountPct?: number; // e.g. 2%
-  vatPct?: number; // e.g. 10%
+  vatPct?: number; // Mặc định 0% vì đơn giá thiết bị/vật tư đã bao gồm thuế VAT
   daySelfConsumptionRatio?: number; // 70% daytime self-consumption
 }
 
@@ -17,7 +17,7 @@ export function calculateFinancials(params: FinancialCalculationParams): Financi
     dailyKwh,
     tariffVnd,
     discountPct = 0,
-    vatPct = 10,
+    vatPct = 0,
     daySelfConsumptionRatio = 0.7,
   } = params;
 

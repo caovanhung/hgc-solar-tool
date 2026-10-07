@@ -100,7 +100,7 @@ function createInitialProject(name = 'Hồ sơ kỹ thuật mới'): Project {
     dailyKwh: layout.dailyKwh,
     tariffVnd,
     discountPct: 0,
-    vatPct: 10,
+    vatPct: 0,
   });
 
   return {
@@ -190,7 +190,7 @@ function upgradeProjectIfNeeded(p: Project): Project {
         dailyKwh: layout.dailyKwh,
         tariffVnd: 2850,
         discountPct: p.discountPct || 0,
-        vatPct: 10,
+        vatPct: 0,
       });
 
       return {
@@ -490,7 +490,7 @@ export default function App() {
             dailyKwh: layout.dailyKwh,
             tariffVnd: tariff,
             discountPct: updated.discountPct,
-            vatPct: 10,
+            vatPct: 0,
           });
 
           const resultProject = {

@@ -4,6 +4,20 @@ export function calculateMounting(layout: LayoutResult, roofType: RoofType): Mou
   const totalRows = layout.rows + (layout.extraRow ? 1 : 0);
   const rowWidthM = layout.cols * layout.pw;
 
+  if (layout.panelQty <= 0 || totalRows <= 0) {
+    return {
+      supported: false,
+      railLengthM: 0,
+      lFeetQty: 0,
+      clipLockQty: 0,
+      midClampQty: 0,
+      endClampQty: 0,
+      groundingLugQty: 0,
+      railJoinerQty: 0,
+      roofType,
+    };
+  }
+
   // 1. Chiều dài thanh rail nhôm (mỗi hàng pin cần 2 thanh ray song song)
   const railLengthM = Number((2 * totalRows * rowWidthM * 1.05).toFixed(1)); // 5% dư dôi
 
@@ -22,8 +36,8 @@ export function calculateMounting(layout: LayoutResult, roofType: RoofType): Mou
   const standardBarM = 4.2;
   const railJoinerQty = Math.max(0, Math.ceil(railLengthM / standardBarM) - totalRows);
 
-  // 6. Kẹp tiếp địa & lá tiếp địa
-  const groundingLugQty = Math.max(totalRows * 2, Math.ceil(railLengthM / 10));
+  // 6. Kẹp tiếp địa (2 đầu mỗi dãy rail nhôm nối dây tiếp địa = Số hàng * 2)
+  const groundingLugQty = totalRows * 2;
 
   return {
     supported: true,

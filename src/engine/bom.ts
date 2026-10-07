@@ -229,120 +229,170 @@ export function generateProjectBom(params: GenerateBomParams): BomLine[] {
     });
   }
 
-  // 5. Tủ điện theo đúng cấu hình hệ thống mẫu
+  // 5. Tủ điện theo đúng cấu hình hệ thống & công suất Inverter
+  const invKw = inverter?.acKw || 10;
+  let cabKey = 'td-gt-10k1p';
+  let fallbackCost = 3200000;
+  let fallbackName = 'TỦ ĐIỆN HÒA LƯỚI 10KW 1PHA';
+  let fallbackSpec = 'Kèm MCCB 63A + SPD Chống sét Type 2 + Đèn báo pha';
+  let fallbackSku = 'TD-GT-10K1P-2S2M-SPD-E';
+  let cabNote = 'Đấu nối bảo vệ đóng cắt hệ thống';
+
   if (isHybrid) {
     if (is3Phase) {
-      // Tủ điện Hybrid 15KW 3PHA (TD-HB-15K3P-2S2M-ATS)
-      const cabMat = findMat('td-hb-15k3p-sample', 5286600, 'Tủ điện Hybrid 15KW 3PHA', 'ATS 4P, CB AC/DC, SPD', 'Bộ', 'VN');
-      lines.push({
-        id: 'bom-cabinet',
-        categoryCode: 'IV',
-        categoryName: 'Hệ thống điện',
-        hgcSectionCode: 'A',
-        hgcSubsection: 'THIẾT BỊ CHÍNH',
-        name: 'Tủ điện Hybrid 15KW 3PHA',
-        spec: 'Tủ điện tích hợp ATS 4P 63A, CB AC, CB DC, chống sét lan truyền SPD',
-        sku: 'TD-HB-15K3P-2S2M-ATS',
-        brand: 'VN',
-        origin: 'Việt Nam',
-        unit: 'Bộ',
-        qty: 1,
-        unitCostVnd: cabMat.cost,
-        totalCostVnd: cabMat.cost,
-        unitSellVnd: Math.round(cabMat.cost * multiplier),
-        totalSellVnd: Math.round(cabMat.cost * multiplier),
-        note: 'Tự động chuyển nguồn phụ tải ưu tiên khi mất lưới',
-      });
+      if (invKw <= 15) {
+        cabKey = 'td-hb-3p-1015';
+        fallbackCost = 5286600;
+        fallbackName = 'Tủ điện Hybrid 10KW-15KW, 3 Pha, 3 String tích hợp ATS TD-HB3P1015K3S-ATS';
+        fallbackSpec = 'Tích hợp ATS 4P 40A, CB AC/DC, SPD chống sét Type 2';
+        fallbackSku = 'TD-HB3P1015K3S-ATS';
+        cabNote = 'ATS 4P tự động chuyển nguồn phụ tải ưu tiên khi mất lưới';
+      } else if (invKw <= 20) {
+        cabKey = 'td-hb-3p-20';
+        fallbackCost = 6252120;
+        fallbackName = 'Tủ điện Hybrid 20KW, 3 Pha, 4 String tích hợp ATS TD-HB3P20K4S-ATS';
+        fallbackSpec = 'Tích hợp ATS 4P 63A, CB AC/DC, SPD chống sét Type 2';
+        fallbackSku = 'TD-HB3P20K4S-ATS';
+        cabNote = 'ATS 4P tự động chuyển nguồn phụ tải ưu tiên khi mất lưới';
+      } else if (invKw <= 30) {
+        cabKey = 'td-hb-3p-30';
+        fallbackCost = 8800000;
+        fallbackName = 'Tủ điện Hybrid 30KW, 3 Pha tích hợp ATS TD-HB3P30K-ATS';
+        fallbackSpec = 'Tích hợp ATS 4P 100A, MCCB 100A, CB AC/DC, SPD chống sét Type 2';
+        fallbackSku = 'TD-HB3P30K-ATS';
+        cabNote = 'ATS 4P 100A bảo vệ phụ tải công suất lớn';
+      } else {
+        cabKey = 'td-hb-3p-50';
+        fallbackCost = 13500000;
+        fallbackName = 'Tủ điện Hybrid 50KW, 3 Pha tích hợp ATS TD-HB3P50K-ATS';
+        fallbackSpec = 'Tích hợp ATS 4P 160A, MCCB 160A, CB AC/DC, SPD chống sét Type 2';
+        fallbackSku = 'TD-HB3P50K-ATS';
+        cabNote = 'ATS 4P 160A bảo vệ trọn gói hệ thống Hybrid 50kW';
+      }
     } else {
-      // Tủ điện Hybrid 10KW 1P 2MPPT tích hợp ATS (TD-HB-10K1P-2S2M-ATS)
-      const cabMat = findMat('td-hb-10k1p-sample', 3797280, 'Tủ điện Hybrid 10KW 1P 2MPPT tích hợp ATS', 'ATS 2P, CB AC/DC, SPD', 'Bộ', 'VN');
-      lines.push({
-        id: 'bom-cabinet',
-        categoryCode: 'IV',
-        categoryName: 'Hệ thống điện',
-        hgcSectionCode: 'A',
-        hgcSubsection: 'THIẾT BỊ CHÍNH',
-        name: 'Tủ điện Hybrid 10KW 1P 2MPPT tích hợp ATS',
-        spec: 'Tủ điện tích hợp ATS 2P 63A chuyển mạch tức thời, CB AC/DC, SPD',
-        sku: 'TD-HB-10K1P-2S2M-ATS',
-        brand: 'VN',
-        origin: 'Việt Nam',
-        unit: 'Bộ',
-        qty: 1,
-        unitCostVnd: cabMat.cost,
-        totalCostVnd: cabMat.cost,
-        unitSellVnd: Math.round(cabMat.cost * multiplier),
-        totalSellVnd: Math.round(cabMat.cost * multiplier),
-        note: 'Bảo vệ toàn diện hệ thống hòa lưới có lưu trữ',
-      });
+      // Hybrid 1 Pha
+      if (invKw <= 8) {
+        cabKey = 'td-hb-1p-0508';
+        fallbackCost = 3407400;
+        fallbackName = 'Tủ điện Hybrid 5KW-8KW, 1 Pha, 2 String tích hợp ATS TD-HB1P0508K2S-ATS';
+        fallbackSpec = 'Tích hợp ATS 2P 40A, CB AC/DC, SPD chống sét Type 2';
+        fallbackSku = 'TD-HB1P0508K2S-ATS';
+        cabNote = 'ATS 2P chuyển mạch phụ tải ưu tiên khi mất lưới';
+      } else if (invKw <= 10) {
+        cabKey = 'td-hb-1p-10';
+        fallbackCost = 3797280;
+        fallbackName = 'Tủ điện Hybrid 10KW, 1 Pha, 2 String tích hợp ATS TD-HB1P10K2S-ATS';
+        fallbackSpec = 'Tích hợp ATS 2P 63A, CB AC/DC, SPD chống sét Type 2';
+        fallbackSku = 'TD-HB1P10K2S-ATS';
+        cabNote = 'ATS 2P 63A chuyển mạch tức thời < 20ms';
+      } else {
+        cabKey = 'td-hb-1p-12';
+        fallbackCost = 4892400;
+        fallbackName = 'Tủ điện Hybrid 12KW, 1 Pha, 3 String tích hợp ATS TD-HB1P12K3S-ATS';
+        fallbackSpec = 'Tích hợp ATS 2P 63A, CB AC/DC, SPD chống sét Type 2';
+        fallbackSku = 'TD-HB1P12K3S-ATS';
+        cabNote = 'ATS 2P 63A cho Inverter 1P công suất lớn';
+      }
     }
   } else {
+    // On-grid
     if (is3Phase) {
-      // TỦ ĐIỆN HÒA LƯỚI 20KW 3PHA (TD-GT-20K3P-2S2M)
-      const cabMat = findMat('td-gt-20k3p', 5800000, 'TỦ ĐIỆN HÒA LƯỚI 20KW 3PHA', 'MCCB 80A 3P + SPD Type 2', 'Bộ', 'VN');
-      lines.push({
-        id: 'bom-cabinet',
-        categoryCode: 'IV',
-        categoryName: 'Hệ thống điện',
-        hgcSectionCode: 'A',
-        hgcSubsection: 'THIẾT BỊ CHÍNH',
-        name: 'TỦ ĐIỆN HÒA LƯỚI 20KW 3PHA',
-        spec: 'Kèm MCCB 80A 3P, SPD Chống sét Type 2, đèn báo pha, cầu chì DC',
-        sku: 'TD-GT-20K3P-2S2M',
-        brand: 'VN',
-        origin: 'Việt Nam',
-        unit: 'Bộ',
-        qty: 1,
-        unitCostVnd: cabMat.cost,
-        totalCostVnd: cabMat.cost,
-        unitSellVnd: Math.round(cabMat.cost * multiplier),
-        totalSellVnd: Math.round(cabMat.cost * multiplier),
-        note: 'Tiêu chuẩn bảo vệ hạ thế ngoài trời IP65',
-      });
+      if (invKw <= 15) {
+        cabKey = 'td-gt-15k3p';
+        fallbackCost = 4500000;
+        fallbackName = 'TỦ ĐIỆN HÒA LƯỚI 10KW-15KW 3PHA';
+        fallbackSpec = 'Kèm MCB/MCCB 40A 3P + SPD Type 2 385V + Đèn báo pha, cầu chì DC';
+        fallbackSku = 'TD-GT-15K3P-2S2M';
+        cabNote = 'Đấu nối bảo vệ cổng hòa lưới On-Grid 3P';
+      } else if (invKw <= 20) {
+        cabKey = 'td-gt-20k3p';
+        fallbackCost = 5800000;
+        fallbackName = 'TỦ ĐIỆN HÒA LƯỚI 20KW 3PHA';
+        fallbackSpec = 'Kèm MCCB 80A 3P + SPD Type 2 385V + Đèn báo pha, cầu chì DC';
+        fallbackSku = 'TD-GT-20K3P-2S2M';
+        cabNote = 'Tiêu chuẩn bảo vệ hạ thế ngoài trời IP65';
+      } else if (invKw <= 30) {
+        cabKey = 'td-gt-30k3p';
+        fallbackCost = 7800000;
+        fallbackName = 'TỦ ĐIỆN HÒA LƯỚI 30KW 3PHA';
+        fallbackSpec = 'Kèm MCCB 100A 3P + SPD Type 2 385V + Đèn báo pha, cầu chì DC';
+        fallbackSku = 'TD-GT-30K3P-3S3M';
+        cabNote = 'MCCB 100A bảo vệ hệ 30kW theo tiêu chuẩn 1.25xIb';
+      } else {
+        cabKey = 'td-gt-50k3p';
+        fallbackCost = 10500000;
+        fallbackName = 'TỦ ĐIỆN HÒA LƯỚI 50KW 3PHA';
+        fallbackSpec = 'Kèm MCCB 160A 3P + SPD Type 2 385V + Đèn báo pha, chống phát ngược Zero-Export';
+        fallbackSku = 'TD-GT-50K3P-4S4M';
+        cabNote = 'MCCB 160A bảo vệ hệ 50kW theo tiêu chuẩn 1.25xIb';
+      }
     } else {
-      // TỦ ĐIỆN HÒA LƯỚI 10KW 1PHA (TD-GT-10K1P-2S2M-SPD-E)
-      const cabMat = findMat('td-gt-10k1p', 3200000, 'TỦ ĐIỆN HÒA LƯỚI 10KW 1PHA', 'MCCB 63A + SPD Type 2', 'Bộ', 'VN');
-      lines.push({
-        id: 'bom-cabinet',
-        categoryCode: 'IV',
-        categoryName: 'Hệ thống điện',
-        hgcSectionCode: 'A',
-        hgcSubsection: 'THIẾT BỊ CHÍNH',
-        name: 'TỦ ĐIỆN HÒA LƯỚI 10KW 1PHA',
-        spec: 'Kèm MCCB 63A 2P, SPD Chống sét Type 2, đèn báo nguồn',
-        sku: 'TD-GT-10K1P-2S2M-SPD-E',
-        brand: 'VN',
-        origin: 'Việt Nam',
-        unit: 'Bộ',
-        qty: 1,
-        unitCostVnd: cabMat.cost,
-        totalCostVnd: cabMat.cost,
-        unitSellVnd: Math.round(cabMat.cost * multiplier),
-        totalSellVnd: Math.round(cabMat.cost * multiplier),
-        note: 'Đấu nối bảo vệ cổng hòa lưới On-Grid',
-      });
+      // On-grid 1 Pha
+      if (invKw <= 6) {
+        cabKey = 'td-gt-05k1p';
+        fallbackCost = 2400000;
+        fallbackName = 'TỦ ĐIỆN HÒA LƯỚI 5KW-6KW 1PHA';
+        fallbackSpec = 'Kèm MCB 32A 2P + SPD Chống sét Type 2 275V + Đèn báo pha';
+        fallbackSku = 'TD-GT-05K1P-2S-SPD';
+        cabNote = 'Đấu nối bảo vệ cổng hòa lưới 1P 5-6kW';
+      } else {
+        cabKey = 'td-gt-10k1p';
+        fallbackCost = 3200000;
+        fallbackName = 'TỦ ĐIỆN HÒA LƯỚI 10KW 1PHA';
+        fallbackSpec = 'Kèm MCCB 63A 2P + SPD Chống sét Type 2 275V + Đèn báo pha';
+        fallbackSku = 'TD-GT-10K1P-2S2M-SPD-E';
+        cabNote = 'Đấu nối bảo vệ cổng hòa lưới 1P 10kW';
+      }
     }
   }
+
+  const cabMat = findMat(cabKey, fallbackCost, fallbackName, fallbackSpec, 'Bộ', 'VN');
+  lines.push({
+    id: 'bom-cabinet',
+    categoryCode: 'IV',
+    categoryName: 'Hệ thống điện',
+    hgcSectionCode: 'A',
+    hgcSubsection: 'THIẾT BỊ CHÍNH',
+    name: cabMat.name,
+    spec: cabMat.spec,
+    sku: cabMat.sku,
+    brand: cabMat.brand,
+    origin: 'Việt Nam',
+    unit: 'Bộ',
+    qty: 1,
+    unitCostVnd: cabMat.cost,
+    totalCostVnd: cabMat.cost,
+    unitSellVnd: Math.round(cabMat.cost * multiplier),
+    totalSellVnd: Math.round(cabMat.cost * multiplier),
+    note: cabNote,
+  });
 
   // =========================================================================
   // PHẦN B: HỆ RAIL NHÔM/ GIÀN KHUNG
   // =========================================================================
 
   // --- B.1: HỆ RAIL NHÔM ---
-  const railQty = Math.max(6, Math.ceil((mounting.railLengthM || layout.panelQty * 2.4) / 2.4));
-  const railMat = findMat('m-rail-fravi-24', 195000, 'Thanh rail L = 2.4m', 'Al6005-T5 2.4m', 'Thanh', 'Fravi');
+  const railQty = mounting.railLengthM;
+  const railMat = findMat(
+    'm-rail',
+    85000,
+    'Thanh rail nhôm Anodized Al6005-T5 chuyên dụng NLMT',
+    'Kích thước 28x50mm, dài 4.2m, kháng ăn mòn muối biển',
+    'm',
+    'HLC'
+  );
   lines.push({
-    id: 'bom-rail-fravi',
+    id: 'bom-rail-al42',
     categoryCode: 'VII',
     categoryName: 'Hạng mục xây dựng',
     hgcSectionCode: 'B',
     hgcSubsection: 'HỆ RAIL NHÔM',
-    name: 'Thanh rail L = 2.4m',
-    spec: 'Anodized Al6005-T5, dài 2.4 mét, chịu gió cấp 12',
-    sku: 'RAILNHOM-DAT-2852',
-    brand: 'Fravi',
+    name: railMat.name,
+    spec: railMat.spec,
+    sku: railMat.sku,
+    brand: railMat.brand || 'HLC',
     origin: 'Việt Nam',
-    unit: 'Thanh',
+    unit: railMat.unit || 'm',
     qty: railQty,
     unitCostVnd: railMat.cost,
     totalCostVnd: railMat.cost * railQty,
@@ -350,7 +400,7 @@ export function generateProjectBom(params: GenerateBomParams): BomLine[] {
     totalSellVnd: Math.round(railMat.cost * railQty * multiplier),
   });
 
-  const joinerQty = mounting.railJoinerQty || Math.max(4, Math.ceil(railQty * 0.6));
+  const joinerQty = mounting.railJoinerQty;
   const joinerMat = findMat('m-joiner-hopergy', 22000, 'Nối rail', 'Khớp nối thanh rail kèm bu lông M8 Inox 304', 'Cái', 'Hopergy');
   lines.push({
     id: 'bom-joiner-hopergy',
@@ -358,12 +408,12 @@ export function generateProjectBom(params: GenerateBomParams): BomLine[] {
     categoryName: 'Hạng mục xây dựng',
     hgcSectionCode: 'B',
     hgcSubsection: 'HỆ RAIL NHÔM',
-    name: 'Nối rail',
-    spec: 'Khớp nối thanh rail kèm bu lông Inox 304',
-    sku: 'SK-SSC',
-    brand: 'Hopergy',
+    name: joinerMat.name,
+    spec: joinerMat.spec,
+    sku: joinerMat.sku,
+    brand: joinerMat.brand,
     origin: 'Việt Nam',
-    unit: 'Cái',
+    unit: joinerMat.unit,
     qty: joinerQty,
     unitCostVnd: joinerMat.cost,
     totalCostVnd: joinerMat.cost * joinerQty,
@@ -371,7 +421,7 @@ export function generateProjectBom(params: GenerateBomParams): BomLine[] {
     totalSellVnd: Math.round(joinerMat.cost * joinerQty * multiplier),
   });
 
-  const midQty = mounting.midClampQty || Math.max(8, (layout.panelQty - 2) * 2);
+  const midQty = mounting.midClampQty;
   const midMat = findMat('m-mid-fravi', 12000, 'Kẹp giữa 30', 'Kẹp giữa Al6005-T5 cho pin dày 30/35mm', 'Cái', 'Fravi');
   lines.push({
     id: 'bom-mid-fravi',
@@ -379,12 +429,12 @@ export function generateProjectBom(params: GenerateBomParams): BomLine[] {
     categoryName: 'Hạng mục xây dựng',
     hgcSectionCode: 'B',
     hgcSubsection: 'HỆ RAIL NHÔM',
-    name: 'Kẹp giữa 30',
-    spec: 'Kẹp giữa nhôm đúc kèm bu lông Inox 304 cố định tấm pin',
-    sku: 'KEPGIUA-FSL-MC40',
-    brand: 'Fravi',
+    name: midMat.name,
+    spec: midMat.spec,
+    sku: midMat.sku,
+    brand: midMat.brand,
     origin: 'Việt Nam',
-    unit: 'Cái',
+    unit: midMat.unit,
     qty: midQty,
     unitCostVnd: midMat.cost,
     totalCostVnd: midMat.cost * midQty,
@@ -392,7 +442,7 @@ export function generateProjectBom(params: GenerateBomParams): BomLine[] {
     totalSellVnd: Math.round(midMat.cost * midQty * multiplier),
   });
 
-  const endQty = mounting.endClampQty || 8;
+  const endQty = mounting.endClampQty;
   const endMat = findMat('m-end-fravi', 12000, 'Kẹp biên 30', 'Kẹp biên Al6005-T5 cho pin dày 30/35mm', 'Cái', 'Fravi');
   lines.push({
     id: 'bom-end-fravi',
@@ -400,12 +450,12 @@ export function generateProjectBom(params: GenerateBomParams): BomLine[] {
     categoryName: 'Hạng mục xây dựng',
     hgcSectionCode: 'B',
     hgcSubsection: 'HỆ RAIL NHÔM',
-    name: 'Kẹp biên 30',
-    spec: 'Kẹp biên nhôm đúc kèm bu lông Inox 304 chốt đầu dãy pin',
-    sku: 'KEPBIEN-FSL-EC30',
-    brand: 'Fravi',
+    name: endMat.name,
+    spec: endMat.spec,
+    sku: endMat.sku,
+    brand: endMat.brand,
     origin: 'Việt Nam',
-    unit: 'Cái',
+    unit: endMat.unit,
     qty: endQty,
     unitCostVnd: endMat.cost,
     totalCostVnd: endMat.cost * endQty,
@@ -413,7 +463,7 @@ export function generateProjectBom(params: GenerateBomParams): BomLine[] {
     totalSellVnd: Math.round(endMat.cost * endQty * multiplier),
   });
 
-  const discQty = Math.max(midQty, layout.panelQty);
+  const discQty = mounting.midClampQty;
   const discMat = findMat('g-ground-disc', 6000, 'Lá tiếp địa', 'Inox 304 xuyên thủng Anode', 'Cái', 'Hopergy');
   lines.push({
     id: 'bom-ground-disc',
@@ -421,12 +471,12 @@ export function generateProjectBom(params: GenerateBomParams): BomLine[] {
     categoryName: 'Hệ thống phụ trợ',
     hgcSectionCode: 'B',
     hgcSubsection: 'HỆ RAIL NHÔM',
-    name: 'Lá tiếp địa',
-    spec: 'Inox 304 tạo liên kết đẳng thế giữa khung pin và rail nhôm',
-    sku: 'AC-EPL01',
-    brand: 'Hopergy',
+    name: discMat.name,
+    spec: discMat.spec,
+    sku: discMat.sku,
+    brand: discMat.brand,
     origin: 'Việt Nam',
-    unit: 'Cái',
+    unit: discMat.unit,
     qty: discQty,
     unitCostVnd: discMat.cost,
     totalCostVnd: discMat.cost * discQty,
@@ -434,7 +484,7 @@ export function generateProjectBom(params: GenerateBomParams): BomLine[] {
     totalSellVnd: Math.round(discMat.cost * discQty * multiplier),
   });
 
-  const clampSetQty = Math.max(4, Math.ceil(layout.panelQty / 5));
+  const clampSetQty = mounting.groundingLugQty;
   const clampSetMat = findMat('g-ground-clamp-set', 22000, 'Kẹp tiếp địa + lá kẹp tiếp địa', 'Bộ kẹp tiếp địa an toàn rail', 'Cái', 'Hopergy');
   lines.push({
     id: 'bom-ground-clamp-set',
@@ -442,12 +492,12 @@ export function generateProjectBom(params: GenerateBomParams): BomLine[] {
     categoryName: 'Hệ thống phụ trợ',
     hgcSectionCode: 'B',
     hgcSubsection: 'HỆ RAIL NHÔM',
-    name: 'Kẹp tiếp địa + lá kẹp tiếp địa',
-    spec: 'Bộ kẹp tiếp địa an toàn liên kết dây đồng trần vào hệ rail',
-    sku: 'AC-ELG01-NS1',
-    brand: 'Hopergy',
+    name: clampSetMat.name,
+    spec: clampSetMat.spec,
+    sku: clampSetMat.sku,
+    brand: clampSetMat.brand,
     origin: 'Việt Nam',
-    unit: 'Cái',
+    unit: clampSetMat.unit,
     qty: clampSetQty,
     unitCostVnd: clampSetMat.cost,
     totalCostVnd: clampSetMat.cost * clampSetQty,
@@ -455,7 +505,7 @@ export function generateProjectBom(params: GenerateBomParams): BomLine[] {
     totalSellVnd: Math.round(clampSetMat.cost * clampSetQty * multiplier),
   });
 
-  const lfeetQty = mounting.lFeetQty || Math.max(12, Math.ceil(railQty * 2));
+  const lfeetQty = mounting.lFeetQty;
   const lfeetMat = findMat('m-lfeet-hopergy', 28000, 'Chân đế L', 'Nhôm đúc kèm vít bắn tôn và đệm EPDM', 'Cái', 'Hopergy');
   lines.push({
     id: 'bom-lfeet-hopergy',
@@ -463,12 +513,12 @@ export function generateProjectBom(params: GenerateBomParams): BomLine[] {
     categoryName: 'Hạng mục xây dựng',
     hgcSectionCode: 'B',
     hgcSubsection: 'HỆ RAIL NHÔM',
-    name: 'Chân đế L',
-    spec: 'Chân đế L nhôm đúc chống bão kèm bulong inox và đệm cao su EPDM',
-    sku: 'TRB-F01-NS1',
-    brand: 'Hopergy',
+    name: lfeetMat.name,
+    spec: lfeetMat.spec,
+    sku: lfeetMat.sku,
+    brand: lfeetMat.brand,
     origin: 'Việt Nam',
-    unit: 'Cái',
+    unit: lfeetMat.unit,
     qty: lfeetQty,
     unitCostVnd: lfeetMat.cost,
     totalCostVnd: lfeetMat.cost * lfeetQty,
