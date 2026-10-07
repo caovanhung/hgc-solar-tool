@@ -1778,8 +1778,8 @@ export const INITIAL_INVERTERS: InverterModel[] = [
 ];
 
 /**
- * BẢNG KÊ VẬT TƯ & ĐƠN GIÁ HỆ THỐNG THEO 8 NHÓM TIÊU CHUẨN ETEK POWER / HGC
- * Cập nhật chuẩn đơn giá thiết bị bám tải, tủ điện ATS, pin lưu trữ và phụ kiện từ file BÁO GIÁ SOLAR.xlsx
+ * BẢNG KÊ VẬT TƯ & ĐƠN GIÁ HỆ THỐNG THEO TIÊU CHUẨN HGC SOLAR / ETEK POWER
+ * Đồng bộ toàn diện từ file BÁO GIÁ SOLAR.xlsx và file Bảng kê vật tư mẫu.xlsx
  */
 export const INITIAL_MATERIALS: MaterialItem[] = [
   {
@@ -2418,6 +2418,446 @@ export const INITIAL_MATERIALS: MaterialItem[] = [
     "sku": "SCADA-LOGGER-IOT",
     "unit": "bộ",
     "costVnd": 3200000,
+    "source": "catalog"
+  },
+  {
+    "id": "m-rail-fravi-24",
+    "categoryCode": "VII",
+    "categoryName": "Hạng mục xây dựng",
+    "name": "Thanh rail L = 2.4m (Al6005-T5)",
+    "spec": "Anodized Al6005-T5, dài 2.4m, kháng ăn mòn muối biển",
+    "sku": "RAILNHOM-DAT-2852",
+    "unit": "Thanh",
+    "costVnd": 195000,
+    "source": "catalog"
+  },
+  {
+    "id": "m-joiner-hopergy",
+    "categoryCode": "VII",
+    "categoryName": "Hạng mục xây dựng",
+    "name": "Nối rail nhôm kèm bu lông Inox 304",
+    "spec": "Thanh nối liên kết rail nhôm",
+    "sku": "SK-SSC",
+    "unit": "Cái",
+    "costVnd": 22000,
+    "source": "catalog"
+  },
+  {
+    "id": "m-mid-fravi",
+    "categoryCode": "VII",
+    "categoryName": "Hạng mục xây dựng",
+    "name": "Kẹp giữa 30 kèm bu lông Inox 304",
+    "spec": "Phù hợp pin mặt trời dày 30/35mm",
+    "sku": "KEPGIUA-FSL-MC40",
+    "unit": "Cái",
+    "costVnd": 12000,
+    "source": "catalog"
+  },
+  {
+    "id": "m-end-fravi",
+    "categoryCode": "VII",
+    "categoryName": "Hạng mục xây dựng",
+    "name": "Kẹp biên 30 kèm bu lông Inox 304",
+    "spec": "Phù hợp pin mặt trời dày 30/35mm",
+    "sku": "KEPBIEN-FSL-EC30",
+    "unit": "Cái",
+    "costVnd": 12000,
+    "source": "catalog"
+  },
+  {
+    "id": "g-ground-disc",
+    "categoryCode": "VI",
+    "categoryName": "Hệ thống phụ trợ",
+    "name": "Lá tiếp địa Inox 304",
+    "spec": "Tiếp địa đẳng thế khung pin",
+    "sku": "AC-EPL01",
+    "unit": "Cái",
+    "costVnd": 6000,
+    "source": "catalog"
+  },
+  {
+    "id": "g-ground-clamp-set",
+    "categoryCode": "VI",
+    "categoryName": "Hệ thống phụ trợ",
+    "name": "Kẹp tiếp địa + lá kẹp tiếp địa Inox 304",
+    "spec": "Bộ kẹp tiếp địa an toàn thanh rail",
+    "sku": "AC-ELG01-NS1",
+    "unit": "Cái",
+    "costVnd": 22000,
+    "source": "catalog"
+  },
+  {
+    "id": "m-lfeet-hopergy",
+    "categoryCode": "VII",
+    "categoryName": "Hạng mục xây dựng",
+    "name": "Chân đế L chống bão mái tôn sóng vuông",
+    "spec": "Nhôm đúc Al6005-T5 kèm vít bắn tôn và đệm EPDM",
+    "sku": "TRB-F01-NS1",
+    "unit": "Cái",
+    "costVnd": 28000,
+    "source": "catalog"
+  },
+  {
+    "id": "m-steel-30x60",
+    "categoryCode": "VII",
+    "categoryName": "Hạng mục xây dựng",
+    "name": "Thép hộp 30x60x1.4mm mạ kẽm",
+    "spec": "Cây dài 6 mét mạ kẽm chống rỉ",
+    "sku": "THEP-HOP-30X60",
+    "unit": "Cây",
+    "costVnd": 280000,
+    "source": "catalog"
+  },
+  {
+    "id": "m-steel-40x80",
+    "categoryCode": "VII",
+    "categoryName": "Hạng mục xây dựng",
+    "name": "Thép hộp 40x80x1.4mm mạ kẽm",
+    "spec": "Cây dài 6 mét mạ kẽm chống rỉ",
+    "sku": "THEP-HOP-40X80",
+    "unit": "Cây",
+    "costVnd": 380000,
+    "source": "catalog"
+  },
+  {
+    "id": "m-steel-50x100",
+    "categoryCode": "VII",
+    "categoryName": "Hạng mục xây dựng",
+    "name": "Thép hộp 50x100x1.8mm mạ kẽm",
+    "spec": "Cây dài 6 mét mạ kẽm chống rỉ",
+    "sku": "THEP-HOP-50X100",
+    "unit": "Cây",
+    "costVnd": 650000,
+    "source": "catalog"
+  },
+  {
+    "id": "m-steel-75x75",
+    "categoryCode": "VII",
+    "categoryName": "Hạng mục xây dựng",
+    "name": "Thép hộp 75x75x1.8mm mạ kẽm",
+    "spec": "Cây dài 6 mét cột giàn khung",
+    "sku": "THEP-HOP-75X75",
+    "unit": "Cây",
+    "costVnd": 720000,
+    "source": "catalog"
+  },
+  {
+    "id": "m-base-plate",
+    "categoryCode": "VII",
+    "categoryName": "Hạng mục xây dựng",
+    "name": "Bản mã chân cột 200x200x10mm",
+    "spec": "Thép tấm gia công đột lỗ bu lông neo",
+    "sku": "BANMA-200X200",
+    "unit": "Cái",
+    "costVnd": 145000,
+    "source": "catalog"
+  },
+  {
+    "id": "m-bolts-paint",
+    "categoryCode": "VII",
+    "categoryName": "Hạng mục xây dựng",
+    "name": "Bulong neo, chống thấm, sơn dặm mối hàn",
+    "spec": "Vật tư phụ gia cố kết cấu khung giàn",
+    "sku": "BULONG-SON-SET",
+    "unit": "Hệ",
+    "costVnd": 1500000,
+    "source": "catalog"
+  },
+  {
+    "id": "e-dc-helukabel-red",
+    "categoryCode": "IV",
+    "categoryName": "Hệ thống điện",
+    "name": "Dây cáp động lực chuyên dụng solar 1x4mm² / (cáp đơn, màu đỏ)",
+    "spec": "1500V DC đồng mạ thiếc, vỏ kép chịu tia UV Helukabel Đức",
+    "sku": "RT-RED-4MM2-HELU",
+    "unit": "Mét",
+    "costVnd": 16500,
+    "source": "catalog"
+  },
+  {
+    "id": "e-dc-helukabel-black",
+    "categoryCode": "IV",
+    "categoryName": "Hệ thống điện",
+    "name": "Dây cáp động lực chuyên dụng solar 1x4mm² / (cáp đơn, màu đen)",
+    "spec": "1500V DC đồng mạ thiếc, vỏ kép chịu tia UV Helukabel Đức",
+    "sku": "SW-BLACK-4MM2-HELU",
+    "unit": "Mét",
+    "costVnd": 16500,
+    "source": "catalog"
+  },
+  {
+    "id": "e-cv-6mm2",
+    "categoryCode": "IV",
+    "categoryName": "Hệ thống điện",
+    "name": "Dây cáp động lực 1Cx6 mm²/ (cáp 01 lõi, cáp CV)",
+    "spec": "0.6/1kV ruột đồng cách điện PVC Cadivi",
+    "sku": "CV-6mm2",
+    "unit": "Mét",
+    "costVnd": 38000,
+    "source": "catalog"
+  },
+  {
+    "id": "e-cv-8mm2",
+    "categoryCode": "IV",
+    "categoryName": "Hệ thống điện",
+    "name": "Dây cáp động lực 1Cx8 mm²/ (cáp 01 lõi, cáp CV)",
+    "spec": "0.6/1kV ruột đồng cách điện PVC Cadivi",
+    "sku": "CV-8mm2",
+    "unit": "Mét",
+    "costVnd": 52000,
+    "source": "catalog"
+  },
+  {
+    "id": "e-cv-10mm2",
+    "categoryCode": "IV",
+    "categoryName": "Hệ thống điện",
+    "name": "Dây cáp động lực 1Cx10 mm²/ (cáp 01 lõi, cáp CV)",
+    "spec": "0.6/1kV ruột đồng cách điện PVC Cadivi",
+    "sku": "CV-10mm2",
+    "unit": "Mét",
+    "costVnd": 68000,
+    "source": "catalog"
+  },
+  {
+    "id": "e-pe-4mm2",
+    "categoryCode": "IV",
+    "categoryName": "Hệ thống điện",
+    "name": "Dây cáp động lực PE 4 mm² (Màu Te / Vàng - Xanh)",
+    "spec": "Dây đồng tiếp địa bảo vệ Cadivi",
+    "sku": "CV-4mm2-PE",
+    "unit": "Mét",
+    "costVnd": 26000,
+    "source": "catalog"
+  },
+  {
+    "id": "e-pe-6mm2",
+    "categoryCode": "IV",
+    "categoryName": "Hệ thống điện",
+    "name": "Dây cáp động lực PE 6 mm² (Màu Te / Vàng - Xanh)",
+    "spec": "Dây đồng tiếp địa bảo vệ Cadivi",
+    "sku": "CV-6mm2-PE",
+    "unit": "Mét",
+    "costVnd": 38000,
+    "source": "catalog"
+  },
+  {
+    "id": "e-meter-cable-1.5",
+    "categoryCode": "IV",
+    "categoryName": "Hệ thống điện",
+    "name": "Dây cáp động lực 1Cx1.5 mm²/ (cáp 01 lõi, cáp CV)",
+    "spec": "Dây nguồn cấp đồng hồ Smart Meter Cadivi",
+    "sku": "CV-1.5mm2-PE",
+    "unit": "Mét",
+    "costVnd": 12000,
+    "source": "catalog"
+  },
+  {
+    "id": "e-mc4-leader",
+    "categoryCode": "IV",
+    "categoryName": "Hệ thống điện",
+    "name": "Bộ nối của tấm pin quang điện mặt trời MC4 Leader",
+    "spec": "1500V DC, chân đồng mạ bạc IP68",
+    "sku": "Solar-Connector-MC4",
+    "unit": "Bộ",
+    "costVnd": 25000,
+    "source": "catalog"
+  },
+  {
+    "id": "g-earth-rod-16",
+    "categoryCode": "VI",
+    "categoryName": "Hệ thống phụ trợ",
+    "name": "Cọc nối đất, mạ đồng, Ø16, dài 2.4m",
+    "spec": "Cọc thép mạ đồng chuyên dụng tiếp địa",
+    "sku": "COC16X2M4",
+    "unit": "Cây",
+    "costVnd": 280000,
+    "source": "catalog"
+  },
+  {
+    "id": "g-clamp-16",
+    "categoryCode": "VI",
+    "categoryName": "Hệ thống phụ trợ",
+    "name": "Kẹp cọc tiếp địa F16 bằng đồng",
+    "spec": "Kẹp cọc D16 liên kết dây đồng trần",
+    "sku": "CANACU-16",
+    "unit": "Cái",
+    "costVnd": 45000,
+    "source": "catalog"
+  },
+  {
+    "id": "t-trunking-40x60",
+    "categoryCode": "V",
+    "categoryName": "Hệ thống máng cáp",
+    "name": "Máng gen luồn dây điện: 40x60mm, dài 2m",
+    "spec": "Gen nhựa chống cháy luồn dây điện",
+    "sku": "GA60/02",
+    "unit": "Thanh",
+    "costVnd": 65000,
+    "source": "catalog"
+  },
+  {
+    "id": "t-conduit-elbow-25",
+    "categoryCode": "V",
+    "categoryName": "Hệ thống máng cáp",
+    "name": "Co vuông ống điện Ø25",
+    "spec": "Phụ kiện co vuông ống luồn PVC D25",
+    "sku": "COVUONGNOIONGP25",
+    "unit": "Cái",
+    "costVnd": 8000,
+    "source": "catalog"
+  },
+  {
+    "id": "t-conduit-coupler-25",
+    "categoryCode": "V",
+    "categoryName": "Hệ thống máng cáp",
+    "name": "Nối thẳng ống điện Ø25",
+    "spec": "Khớp nối thẳng ống luồn PVC D25",
+    "sku": "NOIONGP25",
+    "unit": "Cái",
+    "costVnd": 5000,
+    "source": "catalog"
+  },
+  {
+    "id": "t-conduit-clamp-25",
+    "categoryCode": "V",
+    "categoryName": "Hệ thống máng cáp",
+    "name": "Kẹp ống điện nhựa Ø25",
+    "spec": "Cùm kẹp giữ ống điện D25",
+    "sku": "CUM-27 / KEPONG25",
+    "unit": "Cái",
+    "costVnd": 4000,
+    "source": "catalog"
+  },
+  {
+    "id": "t-conduit-pipe-25",
+    "categoryCode": "V",
+    "categoryName": "Hệ thống máng cáp",
+    "name": "Ống điện nhựa trắng Ø25",
+    "spec": "Ống luồn dây điện PVC chống cháy D25",
+    "sku": "ONGP25TRANG",
+    "unit": "Cái",
+    "costVnd": 35000,
+    "source": "catalog"
+  },
+  {
+    "id": "t-wall-plug-8",
+    "categoryCode": "V",
+    "categoryName": "Hệ thống máng cáp",
+    "name": "Tắc kê nhựa số 8",
+    "spec": "Bịch 100 con tắc kê nở nhựa",
+    "sku": "TACKE-NH-8",
+    "unit": "Bịch",
+    "costVnd": 25000,
+    "source": "catalog"
+  },
+  {
+    "id": "t-screw-8",
+    "categoryCode": "V",
+    "categoryName": "Hệ thống máng cáp",
+    "name": "Vít bắt tắc kê số 8 inox/thép mạ",
+    "spec": "Bịch 100 con vít bắt tắc kê",
+    "sku": "VITTACKE-NH-8",
+    "unit": "Bịch",
+    "costVnd": 45000,
+    "source": "catalog"
+  },
+  {
+    "id": "t-cable-tie-400",
+    "categoryCode": "V",
+    "categoryName": "Hệ thống máng cáp",
+    "name": "Dây gút nhựa 400mm chịu tia UV",
+    "spec": "Bịch 100 sợi dây rút nhựa đen ngoài trời",
+    "sku": "TH8X400",
+    "unit": "Bịch",
+    "costVnd": 65000,
+    "source": "catalog"
+  },
+  {
+    "id": "t-flex-conduit-34",
+    "categoryCode": "V",
+    "categoryName": "Hệ thống máng cáp",
+    "name": "Ống ruột gà lõi thép bọc nhựa Φ34 CVL",
+    "spec": "Chống va đập, chống thấm nước IP67 CVL",
+    "sku": "OMB34VCL",
+    "unit": "Mét",
+    "costVnd": 58000,
+    "source": "catalog"
+  },
+  {
+    "id": "t-flex-connector-34",
+    "categoryCode": "V",
+    "categoryName": "Hệ thống máng cáp",
+    "name": "Đầu nối ống ruột gà lõi thép bọc nhựa Φ34",
+    "spec": "Đầu nối ren đồng mạ kẽm liên kết tủ điện DNCK34",
+    "sku": "DNCK34",
+    "unit": "Cái",
+    "costVnd": 28000,
+    "source": "catalog"
+  },
+  {
+    "id": "t-flex-cap-34",
+    "categoryCode": "V",
+    "categoryName": "Hệ thống máng cáp",
+    "name": "Đầu bịt ống ruột gà lõi thép bọc nhựa Φ34",
+    "spec": "Đầu bịt bọc chống rách vỏ cáp AMF34",
+    "sku": "AMF34",
+    "unit": "Cái",
+    "costVnd": 18000,
+    "source": "catalog"
+  },
+  {
+    "id": "td-gt-10k1p",
+    "categoryCode": "IV",
+    "categoryName": "Hệ thống điện",
+    "name": "TỦ ĐIỆN HÒA LƯỚI 10KW 1PHA",
+    "spec": "Kèm MCCB 63A + SPD Chống sét Type 2 + Đèn báo pha",
+    "sku": "TD-GT-10K1P-2S2M-SPD-E",
+    "unit": "Bộ",
+    "costVnd": 3200000,
+    "source": "catalog"
+  },
+  {
+    "id": "td-gt-20k3p",
+    "categoryCode": "IV",
+    "categoryName": "Hệ thống điện",
+    "name": "TỦ ĐIỆN HÒA LƯỚI 20KW 3PHA",
+    "spec": "Kèm MCCB 80A 3P + SPD Type 2 + Đèn báo pha, cầu chì DC",
+    "sku": "TD-GT-20K3P-2S2M",
+    "unit": "Bộ",
+    "costVnd": 5800000,
+    "source": "catalog"
+  },
+  {
+    "id": "td-hb-10k1p-sample",
+    "categoryCode": "IV",
+    "categoryName": "Hệ thống điện",
+    "name": "Tủ điện Hybrid 10KW 1P 2MPPT tích hợp ATS",
+    "spec": "Tủ tích hợp ATS 2P 63A, CB AC/DC, SPD chống sét",
+    "sku": "TD-HB-10K1P-2S2M-ATS",
+    "unit": "Bộ",
+    "costVnd": 3797280,
+    "source": "catalog"
+  },
+  {
+    "id": "td-hb-15k3p-sample",
+    "categoryCode": "IV",
+    "categoryName": "Hệ thống điện",
+    "name": "Tủ điện Hybrid 15KW 3PHA tích hợp ATS",
+    "spec": "Tủ tích hợp ATS 4P 63A, CB AC/DC, SPD chống sét",
+    "sku": "TD-HB-15K3P-2S2M-ATS",
+    "unit": "Bộ",
+    "costVnd": 5286600,
+    "source": "catalog"
+  },
+  {
+    "id": "s-rent-equip",
+    "categoryCode": "VIII",
+    "categoryName": "Chi phí dịch vụ",
+    "name": "Chi phí thuê thiết bị (xe cẩu, giàn giáo, máy đo chuyên dụng)",
+    "spec": "Trọn gói phục vụ công tác nâng hạ và thi công an toàn",
+    "sku": "EQUIP-RENT-SITE",
+    "unit": "Hệ",
+    "costVnd": 2500000,
     "source": "catalog"
   }
 ];

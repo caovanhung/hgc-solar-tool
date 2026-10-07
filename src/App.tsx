@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Project, PanelModel, InverterProposal } from './types/solar';
+import { Project, PanelModel, InverterProposal, DEFAULT_SURVEY_CHECKLIST, MaterialItem } from './types/solar';
 import { INITIAL_PANELS, INITIAL_INVERTERS, INITIAL_MATERIALS } from './data/catalog';
 import { VIETNAM_PROVINCES } from './data/provinces';
 import { getEffectiveTariffVnd } from './data/tariffs';
@@ -139,6 +139,7 @@ function createInitialProject(name = 'Hồ sơ kỹ thuật mới'): Project {
     includeScada: false,
     bomLines,
     financial,
+    surveyChecklist: DEFAULT_SURVEY_CHECKLIST,
   };
 }
 
@@ -146,8 +147,10 @@ function upgradeProjectIfNeeded(p: Project): Project {
   const hasOldBom = p.bomLines && p.bomLines.some((l: any) => l.categoryCode === 'III' || !l.categoryCode);
   const isMissingRates = !p.financial?.investmentRatePostVatVndPerKwp;
   const isOldPanel = !INITIAL_PANELS.some((item) => item.id === p.selectedPanelId);
+  const hasMissingHgcSection = p.bomLines && p.bomLines.some((l: any) => !l.hgcSectionCode);
+  const isMissingSurvey = !p.surveyChecklist || p.surveyChecklist.length === 0;
 
-  if (hasOldBom || isMissingRates || isOldPanel || !p.bomLines || p.bomLines.length === 0) {
+  if (hasOldBom || isMissingRates || isOldPanel || hasMissingHgcSection || !p.bomLines || p.bomLines.length === 0) {
     const panel = INITIAL_PANELS.find((item) => item.id === p.selectedPanelId) || INITIAL_PANELS[0];
     const topInv = p.inverterProposals?.[0];
     const inverter = INITIAL_INVERTERS.find((inv) => inv.id === p.selectedInverterId) || topInv?.inverter || INITIAL_INVERTERS[0];
@@ -175,6 +178,7 @@ function upgradeProjectIfNeeded(p: Project): Project {
         board: board as any,
         materialsCatalog: INITIAL_MATERIALS,
         marginPct: p.marginPct || 18,
+        roofType: p.roofType,
         sysType: p.sysType,
         phases: p.phases,
       });
@@ -194,9 +198,18 @@ function upgradeProjectIfNeeded(p: Project): Project {
         selectedInverterId: inverter.id,
         bomLines: newBom,
         financial: newFin,
+        surveyChecklist: p.surveyChecklist && p.surveyChecklist.length > 0 ? p.surveyChecklist : DEFAULT_SURVEY_CHECKLIST,
       };
     }
   }
+
+  if (isMissingSurvey) {
+    return {
+      ...p,
+      surveyChecklist: DEFAULT_SURVEY_CHECKLIST,
+    };
+  }
+
   return p;
 }
 

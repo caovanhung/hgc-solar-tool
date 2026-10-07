@@ -8,7 +8,7 @@ import { calculateMounting } from '../../engine/mounting';
 import { generateProjectBom } from '../../engine/bom';
 import { calculateFinancials } from '../../engine/financial';
 import { getEffectiveTariffVnd } from '../../data/tariffs';
-import { Project, RoofType } from '../../types/solar';
+import { Project, RoofType, DEFAULT_SURVEY_CHECKLIST } from '../../types/solar';
 import { Zap, X, Check, ArrowRight, Sun, Award, TrendingUp } from 'lucide-react';
 
 interface QuickProposalModalProps {
@@ -141,6 +141,7 @@ export const QuickProposalModal: React.FC<QuickProposalModalProps> = ({
       pricingTier: tier,
       bomLines,
       financial,
+      surveyChecklist: DEFAULT_SURVEY_CHECKLIST,
     };
 
     return proj;

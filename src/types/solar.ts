@@ -71,6 +71,19 @@ export interface InverterModel {
 }
 
 export type MaterialCategoryCode = 'I' | 'II' | 'IV' | 'V' | 'VI' | 'VII' | 'VIII' | 'X';
+export type HgcSectionCode = 'A' | 'B' | 'C' | 'D';
+
+export interface HgcSectionDefinition {
+  code: HgcSectionCode;
+  name: string;
+}
+
+export const HGC_BOM_SECTIONS: HgcSectionDefinition[] = [
+  { code: 'A', name: 'THIẾT BỊ CHÍNH' },
+  { code: 'B', name: 'HỆ RAIL NHÔM/ GIÀN KHUNG' },
+  { code: 'C', name: 'THIẾT BỊ NGOẠI VI' },
+  { code: 'D', name: 'CÁC CHI PHÍ KHÁC' },
+];
 
 export interface BomGroupDefinition {
   code: MaterialCategoryCode;
@@ -192,6 +205,8 @@ export interface BomLine {
   brand?: string;
   origin?: string;
   note?: string;
+  hgcSectionCode?: HgcSectionCode;
+  hgcSubsection?: string;
 }
 
 export interface FinancialResult {
@@ -296,4 +311,35 @@ export interface Project {
   installCostVndPerKwp?: number;
   includeScada?: boolean;
   scadaCostVnd?: number;
+  surveyChecklist?: SurveyChecklistItem[];
 }
+
+export interface SurveyChecklistItem {
+  id: string;
+  category: string;
+  item: string;
+  note: string;
+  checked?: boolean;
+}
+
+export const DEFAULT_SURVEY_CHECKLIST: SurveyChecklistItem[] = [
+  // 1. Thông tin cần thu thập
+  { id: 'cl-1', category: 'Thông tin cần thu thập', item: 'Thông tin chủ nhà', note: '' },
+  { id: 'cl-2', category: 'Thông tin cần thu thập', item: 'Vị trí GPS, địa điểm lắp đặt', note: '' },
+  { id: 'cl-3', category: 'Thông tin cần thu thập', item: 'Hóa đơn tiền điện hàng tháng, nhu cầu sử dụng điện', note: '' },
+  { id: 'cl-4', category: 'Thông tin cần thu thập', item: 'Cấu hình hệ thống sơ bộ', note: '' },
+  { id: 'cl-5', category: 'Thông tin cần thu thập', item: 'Bản vẽ mặt bằng, sơ đồ hệ thống điện (nếu có)', note: '' },
+  // 2. Thông tin dự án
+  { id: 'cl-6', category: 'Thông tin dự án', item: 'Vị trí, kích thước mặt bằng và hướng mái', note: '' },
+  { id: 'cl-7', category: 'Thông tin dự án', item: 'Tổng công suất lắp đặt của dự án', note: '' },
+  { id: 'cl-8', category: 'Thông tin dự án', item: 'Kiểm tra tình trạng mặt bằng mái: Loại mái (Mái bê tông cốt thép/mái tôn), Loại tôn (Sóng vuông, tròn, cliplock, Seamlock,….)', note: '' },
+  { id: 'cl-9', category: 'Thông tin dự án', item: 'Kiểm tra vật cản, đổ bóng. Kích thước vật cản, có xử lý được hay không.', note: '' },
+  // 3. Thông tin phần điện
+  { id: 'cl-10', category: 'Thông tin phần điện', item: 'Vị trí tủ điện tổng, thông số tủ điện, Kiểm tra công suất tải trung bình, tải đỉnh. Vị trí hòa lưới', note: '' },
+  { id: 'cl-11', category: 'Thông tin phần điện', item: 'Vị trí đặt inverter, battery, tủ điện,..', note: '' },
+  { id: 'cl-12', category: 'Thông tin phần điện', item: 'Phương án đi dây AC, DC, Vị trí đóng cọc tiếp địa', note: '' },
+  { id: 'cl-13', category: 'Thông tin phần điện', item: 'Nguồn cấp nước rửa pin (nếu có nhu cầu)', note: '' },
+  // 4. Thông tin cần thiết cho quá trình thi công
+  { id: 'cl-14', category: 'Thông tin cần thiết cho quá trình thi công', item: 'Vị trí tập kết vật tư', note: '' },
+  { id: 'cl-15', category: 'Thông tin cần thiết cho quá trình thi công', item: 'Phương án vận chuyển tấm pin lên mái', note: '' },
+];
