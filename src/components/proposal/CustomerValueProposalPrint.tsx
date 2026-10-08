@@ -3,6 +3,16 @@ import { Project } from '../../types/solar';
 import { getHgcSectionGroupedBom } from '../../engine/bom';
 import { Logo } from '../common/Logo';
 import {
+  PROPOSAL_COMPANY,
+  PROPOSAL_KEY_CASHFLOW_YEARS,
+  PROPOSAL_QUOTE_NOTE,
+  PROPOSAL_TITLES,
+  PROPOSAL_WARRANTIES,
+  ProposalValueTheme,
+  getProposalValues,
+  roofTypeLabel,
+} from './proposalContent';
+import {
   ResponsiveContainer,
   ComposedChart,
   Line,
@@ -18,7 +28,6 @@ import {
   Clock,
   ShieldCheck,
   Sparkles,
-  Zap,
   Building,
   CheckCircle2,
   Coins,
@@ -28,6 +37,13 @@ import {
   FileSpreadsheet,
   BarChart3,
 } from 'lucide-react';
+
+const VALUE_THEME_CLASSES: Record<ProposalValueTheme, { box: string; title: string; badge: string }> = {
+  emerald: { box: 'border-emerald-200 bg-emerald-50/40', title: 'text-emerald-900', badge: 'bg-emerald-600' },
+  amber: { box: 'border-amber-200 bg-amber-50/40', title: 'text-amber-900', badge: 'bg-amber-600' },
+  teal: { box: 'border-teal-200 bg-teal-50/40', title: 'text-teal-900', badge: 'bg-teal-700' },
+  blue: { box: 'border-blue-200 bg-blue-50/40', title: 'text-blue-900', badge: 'bg-blue-700' },
+};
 
 interface CustomerValueProposalPrintProps {
   project: Project;
@@ -108,7 +124,7 @@ export const CustomerValueProposalPrint: React.FC<CustomerValueProposalPrintProp
 
   // Lọc một số năm tiêu biểu trong dòng tiền 20 năm
   const keyCashflowYears = fin?.cashflow20Years
-    ? fin.cashflow20Years.filter((cf) => [1, 2, 3, 4, 5, 10, 15, 20].includes(cf.year))
+    ? fin.cashflow20Years.filter((cf) => PROPOSAL_KEY_CASHFLOW_YEARS.includes(cf.year))
     : [];
 
   return (
@@ -125,16 +141,16 @@ export const CustomerValueProposalPrint: React.FC<CustomerValueProposalPrintProp
 
           <div className="text-right text-[11px] leading-tight space-y-0.5">
             <div className="font-extrabold text-sm sm:text-base text-[#002060] tracking-wide uppercase">
-              CÔNG TY TNHH HGC
+              {PROPOSAL_COMPANY.name}
             </div>
             <div className="text-[#002060] font-medium text-[10.5px]">
-              <span className="font-semibold">[Add ]:</span> B36 TT7 Khu đô thị Văn Quán Hà Đông Hà Nội
+              <span className="font-semibold">[Add ]:</span> {PROPOSAL_COMPANY.address}
             </div>
             <div className="text-red-600 font-medium text-[10.5px]">
-              <span className="font-semibold">[Web]:</span> https://hgcvn.com - <span className="font-semibold">[Email]:</span> hgc.vn2026@gmail.com
+              <span className="font-semibold">[Web]:</span> {PROPOSAL_COMPANY.web} - <span className="font-semibold">[Email]:</span> {PROPOSAL_COMPANY.email}
             </div>
             <div className="text-[#002060] font-medium text-[10.5px]">
-              <span className="font-semibold">[Head]:</span> 0974 04 19 84 - 0989 09 97 35
+              <span className="font-semibold">[Head]:</span> {PROPOSAL_COMPANY.hotline}
             </div>
             <div className="text-slate-400 font-mono text-[9.5px] pt-0.5">
               Mã hồ sơ: HGC-PROPOSAL-{project.id.slice(0, 6).toUpperCase()} · Ngày phát hành: {new Date().toLocaleDateString('vi-VN')}
@@ -145,13 +161,13 @@ export const CustomerValueProposalPrint: React.FC<CustomerValueProposalPrintProp
         {/* Document Title */}
         <div className="text-center my-4">
           <div className="inline-block bg-emerald-50 text-emerald-800 text-[10px] font-bold uppercase px-3 py-1 rounded-full border border-emerald-200 mb-2">
-            HỒ SƠ ĐỀ XUẤT ĐẦU TƯ & BÁO GIÁ THƯƠNG MẠI
+            {PROPOSAL_TITLES.badge}
           </div>
           <h1 className="text-xl sm:text-2xl font-black text-[#0F2A45] uppercase tracking-wide">
-            HỆ THỐNG ĐIỆN MẶT TRỜI ÁP MÁI TỰ DÙNG (ZERO-EXPORT)
+            {PROPOSAL_TITLES.title}
           </h1>
           <p className="text-[11.5px] text-slate-500 font-medium mt-1">
-            Giải pháp cắt giảm chi phí điện, chống nóng công trình & nâng cao chỉ số phát triển bền vững ESG
+            {PROPOSAL_TITLES.subtitle}
           </p>
         </div>
 
@@ -171,7 +187,7 @@ export const CustomerValueProposalPrint: React.FC<CustomerValueProposalPrintProp
           <div>
             <span className="text-slate-400 block text-[10.5px]">Địa Điểm Lắp Đặt:</span>
             <strong className="text-slate-900">{project.provinceCode}</strong>
-            <span className="text-[10px] text-slate-500 block">Mái {project.roofType === 'tole' ? 'Tôn' : project.roofType === 'tile' ? 'Ngói' : 'Bê tông'}</span>
+            <span className="text-[10px] text-slate-500 block">Mái {roofTypeLabel(project.roofType)}</span>
           </div>
           <div>
             <span className="text-slate-400 block text-[10.5px]">Cơ Chế Đấu Nối:</span>
@@ -184,53 +200,24 @@ export const CustomerValueProposalPrint: React.FC<CustomerValueProposalPrintProp
         <div className="mt-5">
           <div className="text-xs font-bold text-[#0F2A45] uppercase tracking-wide mb-3 flex items-center gap-1.5">
             <Sparkles size={15} className="text-[#E4572E]" />
-            <span>4 Giá Trị & Lợi Ích Cốt Lõi Dự Án Mang Lại Cho Khách Hàng:</span>
+            <span>{PROPOSAL_TITLES.values}</span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {/* Value 1: Tiết kiệm tiền điện */}
-            <div className="p-3.5 rounded-xl border border-emerald-200 bg-emerald-50/40 space-y-1.5">
-              <div className="flex items-center gap-2 text-emerald-900 font-bold text-xs">
-                <div className="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[10px] font-bold">1</div>
-                <span className="uppercase">Cắt Giảm Tiền Điện & Tự Chủ Chi Phí</span>
-              </div>
-              <p className="text-[11px] text-slate-600 leading-relaxed">
-                Tự sản xuất điện sạch vào khung giờ làm việc ban ngày. Ước tính tiết kiệm ngay <strong>{fin ? Math.round(fin.year1SavingsVnd / 1000000).toLocaleString('vi-VN') : 0} triệu đồng</strong> trong năm đầu tiên (~{fin ? Math.round(fin.year1SavingsVnd / 12 / 1000000).toFixed(1) : 0} tr/tháng), phòng ngừa rủi ro giá điện EVN tăng lũy tiến hàng năm.
-              </p>
-            </div>
-
-            {/* Value 2: Giảm nhiệt mái */}
-            <div className="p-3.5 rounded-xl border border-amber-200 bg-amber-50/40 space-y-1.5">
-              <div className="flex items-center gap-2 text-amber-900 font-bold text-xs">
-                <div className="w-5 h-5 rounded-full bg-amber-600 text-white flex items-center justify-center text-[10px] font-bold">2</div>
-                <span className="uppercase">Hạ Nhiệt Mái Nhà & Bảo Vệ Tài Sản</span>
-              </div>
-              <p className="text-[11px] text-slate-600 leading-relaxed">
-                Hệ thống tấm pin hoạt động như một lớp mái kép cản xạ 85% ánh nắng trực tiếp, giúp <strong>hạ nhiệt độ mái tôn từ 3°C - 5°C</strong>. Không gian nhà xưởng mát hơn, giảm 15-25% điện năng tiêu thụ cho điều hòa/quạt hút và kéo dài tuổi thọ tôn mái.
-              </p>
-            </div>
-
-            {/* Value 3: ESG & Tín chỉ Carbon */}
-            <div className="p-3.5 rounded-xl border border-teal-200 bg-teal-50/40 space-y-1.5">
-              <div className="flex items-center gap-2 text-teal-900 font-bold text-xs">
-                <div className="w-5 h-5 rounded-full bg-teal-700 text-white flex items-center justify-center text-[10px] font-bold">3</div>
-                <span className="uppercase">Tiêu Chuẩn Xanh ESG & Tín Chỉ I-REC</span>
-              </div>
-              <p className="text-[11px] text-slate-600 leading-relaxed">
-                Giảm phát thải <strong>{fin?.co2ReductionTonsYear} tấn CO₂/năm</strong> (tương đương trồng {fin?.treesEquivalentYear} cây xanh). Đủ điều kiện đăng ký chứng chỉ năng lượng tái tạo I-REC quốc tế, tạo lợi thế cạnh tranh xuất khẩu sang EU (thuế carbon CBAM) và Mỹ.
-              </p>
-            </div>
-
-            {/* Value 4: An toàn Zero-Export */}
-            <div className="p-3.5 rounded-xl border border-blue-200 bg-blue-50/40 space-y-1.5">
-              <div className="flex items-center gap-2 text-blue-900 font-bold text-xs">
-                <div className="w-5 h-5 rounded-full bg-blue-700 text-white flex items-center justify-center text-[10px] font-bold">4</div>
-                <span className="uppercase">Vận Hành Bám Tải & An Toàn Tuyệt Đối</span>
-              </div>
-              <p className="text-[11px] text-slate-600 leading-relaxed">
-                Thiết bị Smart Meter thông minh kiểm soát công suất phát tức thời trong &lt;0.2 giây, <strong>triệt tiêu phát ngược lên lưới điện 100%</strong>. Tủ điện AC phân phối tích hợp bảo vệ chống sét lan truyền Type 1+2 và ngắt sự cố hồ quang AFCI.
-              </p>
-            </div>
+            {getProposalValues(project).map((value, idx) => {
+              const theme = VALUE_THEME_CLASSES[value.theme];
+              return (
+                <div key={value.theme} className={`p-3.5 rounded-xl border ${theme.box} space-y-1.5`}>
+                  <div className={`flex items-center gap-2 ${theme.title} font-bold text-xs`}>
+                    <div className={`w-5 h-5 rounded-full ${theme.badge} text-white flex items-center justify-center text-[10px] font-bold`}>{idx + 1}</div>
+                    <span className="uppercase">{value.title}</span>
+                  </div>
+                  <p className="text-[11px] text-slate-600 leading-relaxed">
+                    {value.segments.map((seg, i) => (seg.bold ? <strong key={i}>{seg.text}</strong> : <React.Fragment key={i}>{seg.text}</React.Fragment>))}
+                  </p>
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>
@@ -241,7 +228,7 @@ export const CustomerValueProposalPrint: React.FC<CustomerValueProposalPrintProp
       <div className="border-b-2 border-slate-200 pb-6 mb-6">
         <div className="text-xs font-bold text-[#0F2A45] uppercase tracking-wide mb-3 flex items-center gap-1.5">
           <TrendingUp size={15} className="text-[#E4572E]" />
-          <span>Hiệu Quả Kinh Tế & Phân Tích Dòng Tiền Đầu Tư:</span>
+          <span>{PROPOSAL_TITLES.financial}</span>
         </div>
 
         {/* 4 Financial Highlight Metric Cards */}
@@ -288,7 +275,7 @@ export const CustomerValueProposalPrint: React.FC<CustomerValueProposalPrintProp
               <div className="flex items-center gap-1.5">
                 <BarChart3 size={15} className="text-[#E4572E]" />
                 <span className="text-[11px] font-bold text-[#0F2A45] uppercase tracking-wide">
-                  BIỂU ĐỒ RECHARTS DỰ PHÓNG TIẾT KIỆM TÍCH LŨY & HOÀN VỐN ĐẦU TƯ (20 NĂM)
+                  {PROPOSAL_TITLES.chart}
                 </span>
               </div>
               <div className="text-[10px] font-semibold text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200">
@@ -317,12 +304,12 @@ export const CustomerValueProposalPrint: React.FC<CustomerValueProposalPrintProp
                 </span>
               </div>
               <span className="text-[10px] text-slate-400 italic">
-                (Đã tính tỷ lệ suy hao tấm pin 0.7%/năm)
+                {PROPOSAL_TITLES.chartDegradeNote}
               </span>
             </div>
 
             {/* Vùng vẽ Biểu đồ Recharts */}
-            <div className="w-full h-64 print:h-60" style={{ minHeight: '240px' }}>
+            <div className="w-full h-64 print:h-60" style={{ minHeight: '240px' }} data-proposal-chart>
               <ResponsiveContainer width="100%" height="100%">
                 <ComposedChart
                   data={proposalChartData}
@@ -386,6 +373,7 @@ export const CustomerValueProposalPrint: React.FC<CustomerValueProposalPrintProp
                     strokeWidth={3}
                     fill="url(#cumulativeSavingsGradient)"
                     dot={{ r: 2.5, fill: '#0284C7' }}
+                    isAnimationActive={false}
                   />
                   {/* Đường tiết kiệm từng năm mỏng ở dưới */}
                   <Line
@@ -395,13 +383,14 @@ export const CustomerValueProposalPrint: React.FC<CustomerValueProposalPrintProp
                     stroke="#10B981"
                     strokeWidth={1.5}
                     dot={false}
+                    isAnimationActive={false}
                   />
                 </ComposedChart>
               </ResponsiveContainer>
             </div>
 
             <div className="text-[10px] text-slate-500 italic text-right mt-1">
-              * Dự toán tính toán chính xác có trừ suy hao công suất tấm pin 0.7%/năm theo cam kết hiệu suất 25 năm của hãng sản xuất.
+              {PROPOSAL_TITLES.chartFootnote}
             </div>
           </div>
         )}
@@ -410,7 +399,7 @@ export const CustomerValueProposalPrint: React.FC<CustomerValueProposalPrintProp
         {keyCashflowYears.length > 0 && (
           <div className="mb-4">
             <div className="text-[11px] font-bold text-slate-700 mb-1.5 flex items-center justify-between">
-              <span>BẢNG DỰ PHÓNG DÒNG TIỀN TIẾT KIỆM (TÍNH TỶ LỆ SUY HAO TẤM PIN 0.7%/NĂM):</span>
+              <span>{PROPOSAL_TITLES.cashflowTable}</span>
               <span className="text-slate-400 font-normal">Đơn vị: VNĐ</span>
             </div>
             <div className="overflow-x-auto rounded-lg border border-slate-200">
@@ -453,10 +442,10 @@ export const CustomerValueProposalPrint: React.FC<CustomerValueProposalPrintProp
         <div className="text-xs font-bold text-[#0F2A45] uppercase tracking-wide mb-3 flex items-center justify-between">
           <div className="flex items-center gap-1.5">
             <FileSpreadsheet size={15} className="text-[#E4572E]" />
-            <span>Bảng Dự Toán Báo Giá Theo Mẫu Bảng Kê Vật Tư Thiết Bị (Phần A - B - C - D):</span>
+            <span>{PROPOSAL_TITLES.quote}</span>
           </div>
           <span className="text-[10.5px] text-slate-500 font-normal italic">
-            (Bản tóm tắt · Chi tiết từng mã hàng xem tại Bảng Kê Vật Tư đính kèm)
+            {PROPOSAL_TITLES.quoteHint}
           </span>
         </div>
 
@@ -506,24 +495,11 @@ export const CustomerValueProposalPrint: React.FC<CustomerValueProposalPrintProp
                 <td colSpan={4} className="px-3 py-2">
                   <div className="flex items-center gap-1.5 uppercase tracking-wide">
                     <Coins size={13} className="text-emerald-700" />
-                    <span>TỈ SUẤT ĐẦU TƯ (CHƯA VAT) / kWp:</span>
+                    <span>{PROPOSAL_TITLES.ratePreVat}</span>
                   </div>
                 </td>
                 <td colSpan={3} className="px-3 py-2 text-right font-mono font-black text-emerald-900 text-sm">
                   {ratePreVat.toLocaleString('vi-VN')} Vnđ / kWp
-                </td>
-              </tr>
-
-              {/* Dòng Suất đầu tư Trọn gói Có VAT */}
-              <tr className="bg-orange-100/70 border-t border-orange-300 font-bold text-xs text-orange-950">
-                <td colSpan={4} className="px-3 py-2">
-                  <div className="flex items-center gap-1.5 uppercase tracking-wide">
-                    <Zap size={13} className="text-[#E4572E]" />
-                    <span>TỈ SUẤT ĐẦU TƯ TRỌN GÓI (ĐÃ GỒM VAT 10%) / kWp:</span>
-                  </div>
-                </td>
-                <td colSpan={3} className="px-3 py-2 text-right font-mono font-black text-[#E4572E] text-base">
-                  {ratePostVat.toLocaleString('vi-VN')} Vnđ / kWp
                 </td>
               </tr>
             </tbody>
@@ -534,7 +510,7 @@ export const CustomerValueProposalPrint: React.FC<CustomerValueProposalPrintProp
         {fin && (
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-6">
             <div className="text-[11px] text-slate-500 italic max-w-md">
-              * Báo giá đã bao gồm toàn bộ thiết bị chính hãng, phụ kiện mounting nhôm Anodized Al6005-T5, cáp điện Cadivi, tủ điện bám tải Zero-Export, nhân công lắp đặt và hồ sơ thỏa thuận Điện lực EVN.
+              {PROPOSAL_QUOTE_NOTE}
             </div>
 
             <div className="w-full sm:w-80 space-y-1.5 text-xs bg-slate-50 p-3.5 rounded-xl border border-slate-200">
@@ -554,13 +530,6 @@ export const CustomerValueProposalPrint: React.FC<CustomerValueProposalPrintProp
                 </div>
               )}
 
-              <div className="flex justify-between py-1 border-b border-slate-200 text-slate-600">
-                <span>Thuế VAT (10%):</span>
-                <span className="font-mono font-bold text-slate-800">
-                  +{fin.vatVnd.toLocaleString('vi-VN')} đ
-                </span>
-              </div>
-
               <div className="flex justify-between py-1.5 text-sm border-t-2 border-[#0F2A45]">
                 <span className="font-bold text-[#0F2A45] uppercase">Tổng Cộng Thanh Toán:</span>
                 <span className="font-mono font-extrabold text-[#E4572E] text-base">
@@ -575,38 +544,28 @@ export const CustomerValueProposalPrint: React.FC<CustomerValueProposalPrintProp
         <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 mb-6">
           <div className="text-xs font-bold text-[#0F2A45] uppercase tracking-wide mb-2 flex items-center gap-1.5">
             <ShieldCheck size={14} className="text-emerald-700" />
-            <span>Cam Kết Chất Lượng & Chính Sách Bảo Hành Chính Hãng:</span>
+            <span>{PROPOSAL_TITLES.warranty}</span>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] text-slate-600">
-            <div className="flex items-start gap-1.5">
-              <CheckCircle2 size={13} className="text-emerald-600 shrink-0 mt-0.5" />
-              <span><strong>Tấm pin quang điện:</strong> Bảo hành hiệu suất 25 - 30 năm (&gt;80% công suất danh định).</span>
-            </div>
-            <div className="flex items-start gap-1.5">
-              <CheckCircle2 size={13} className="text-emerald-600 shrink-0 mt-0.5" />
-              <span><strong>Biến tần Inverter:</strong> Bảo hành tiêu chuẩn 5 năm chính hãng (hỗ trợ kỹ thuật 24/7).</span>
-            </div>
-            <div className="flex items-start gap-1.5">
-              <CheckCircle2 size={13} className="text-emerald-600 shrink-0 mt-0.5" />
-              <span><strong>Khung giàn ray nhôm Al6005-T5:</strong> Bảo hành 12 năm chống ăn mòn, chịu gió bão cấp 12.</span>
-            </div>
-            <div className="flex items-start gap-1.5">
-              <CheckCircle2 size={13} className="text-emerald-600 shrink-0 mt-0.5" />
-              <span><strong>Hồ sơ pháp lý:</strong> Đồng hành nghiệm thu kỹ thuật đấu nối và ký thỏa thuận với Điện lực EVN.</span>
-            </div>
+            {PROPOSAL_WARRANTIES.map((w) => (
+              <div key={w.label} className="flex items-start gap-1.5">
+                <CheckCircle2 size={13} className="text-emerald-600 shrink-0 mt-0.5" />
+                <span><strong>{w.label}</strong> {w.text}</span>
+              </div>
+            ))}
           </div>
         </div>
 
         {/* Signatures */}
         <div className="grid grid-cols-2 gap-8 text-center text-xs pt-4 border-t border-slate-200">
           <div>
-            <div className="font-bold text-slate-900 uppercase">ĐẠI DIỆN KHÁCH HÀNG</div>
-            <div className="text-[11px] text-slate-400 mt-0.5">(Ký, ghi rõ họ tên & đóng dấu)</div>
+            <div className="font-bold text-slate-900 uppercase">{PROPOSAL_TITLES.customerSign}</div>
+            <div className="text-[11px] text-slate-400 mt-0.5">{PROPOSAL_TITLES.signHint}</div>
             <div className="h-16"></div>
           </div>
           <div>
-            <div className="font-bold text-slate-900 uppercase">ĐẠI DIỆN CÔNG TY TNHH HGC</div>
-            <div className="text-[11px] text-slate-400 mt-0.5">(Ký, ghi rõ họ tên & đóng dấu)</div>
+            <div className="font-bold text-slate-900 uppercase">{PROPOSAL_TITLES.companySign}</div>
+            <div className="text-[11px] text-slate-400 mt-0.5">{PROPOSAL_TITLES.signHint}</div>
             <div className="h-16"></div>
           </div>
         </div>

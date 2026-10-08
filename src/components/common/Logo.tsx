@@ -1,5 +1,12 @@
 import React from 'react';
 
+// Dùng chung cho logo trên giao diện và logo chèn vào file Excel (engine/proposalExcel)
+export const HGC_EMBLEM_COLOR = '#E53924';
+export const HGC_EMBLEM_G_PATH =
+  'M 50 10 C 22 10 10 26 10 45 C 10 64 22 80 50 80 C 72 80 84 66 84 50 L 52 50 L 52 40 L 93 40 C 94 43 94 47 94 51 C 94 72 76 89 50 89 C 17 89 0 69 0 45 C 0 21 17 1 50 1 C 72 1 87 13 92 27 L 81 32 C 77 21 66 10 50 10 Z';
+export const HGC_EMBLEM_H_PATH =
+  'M 27 5 L 43 5 L 43 14 L 37 14 L 37 38 L 63 38 L 63 14 L 57 14 L 57 5 L 73 5 L 73 14 L 67 14 L 67 76 L 73 76 L 73 85 L 57 85 L 57 76 L 63 76 L 63 48 L 37 48 L 37 76 L 43 76 L 43 85 L 27 85 L 27 76 L 33 76 L 33 14 L 27 14 Z';
+
 interface LogoProps {
   className?: string;
   showSubtitle?: boolean;
@@ -27,13 +34,13 @@ export const Logo: React.FC<LogoProps> = ({
       >
         {/* Outer Circular/Oval G Ring in Vermilion #E53924 */}
         <path
-          d="M 50 10 C 22 10 10 26 10 45 C 10 64 22 80 50 80 C 72 80 84 66 84 50 L 52 50 L 52 40 L 93 40 C 94 43 94 47 94 51 C 94 72 76 89 50 89 C 17 89 0 69 0 45 C 0 21 17 1 50 1 C 72 1 87 13 92 27 L 81 32 C 77 21 66 10 50 10 Z"
-          fill="#E53924"
+          d={HGC_EMBLEM_G_PATH}
+          fill={HGC_EMBLEM_COLOR}
         />
         {/* Bold Serif "H" with distinct top/bottom serifs */}
         <path
-          d="M 27 5 L 43 5 L 43 14 L 37 14 L 37 38 L 63 38 L 63 14 L 57 14 L 57 5 L 73 5 L 73 14 L 67 14 L 67 76 L 73 76 L 73 85 L 57 85 L 57 76 L 63 76 L 63 48 L 37 48 L 37 76 L 43 76 L 43 85 L 27 85 L 27 76 L 33 76 L 33 14 L 27 14 Z"
-          fill="#E53924"
+          d={HGC_EMBLEM_H_PATH}
+          fill={HGC_EMBLEM_COLOR}
         />
       </svg>
 

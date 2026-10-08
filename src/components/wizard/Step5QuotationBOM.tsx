@@ -5,7 +5,11 @@ import {
   exportHgcSampleBomCsv,
   exportSurveyChecklistCsv,
 } from '../../engine/bom';
-import { buildValueProposalXlsx } from '../../engine/proposalExcel';
+import {
+  buildValueProposalXlsx,
+  captureProposalChartPng,
+  renderHgcLogoPng,
+} from '../../engine/proposalExcel';
 import { CashflowChart } from '../financial/CashflowChart';
 import { RechartsRoiSavingsChart } from '../financial/RechartsRoiSavingsChart';
 import { CustomerValueProposalPrint } from '../proposal/CustomerValueProposalPrint';
@@ -136,7 +140,13 @@ export const Step5QuotationBOM: React.FC<Step5Props> = ({
   // 4. Xuất file Excel Hồ Sơ Đề Xuất Giá Trị & Báo Giá (Proposal) gửi khách
   const handleExportProposalExcel = async () => {
     try {
-      const blob = await buildValueProposalXlsx(project);
+      // Chờ bản Proposal hiển thị xong để chụp biểu đồ đưa vào file Excel
+      await new Promise((resolve) => setTimeout(resolve, 400));
+      const [logoPng, chartPng] = await Promise.all([
+        renderHgcLogoPng().catch(() => null),
+        captureProposalChartPng().catch(() => null),
+      ]);
+      const blob = await buildValueProposalXlsx(project, { logoPng, chartPng });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.setAttribute('href', url);
