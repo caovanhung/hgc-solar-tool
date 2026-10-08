@@ -5,6 +5,7 @@ import {
   exportHgcSampleBomCsv,
   exportSurveyChecklistCsv,
 } from '../../engine/bom';
+import { buildValueProposalXlsx } from '../../engine/proposalExcel';
 import { CashflowChart } from '../financial/CashflowChart';
 import { RechartsRoiSavingsChart } from '../financial/RechartsRoiSavingsChart';
 import { CustomerValueProposalPrint } from '../proposal/CustomerValueProposalPrint';
@@ -132,8 +133,28 @@ export const Step5QuotationBOM: React.FC<Step5Props> = ({
     document.body.removeChild(link);
   };
 
+  // 4. Xuất file Excel Hồ Sơ Đề Xuất Giá Trị & Báo Giá (Proposal) gửi khách
+  const handleExportProposalExcel = async () => {
+    try {
+      const blob = await buildValueProposalXlsx(project);
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute(
+        'download',
+        `Proposal_BaoGia_${(project.name || 'DuAn').replace(/\s+/g, '_')}_${new Date().toISOString().slice(0, 10)}.xlsx`
+      );
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (err) {
+      console.error('Xuất Excel Proposal thất bại:', err);
+    }
+  };
+
   // Thực hiện in theo loại tài liệu đã chọn
-  const handleConfirmPrint = (docType: PrintDocumentType) => {
+  const handleConfirmPrint = async (docType: PrintDocumentType) => {
     setSelectedPrintDoc(docType);
     setShowPrintModal(false);
     // Đồng bộ view hiển thị tương ứng
@@ -141,6 +162,9 @@ export const Step5QuotationBOM: React.FC<Step5Props> = ({
       setActiveDocView('sample_bom');
     } else if (docType === 'value_proposal') {
       setActiveDocView('value_proposal');
+      // Proposal gửi khách: xuất file Excel trước, sau đó mới mở hộp thoại in PDF
+      // (window.print() chặn luồng JS nên phải chờ file Excel tải xong)
+      await handleExportProposalExcel();
     } else if (docType === 'checklist') {
       setActiveDocView('checklist');
     }
@@ -853,7 +877,7 @@ export const Step5QuotationBOM: React.FC<Step5Props> = ({
                   )}
                 </div>
                 <p className="text-xs text-slate-600 mt-1 leading-relaxed">
-                  Làm rõ 4 Giá trị cốt lõi, biểu đồ tiết kiệm điện, suất đầu tư trọn gói công khai và cam kết bảo hành.
+                  Làm rõ 4 Giá trị cốt lõi, biểu đồ tiết kiệm điện, suất đầu tư trọn gói công khai và cam kết bảo hành. Xuất đồng thời PDF và Excel.
                 </p>
               </div>
 
@@ -929,7 +953,7 @@ export const Step5QuotationBOM: React.FC<Step5Props> = ({
                 className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-[#E4572E] hover:bg-[#d04922] text-white font-bold text-xs shadow transition-all"
               >
                 <Printer size={15} />
-                <span>Tiến Hành In PDF Ngay</span>
+                <span>{selectedPrintDoc === 'value_proposal' ? 'Xuất PDF + Excel Ngay' : 'Tiến Hành In PDF Ngay'}</span>
               </button>
             </div>
           </div>
