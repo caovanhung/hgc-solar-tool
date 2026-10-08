@@ -91,6 +91,7 @@ export const QuickProposalModal: React.FC<QuickProposalModalProps> = ({
       panel,
       inverter: topInverter?.inverter,
       inverterQty: topInverter?.qtyNeeded || 1,
+      totalStrings: topInverter?.totalStrings,
       layout,
       mounting,
       cables,

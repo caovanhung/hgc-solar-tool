@@ -19,6 +19,8 @@ export interface GenerateBomParams {
   panel: PanelModel;
   inverter?: InverterModel;
   inverterQty: number;
+  /** Tổng số chuỗi PV theo cấu hình inverter (InverterProposal.totalStrings) */
+  totalStrings?: number;
   layout: LayoutResult;
   mounting: MountingResult;
   cables: CableResult[];
@@ -39,6 +41,65 @@ export interface GenerateBomParams {
   sysType?: string;
   phases?: string;
 }
+
+// =========================================================================
+// ĐỊNH CỠ THEO CÔNG SUẤT HỆ (tủ điện / ATS, cáp AC, pin lưu trữ)
+// =========================================================================
+
+/** Dung lượng pin lưu trữ tối thiểu theo công suất AC inverter: 1 kWh cho mỗi kW (≈ 1 giờ chạy tải định mức) */
+const BATTERY_KWH_PER_AC_KW = 1;
+
+/** Dòng định mức đầu ra AC của inverter (A): 3P 400V / 1P 230V, cosφ = 1 (theo datasheet inverter) */
+const acDesignCurrentA = (kw: number, is3Phase: boolean) =>
+  is3Phase ? (kw * 1000) / (Math.sqrt(3) * 400) : (kw * 1000) / 230;
+
+/** Cấp dòng định mức tiêu chuẩn của MCCB / ACB / ATS */
+const STANDARD_BREAKER_A = [16, 20, 25, 32, 40, 50, 63, 80, 100, 125, 160, 200, 250, 315, 400, 500, 630, 800, 1000, 1250, 1600, 2000, 2500, 3200, 4000];
+const pickBreakerA = (designA: number) => STANDARD_BREAKER_A.find((a) => a >= designA) || 4000;
+
+/**
+ * Giá vốn ước tính tủ điện tổng (vỏ IP65, SPD Type 2, thanh cái, phụ kiện + ATS/MCCB tổng) theo cấp dòng.
+ * Dùng khi catalog không có mã tủ tương ứng — cần cập nhật theo báo giá nhà cung cấp.
+ */
+const CABINET_COST_BY_FRAME_A: Array<[number, number]> = [
+  [250, 28000000], [315, 34000000], [400, 45000000], [500, 58000000], [630, 75000000],
+  [800, 105000000], [1000, 135000000], [1250, 170000000], [1600, 230000000],
+  [2000, 300000000], [2500, 380000000], [3200, 480000000], [4000, 600000000],
+];
+/** Giá vốn ước tính 1 MCCB nhánh cho từng inverter theo cấp dòng */
+const branchBreakerCost = (a: number) => (a <= 63 ? 1200000 : a <= 125 ? 2500000 : a <= 250 ? 4500000 : a <= 400 ? 8000000 : 15000000);
+
+/** Bảng dòng tải Iz cáp đồng 1 lõi (IEC 60364-5-52, đi trong máng/ống) — đồng bộ với engine/cabling.ts */
+const CU_CSA_IZ: Array<{ csa: number; iz3Phase: number; iz1Phase: number }> = [
+  { csa: 4, iz3Phase: 28, iz1Phase: 34 },
+  { csa: 6, iz3Phase: 36, iz1Phase: 43 },
+  { csa: 10, iz3Phase: 50, iz1Phase: 60 },
+  { csa: 16, iz3Phase: 68, iz1Phase: 80 },
+  { csa: 25, iz3Phase: 89, iz1Phase: 105 },
+  { csa: 35, iz3Phase: 110, iz1Phase: 130 },
+  { csa: 50, iz3Phase: 134, iz1Phase: 160 },
+  { csa: 70, iz3Phase: 171, iz1Phase: 200 },
+  { csa: 95, iz3Phase: 207, iz1Phase: 245 },
+  { csa: 120, iz3Phase: 239, iz1Phase: 285 },
+  { csa: 150, iz3Phase: 275, iz1Phase: 325 },
+  { csa: 185, iz3Phase: 314, iz1Phase: 370 },
+  { csa: 240, iz3Phase: 370, iz1Phase: 435 },
+];
+const pickCuCsa = (ibA: number, is3Phase: boolean) =>
+  (CU_CSA_IZ.find((r) => (is3Phase ? r.iz3Phase : r.iz1Phase) >= ibA) || CU_CSA_IZ[CU_CSA_IZ.length - 1]).csa;
+
+/** Tiết diện dây PE theo IEC 60364-5-54: S ≤ 16 → S; 16 < S ≤ 35 → 16; S > 35 → S/2 */
+const peCsaFor = (phaseCsa: number) => {
+  if (phaseCsa <= 16) return phaseCsa;
+  if (phaseCsa <= 35) return 16;
+  return CU_CSA_IZ.find((r) => r.csa >= phaseCsa / 2)?.csa || 120;
+};
+
+/** Giá vốn ước tính cáp CV 1 lõi Cadivi (đ/m) khi catalog chưa có tiết diện đó */
+const CV_COST_PER_M: Record<number, number> = {
+  4: 26000, 6: 38000, 8: 52000, 10: 68000, 16: 105000, 25: 165000, 35: 228000,
+  50: 320000, 70: 450000, 95: 610000, 120: 770000, 150: 950000, 185: 1180000, 240: 1530000,
+};
 
 export interface HgcSectionGroup {
   section: HgcSectionDefinition;
@@ -66,6 +127,7 @@ export function generateProjectBom(params: GenerateBomParams): BomLine[] {
     panel,
     inverter,
     inverterQty,
+    totalStrings,
     layout,
     mounting,
     cables,
@@ -105,6 +167,18 @@ export function generateProjectBom(params: GenerateBomParams): BomLine[] {
 
   const isHybrid = sysType === 'hybrid';
   const is3Phase = phases === '3';
+  const invQty = Math.max(1, inverterQty || 1);
+  const invKw = inverter?.acKw || 10;
+  /** Tổng công suất AC của toàn bộ inverter — căn cứ định cỡ tủ điện, ATS và pin lưu trữ */
+  const totalAcKw = invKw * invQty;
+  /** Số chuỗi PV: lấy từ cấu hình inverter, nếu thiếu thì ước tính ~18 tấm/chuỗi */
+  const stringCount = Math.max(1, totalStrings || Math.ceil(layout.panelQty / 18));
+
+  /** Số bộ pin: tối thiểu theo mẫu, tăng theo công suất AC và chia đều cho từng inverter */
+  const batteryQtyFor = (unitKwh: number, templateQty: number) => {
+    const needed = Math.max(templateQty, Math.ceil((totalAcKw * BATTERY_KWH_PER_AC_KW) / unitKwh));
+    return invQty > 1 ? Math.ceil(needed / invQty) * invQty : needed;
+  };
 
   // =========================================================================
   // PHẦN A: THIẾT BỊ CHÍNH (MAIN EQUIPMENT)
@@ -161,9 +235,9 @@ export function generateProjectBom(params: GenerateBomParams): BomLine[] {
   // 3. Pin lưu trữ (Battery Lithium) - Bắt buộc khi là hệ Hybrid ESS theo mẫu file
   if (isHybrid) {
     if (is3Phase) {
-      // Mẫu HYBRID 3P: Pin lưu trữ 16kWh (W16-5A / Lithium Valley, SL: 2 bộ)
+      // Mẫu HYBRID 3P: Pin lưu trữ 16kWh (W16-5A / Lithium Valley, tối thiểu 2 bộ, tăng theo công suất)
       const batMat = findMat('bat-lv-16k', 38292734, 'Pin lưu trữ 16kWh', 'Điện áp thấp 51.2V 16kWh Lithium Valley', 'Bộ', 'LITHIUM VALLEY');
-      const batQty = 2;
+      const batQty = batteryQtyFor(16, 2);
       lines.push({
         id: 'bom-battery',
         categoryCode: 'I',
@@ -171,7 +245,7 @@ export function generateProjectBom(params: GenerateBomParams): BomLine[] {
         hgcSectionCode: 'A',
         hgcSubsection: 'THIẾT BỊ CHÍNH',
         name: 'Pin lưu trữ 16kWh',
-        spec: 'Điện áp thấp 51.2V, dung lượng 16kWh x 2 = 32kWh lưu trữ',
+        spec: `Điện áp thấp 51.2V, dung lượng 16kWh x ${batQty} = ${16 * batQty}kWh lưu trữ`,
         sku: 'W16-5A',
         brand: 'LITHIUM VALLEY',
         origin: 'Chính hãng',
@@ -184,9 +258,9 @@ export function generateProjectBom(params: GenerateBomParams): BomLine[] {
         note: 'Bảo hành 5 năm chính hãng, tích hợp BMS',
       });
     } else {
-      // Mẫu HYBRID 1P: Bộ pin lưu trữ điện 16kWh (FB-L-16 / Pylontech, SL: 1 bộ)
+      // Mẫu HYBRID 1P: Bộ pin lưu trữ điện 16kWh (FB-L-16 / Pylontech, tối thiểu 1 bộ, tăng theo công suất)
       const batMat = findMat('bat-pylon-16k', 43000200, 'Bộ pin lưu trữ điện 16kWh', '16kWh kèm cáp & fire proof', 'Bộ', 'PYLONTECH');
-      const batQty = 1;
+      const batQty = batteryQtyFor(16.38, 1);
       lines.push({
         id: 'bom-battery',
         categoryCode: 'I',
@@ -194,7 +268,9 @@ export function generateProjectBom(params: GenerateBomParams): BomLine[] {
         hgcSectionCode: 'A',
         hgcSubsection: 'THIẾT BỊ CHÍNH',
         name: 'Bộ pin lưu trữ điện 16kWh',
-        spec: 'Điện áp thấp 51.2V, 16.38kWh, cable kit và chống cháy nổ an toàn',
+        spec: batQty > 1
+          ? `Điện áp thấp 51.2V, 16.38kWh x ${batQty} = ${(16.38 * batQty).toFixed(2)}kWh, cable kit và chống cháy nổ an toàn`
+          : 'Điện áp thấp 51.2V, 16.38kWh, cable kit và chống cháy nổ an toàn',
         sku: 'FB-L-16',
         brand: 'PYLONTECH',
         origin: 'Chính hãng',
@@ -233,8 +309,7 @@ export function generateProjectBom(params: GenerateBomParams): BomLine[] {
     });
   }
 
-  // 5. Tủ điện theo đúng cấu hình hệ thống & công suất Inverter
-  const invKw = inverter?.acKw || 10;
+  // 5. Tủ điện theo đúng cấu hình hệ thống & TỔNG công suất AC của các Inverter
   let cabKey = 'td-gt-10k1p';
   let fallbackCost = 3200000;
   let fallbackName = 'TỦ ĐIỆN HÒA LƯỚI 10KW 1PHA';
@@ -244,21 +319,21 @@ export function generateProjectBom(params: GenerateBomParams): BomLine[] {
 
   if (isHybrid) {
     if (is3Phase) {
-      if (invKw <= 15) {
+      if (totalAcKw <= 15) {
         cabKey = 'td-hb-3p-1015';
         fallbackCost = 5286600;
         fallbackName = 'Tủ điện Hybrid 10KW-15KW, 3 Pha, 3 String tích hợp ATS TD-HB3P1015K3S-ATS';
         fallbackSpec = 'Tích hợp ATS 4P 40A, CB AC/DC, SPD chống sét Type 2';
         fallbackSku = 'TD-HB3P1015K3S-ATS';
         cabNote = 'ATS 4P tự động chuyển nguồn phụ tải ưu tiên khi mất lưới';
-      } else if (invKw <= 20) {
+      } else if (totalAcKw <= 20) {
         cabKey = 'td-hb-3p-20';
         fallbackCost = 6252120;
         fallbackName = 'Tủ điện Hybrid 20KW, 3 Pha, 4 String tích hợp ATS TD-HB3P20K4S-ATS';
         fallbackSpec = 'Tích hợp ATS 4P 63A, CB AC/DC, SPD chống sét Type 2';
         fallbackSku = 'TD-HB3P20K4S-ATS';
         cabNote = 'ATS 4P tự động chuyển nguồn phụ tải ưu tiên khi mất lưới';
-      } else if (invKw <= 30) {
+      } else if (totalAcKw <= 30) {
         cabKey = 'td-hb-3p-30';
         fallbackCost = 8800000;
         fallbackName = 'Tủ điện Hybrid 30KW, 3 Pha tích hợp ATS TD-HB3P30K-ATS';
@@ -275,14 +350,14 @@ export function generateProjectBom(params: GenerateBomParams): BomLine[] {
       }
     } else {
       // Hybrid 1 Pha
-      if (invKw <= 8) {
+      if (totalAcKw <= 8) {
         cabKey = 'td-hb-1p-0508';
         fallbackCost = 3407400;
         fallbackName = 'Tủ điện Hybrid 5KW-8KW, 1 Pha, 2 String tích hợp ATS TD-HB1P0508K2S-ATS';
         fallbackSpec = 'Tích hợp ATS 2P 40A, CB AC/DC, SPD chống sét Type 2';
         fallbackSku = 'TD-HB1P0508K2S-ATS';
         cabNote = 'ATS 2P chuyển mạch phụ tải ưu tiên khi mất lưới';
-      } else if (invKw <= 10) {
+      } else if (totalAcKw <= 10) {
         cabKey = 'td-hb-1p-10';
         fallbackCost = 3797280;
         fallbackName = 'Tủ điện Hybrid 10KW, 1 Pha, 2 String tích hợp ATS TD-HB1P10K2S-ATS';
@@ -301,21 +376,21 @@ export function generateProjectBom(params: GenerateBomParams): BomLine[] {
   } else {
     // On-grid
     if (is3Phase) {
-      if (invKw <= 15) {
+      if (totalAcKw <= 15) {
         cabKey = 'td-gt-15k3p';
         fallbackCost = 4500000;
         fallbackName = 'TỦ ĐIỆN HÒA LƯỚI 10KW-15KW 3PHA';
         fallbackSpec = 'Kèm MCB/MCCB 40A 3P + SPD Type 2 385V + Đèn báo pha, cầu chì DC';
         fallbackSku = 'TD-GT-15K3P-2S2M';
         cabNote = 'Đấu nối bảo vệ cổng hòa lưới On-Grid 3P';
-      } else if (invKw <= 20) {
+      } else if (totalAcKw <= 20) {
         cabKey = 'td-gt-20k3p';
         fallbackCost = 5800000;
         fallbackName = 'TỦ ĐIỆN HÒA LƯỚI 20KW 3PHA';
         fallbackSpec = 'Kèm MCCB 80A 3P + SPD Type 2 385V + Đèn báo pha, cầu chì DC';
         fallbackSku = 'TD-GT-20K3P-2S2M';
         cabNote = 'Tiêu chuẩn bảo vệ hạ thế ngoài trời IP65';
-      } else if (invKw <= 30) {
+      } else if (totalAcKw <= 30) {
         cabKey = 'td-gt-30k3p';
         fallbackCost = 7800000;
         fallbackName = 'TỦ ĐIỆN HÒA LƯỚI 30KW 3PHA';
@@ -332,7 +407,7 @@ export function generateProjectBom(params: GenerateBomParams): BomLine[] {
       }
     } else {
       // On-grid 1 Pha
-      if (invKw <= 6) {
+      if (totalAcKw <= 6) {
         cabKey = 'td-gt-05k1p';
         fallbackCost = 2400000;
         fallbackName = 'TỦ ĐIỆN HÒA LƯỚI 5KW-6KW 1PHA';
@@ -347,6 +422,30 @@ export function generateProjectBom(params: GenerateBomParams): BomLine[] {
         fallbackSku = 'TD-GT-10K1P-2S2M-SPD-E';
         cabNote = 'Đấu nối bảo vệ cổng hòa lưới 1P 10kW';
       }
+    }
+  }
+
+  // Hệ 3 pha > 50kW: định cỡ tủ tổng theo dòng thiết kế (Ib x 1.25), kèm MCCB nhánh cho từng inverter
+  if (is3Phase && totalAcKw > 50) {
+    const mainA = pickBreakerA(acDesignCurrentA(totalAcKw, true) * 1.25);
+    const branchA = pickBreakerA(acDesignCurrentA(invKw, true) * 1.25);
+    const frameCost = (CABINET_COST_BY_FRAME_A.find(([a]) => a >= mainA) || CABINET_COST_BY_FRAME_A[CABINET_COST_BY_FRAME_A.length - 1])[1];
+    const kwLabel = Math.round(totalAcKw);
+    const mainBreaker = mainA > 630 ? 'ACB' : 'MCCB';
+    const branchText = invQty > 1 ? `, ${invQty} MCCB nhánh ${branchA}A cho ${invQty} inverter` : '';
+    fallbackCost = frameCost + (invQty > 1 ? invQty * branchBreakerCost(branchA) : 0);
+    if (isHybrid) {
+      cabKey = `TD-HB3P${kwLabel}K-ATS${mainA}`;
+      fallbackName = `Tủ điện Hybrid ${kwLabel}KW, 3 Pha tích hợp ATS ${mainA}A TD-HB3P${kwLabel}K-ATS`;
+      fallbackSpec = `Tích hợp ATS 4P ${mainA}A, ${mainBreaker} tổng ${mainA}A${branchText}, CB DC, SPD chống sét Type 2`;
+      cabNote = `ATS 4P ${mainA}A bảo vệ trọn gói hệ thống Hybrid ${kwLabel}kW`;
+    } else {
+      cabKey = `TD-GT-${kwLabel}K3P-${mainA}A`;
+      fallbackName = `TỦ ĐIỆN HÒA LƯỚI ${kwLabel}KW 3PHA`;
+      fallbackSpec = `Kèm ${mainBreaker} tổng ${mainA}A 3P${branchText} + SPD Type 2 385V + Đèn báo pha, chống phát ngược Zero-Export`;
+      cabNote = `${mainBreaker} ${mainA}A bảo vệ hệ ${kwLabel}kW theo tiêu chuẩn 1.25xIb`;
+      // Tủ hòa lưới không có ATS: ~75% giá tủ Hybrid cùng cấp dòng
+      fallbackCost = Math.round(fallbackCost * 0.75);
     }
   }
 
@@ -665,7 +764,11 @@ export function generateProjectBom(params: GenerateBomParams): BomLine[] {
   // =========================================================================
   const cableList = Array.isArray(cables) ? cables : ((cables as any)?.cables || []);
   const dcCable = cableList.find((c: any) => c.cableType === 'DC_SOLAR');
-  const dcLen = dcCable ? dcCable.lengthM : Math.max(50, layout.panelQty * 3);
+  // Mỗi chuỗi PV có 1 tuyến (+) và 1 tuyến (−) từ dàn pin về inverter.
+  // Chiều dài tuyến trung bình ≈ nửa chu vi dàn pin + 10m đi xuống inverter; tối thiểu theo mẫu.
+  const dcTemplateLen = dcCable ? dcCable.lengthM : Math.max(50, layout.panelQty * 3);
+  const arrayHomeRunM = ((layout.cols || 0) * (layout.pw || 0) + (layout.rows || 0) * (layout.ph || 0)) / 2 + 10;
+  const dcLen = Math.max(dcTemplateLen, Math.ceil(stringCount * arrayHomeRunM));
 
   // 1. Dây cáp DC đỏ
   const dcRedMat = findMat('e-dc-helukabel-red', 16500, 'Dây cáp động lực chuyên dụng solar 1x4mm² / (cáp đơn, màu đỏ)', '1500V DC Helukabel', 'Mét', 'Helukabel');
@@ -711,98 +814,121 @@ export function generateProjectBom(params: GenerateBomParams): BomLine[] {
     note: 'Dây DC cực âm (-)',
   });
 
-  // 3. Dây cáp AC nguồn INV (CV 1 lõi Cadivi: 10mm2 cho 1P, 8mm2 hoặc 6mm2 cho 3P)
+  // 3. Dây cáp AC nguồn INV (CV 1 lõi Cadivi) — mỗi inverter một tuyến riêng về tủ điện.
+  //    Tiết diện tối thiểu theo mẫu (8mm² cho 3P, 10mm² cho 1P), tăng theo dòng thiết kế 1.25 x Ib của từng inverter.
+  //    1 inverter: đi thẳng về tủ tổng theo tuyến LV_MAIN; nhiều inverter: về tủ gom đặt cạnh inverter (tuyến LV_INVERTER).
   const acCable = cableList.find((c: any) => c.cableType === 'LV_MAIN');
+  const invBranchCable = cableList.find((c: any) => c.cableType === 'LV_INVERTER');
   const acRouteLen = acCable ? acCable.lengthM : 30;
-  const acTotalMeters = acRouteLen * (is3Phase ? 4 : 2);
+  const acCores = is3Phase ? 4 : 2;
+  const invRunLen = invQty > 1 ? invBranchCable?.lengthM || 15 : acRouteLen;
+  const acTotalMeters = invRunLen * acCores * invQty;
+  const acCsa = Math.max(is3Phase ? 8 : 10, pickCuCsa(acDesignCurrentA(invKw, is3Phase) * 1.25, is3Phase));
+  const acName = `Dây cáp động lực 1Cx${acCsa} mm²/ (cáp 01 lõi, cáp CV)`;
+  const acMat = findMat(`e-cv-${acCsa}mm2`, CV_COST_PER_M[acCsa], acName, `Cadivi 1Cx${acCsa}mm2`, 'Mét', 'Cadivi');
+  lines.push({
+    id: 'bom-ac-inv-cadivi',
+    categoryCode: 'IV',
+    categoryName: 'Hệ thống điện',
+    hgcSectionCode: 'C',
+    hgcSubsection: 'THIẾT BỊ NGOẠI VI',
+    name: acName,
+    spec: `0.6/1kV ruột đồng cách điện PVC Cadivi (${is3Phase ? '4 sợi 3P+N' : '2 sợi L+N'}${invQty > 1 ? ` x ${invQty} inverter` : ''})`,
+    sku: `CV-${acCsa}mm2`,
+    brand: 'Cadivi',
+    origin: 'Việt Nam',
+    unit: 'Mét',
+    qty: acTotalMeters,
+    unitCostVnd: acMat.cost,
+    totalCostVnd: acMat.cost * acTotalMeters,
+    unitSellVnd: Math.round(acMat.cost * multiplier),
+    totalSellVnd: Math.round(acMat.cost * acTotalMeters * multiplier),
+    note: is3Phase ? 'Dây nguồn INV 3 pha' : 'Dây nguồn INV 1 pha',
+  });
 
-  if (is3Phase) {
-    const cv3pMat = findMat('e-cv-8mm2', 52000, 'Dây cáp động lực 1Cx8 mm²/ (cáp 01 lõi, cáp CV)', 'Cadivi 1Cx8mm2', 'Mét', 'Cadivi');
-    lines.push({
-      id: 'bom-ac-inv-cadivi',
-      categoryCode: 'IV',
-      categoryName: 'Hệ thống điện',
-      hgcSectionCode: 'C',
-      hgcSubsection: 'THIẾT BỊ NGOẠI VI',
-      name: 'Dây cáp động lực 1Cx8 mm²/ (cáp 01 lõi, cáp CV)',
-      spec: '0.6/1kV ruột đồng cách điện PVC Cadivi (4 sợi 3P+N)',
-      sku: 'CV-8mm2',
-      brand: 'Cadivi',
-      origin: 'Việt Nam',
-      unit: 'Mét',
-      qty: acTotalMeters,
-      unitCostVnd: cv3pMat.cost,
-      totalCostVnd: cv3pMat.cost * acTotalMeters,
-      unitSellVnd: Math.round(cv3pMat.cost * multiplier),
-      totalSellVnd: Math.round(cv3pMat.cost * acTotalMeters * multiplier),
-      note: 'Dây nguồn INV 3 pha',
-    });
-  } else {
-    const cv1pMat = findMat('e-cv-10mm2', 68000, 'Dây cáp động lực 1Cx10 mm²/ (cáp 01 lõi, cáp CV)', 'Cadivi 1Cx10mm2', 'Mét', 'Cadivi');
-    lines.push({
-      id: 'bom-ac-inv-cadivi',
-      categoryCode: 'IV',
-      categoryName: 'Hệ thống điện',
-      hgcSectionCode: 'C',
-      hgcSubsection: 'THIẾT BỊ NGOẠI VI',
-      name: 'Dây cáp động lực 1Cx10 mm²/ (cáp 01 lõi, cáp CV)',
-      spec: '0.6/1kV ruột đồng cách điện PVC Cadivi (2 sợi L+N)',
-      sku: 'CV-10mm2',
-      brand: 'Cadivi',
-      origin: 'Việt Nam',
-      unit: 'Mét',
-      qty: acTotalMeters,
-      unitCostVnd: cv1pMat.cost,
-      totalCostVnd: cv1pMat.cost * acTotalMeters,
-      unitSellVnd: Math.round(cv1pMat.cost * multiplier),
-      totalSellVnd: Math.round(cv1pMat.cost * acTotalMeters * multiplier),
-      note: 'Dây nguồn INV 1 pha',
-    });
-  }
+  // 4. Dây cáp tiếp địa PE (CV 1 lõi màu Vàng-Xanh) — theo mẫu, tăng theo tiết diện dây pha (IEC 60364-5-54)
+  const peTemplateCsa = is3Phase && isHybrid ? 4 : 6;
+  const peCsa = acCsa <= 10 ? peTemplateCsa : Math.max(peTemplateCsa, peCsaFor(acCsa));
+  const peLen = invRunLen * invQty + 10;
+  const peName = `Dây cáp động lực PE ${peCsa} mm² (Màu Te / Vàng -Xanh)`;
+  const peMat = findMat(`e-pe-${peCsa}mm2`, CV_COST_PER_M[peCsa], peName, `Cadivi PE ${peCsa}mm2`, 'Mét', 'Cadivi');
+  lines.push({
+    id: 'bom-pe-cable',
+    categoryCode: 'IV',
+    categoryName: 'Hệ thống điện',
+    hgcSectionCode: 'C',
+    hgcSubsection: 'THIẾT BỊ NGOẠI VI',
+    name: peName,
+    spec: 'Dây đồng đơn bọc cách điện màu Te tiếp địa bảo vệ Inverter & vỏ tủ điện',
+    sku: `CV-${peCsa}mm2-PE`,
+    brand: 'Cadivi',
+    origin: 'Việt Nam',
+    unit: 'Mét',
+    qty: peLen,
+    unitCostVnd: peMat.cost,
+    totalCostVnd: peMat.cost * peLen,
+    unitSellVnd: Math.round(peMat.cost * multiplier),
+    totalSellVnd: Math.round(peMat.cost * peLen * multiplier),
+    note: 'Dây PE',
+  });
 
-  // 4. Dây cáp tiếp địa PE (CV 1 lõi màu Vàng-Xanh)
-  const peLen = acRouteLen + 10;
-  if (is3Phase && isHybrid) {
-    const peMat = findMat('e-pe-4mm2', 26000, 'Dây cáp động lực PE 4 mm² (Màu Te / Vàng -Xanh)', 'Cadivi PE 4mm2', 'Mét', 'Cadivi');
+  // 4b. Cáp tổng từ tủ gom inverter về tủ phân phối chính MSB (chỉ khi có nhiều inverter).
+  //     Dòng thiết kế 1.25 x Ib tổng; mỗi sợi tối đa 240mm², vượt quá thì đi song song (hệ số nhóm cáp 0.8).
+  if (invQty > 1) {
+    const feederDesignA = acDesignCurrentA(totalAcKw, is3Phase) * 1.25;
+    const izOf = (r: (typeof CU_CSA_IZ)[number]) => (is3Phase ? r.iz3Phase : r.iz1Phase);
+    let feederRuns = 1;
+    let feederRow = CU_CSA_IZ.find((r) => izOf(r) >= feederDesignA);
+    while (!feederRow) {
+      feederRuns++;
+      feederRow = CU_CSA_IZ.find((r) => izOf(r) * 0.8 >= feederDesignA / feederRuns);
+    }
+    const feederCsa = feederRow.csa;
+    const feederMeters = acRouteLen * acCores * feederRuns;
+    const feederName = `Dây cáp động lực 1Cx${feederCsa} mm²/ (cáp 01 lõi, cáp CV)`;
+    const feederMat = findMat(`e-cv-${feederCsa}mm2`, CV_COST_PER_M[feederCsa], feederName, `Cadivi 1Cx${feederCsa}mm2`, 'Mét', 'Cadivi');
     lines.push({
-      id: 'bom-pe-cable',
+      id: 'bom-ac-feeder',
       categoryCode: 'IV',
       categoryName: 'Hệ thống điện',
       hgcSectionCode: 'C',
       hgcSubsection: 'THIẾT BỊ NGOẠI VI',
-      name: 'Dây cáp động lực PE 4 mm² (Màu Te / Vàng -Xanh)',
-      spec: 'Dây đồng đơn bọc cách điện màu Te tiếp địa bảo vệ Inverter & vỏ tủ điện',
-      sku: 'CV-4mm2-PE',
+      name: feederName,
+      spec: `0.6/1kV ruột đồng cách điện PVC Cadivi (${is3Phase ? '3P+N' : 'L+N'}${feederRuns > 1 ? `, ${feederRuns} sợi song song mỗi pha` : ''})`,
+      sku: `CV-${feederCsa}mm2`,
       brand: 'Cadivi',
       origin: 'Việt Nam',
       unit: 'Mét',
-      qty: peLen,
-      unitCostVnd: peMat.cost,
-      totalCostVnd: peMat.cost * peLen,
-      unitSellVnd: Math.round(peMat.cost * multiplier),
-      totalSellVnd: Math.round(peMat.cost * peLen * multiplier),
-      note: 'Dây PE',
+      qty: feederMeters,
+      unitCostVnd: feederMat.cost,
+      totalCostVnd: feederMat.cost * feederMeters,
+      unitSellVnd: Math.round(feederMat.cost * multiplier),
+      totalSellVnd: Math.round(feederMat.cost * feederMeters * multiplier),
+      note: `Cáp tổng ${Math.round(totalAcKw)}kW về tủ MSB`,
     });
-  } else {
-    const peMat = findMat('e-pe-6mm2', 38000, 'Dây cáp động lực PE 6 mm² (Màu Te / Vàng -Xanh)', 'Cadivi PE 6mm2', 'Mét', 'Cadivi');
+
+    const feederPeCsa = peCsaFor(feederCsa);
+    const feederPeLen = acRouteLen * feederRuns;
+    const feederPeName = `Dây cáp động lực PE ${feederPeCsa} mm² (Màu Te / Vàng -Xanh)`;
+    const feederPeMat = findMat(`e-pe-${feederPeCsa}mm2`, CV_COST_PER_M[feederPeCsa], feederPeName, `Cadivi PE ${feederPeCsa}mm2`, 'Mét', 'Cadivi');
     lines.push({
-      id: 'bom-pe-cable',
+      id: 'bom-ac-feeder-pe',
       categoryCode: 'IV',
       categoryName: 'Hệ thống điện',
       hgcSectionCode: 'C',
       hgcSubsection: 'THIẾT BỊ NGOẠI VI',
-      name: 'Dây cáp động lực PE 6 mm² (Màu Te / Vàng -Xanh)',
-      spec: 'Dây đồng đơn bọc cách điện màu Te tiếp địa bảo vệ Inverter & vỏ tủ điện',
-      sku: 'CV-6mm2-PE',
+      name: feederPeName,
+      spec: 'Dây đồng đơn bọc cách điện màu Te tiếp địa đi kèm cáp tổng về tủ MSB',
+      sku: `CV-${feederPeCsa}mm2-PE`,
       brand: 'Cadivi',
       origin: 'Việt Nam',
       unit: 'Mét',
-      qty: peLen,
-      unitCostVnd: peMat.cost,
-      totalCostVnd: peMat.cost * peLen,
-      unitSellVnd: Math.round(peMat.cost * multiplier),
-      totalSellVnd: Math.round(peMat.cost * peLen * multiplier),
-      note: 'Dây PE',
+      qty: feederPeLen,
+      unitCostVnd: feederPeMat.cost,
+      totalCostVnd: feederPeMat.cost * feederPeLen,
+      unitSellVnd: Math.round(feederPeMat.cost * multiplier),
+      totalSellVnd: Math.round(feederPeMat.cost * feederPeLen * multiplier),
+      note: 'Dây PE cáp tổng',
     });
   }
 
@@ -831,7 +957,8 @@ export function generateProjectBom(params: GenerateBomParams): BomLine[] {
   }
 
   // 5. Bộ nối MC4 Leader
-  const mc4Qty = Math.max(8, Math.ceil(layout.panelQty / 4) * 2);
+  // 4 bộ/chuỗi (2 bộ đầu dàn pin + 2 bộ đầu inverter) + 10% dự phòng
+  const mc4Qty = Math.max(8, Math.ceil(stringCount * 4 * 1.1));
   const mc4Mat = findMat('e-mc4-leader', 25000, 'Bộ nối của tấm pin quang điện mặt trời MC4', '1500V DC IP68 Leader', 'Bộ', 'Leader');
   lines.push({
     id: 'bom-mc4-leader',
