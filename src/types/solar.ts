@@ -48,6 +48,10 @@ export interface PanelModel {
   source: 'verified' | 'estimated';
   priceHintVnd: number;
   datasheetUrl?: string;
+  technicalDescription?: string;
+  costBreakdown?: string;
+  isActive?: boolean;
+  version?: number;
 }
 
 export interface InverterModel {
@@ -68,9 +72,13 @@ export interface InverterModel {
   source: 'verified' | 'estimated';
   priceHintVnd: number;
   supportsZeroExport: boolean;
+  technicalDescription?: string;
+  costBreakdown?: string;
+  isActive?: boolean;
+  version?: number;
 }
 
-export type MaterialCategoryCode = 'I' | 'II' | 'IV' | 'V' | 'VI' | 'VII' | 'VIII' | 'X';
+export type MaterialCategoryCode = 'I' | 'II' | 'IV' | 'V' | 'VI' | 'VII' | 'VIII';
 export type HgcSectionCode = 'A' | 'B' | 'C' | 'D';
 
 export interface HgcSectionDefinition {
@@ -99,8 +107,7 @@ export const STANDARD_BOM_GROUPS: BomGroupDefinition[] = [
   { code: 'V', name: 'Hệ thống máng cáp', order: 4, description: 'Thang máng cáp trunking tôn mạ kẽm/nhúng nóng, ống gân xoắn HDPE & phụ kiện' },
   { code: 'VI', name: 'Hệ thống phụ trợ', order: 5, description: 'Hệ thống tiếp địa an toàn, cọc tiếp địa đồng, hóa chất GEM & Kim thu sét' },
   { code: 'VII', name: 'Hạng mục xây dựng', order: 6, description: 'Khung giàn giá đỡ ray nhôm Al6005-T5, kẹp biên/kẹp giữa, chân L, seam cliplock' },
-  { code: 'VIII', name: 'Chi phí dịch vụ', order: 7, description: 'Nhân công lắp đặt cơ khí & điện, vận chuyển, kiểm định thí nghiệm, hồ sơ EVN' },
-  { code: 'X', name: 'Hệ thống Scada', order: 8, description: 'Datalogger thông minh, truyền thông giám sát Cloud/App 24/7 & Cảm biến' },
+  { code: 'VIII', name: 'Chi phí dịch vụ', order: 7, description: 'Nhân công lắp đặt cơ khí & điện, vận chuyển, nâng cẩu thiết bị' },
 ];
 
 export interface MaterialItem {
@@ -117,6 +124,8 @@ export interface MaterialItem {
   origin?: string;
   technicalDescription?: string; // Mô tả kỹ thuật chi tiết
   costBreakdown?: string; // Diễn giải cấu thành chi phí (nhân công, vật tư, máy móc...)
+  isActive?: boolean;
+  version?: number;
 }
 
 export interface LayoutResult {
@@ -213,18 +222,37 @@ export interface BomLine {
   hgcSubsection?: string;
   technicalDescription?: string; // Mô tả kỹ thuật chi tiết
   costBreakdown?: string; // Diễn giải cấu thành chi phí (nhân công, vật tư, máy móc...)
+  materialId?: string; // Khóa tham chiếu catalog
+  materialKind?: 'material' | 'panel' | 'inverter';
+}
+
+export interface PricingSettings {
+  defaultMarginPct: number;
+  defaultDiscountPct: number;
+  canopyUnitCostVnd: number;
+  transportCostVnd: number;
+  installCostVndPerKwp: number;
+}
+
+export interface CatalogSnapshot {
+  version: number;
+  materials: MaterialItem[];
+  panels: PanelModel[];
+  inverters: InverterModel[];
+  pricing: PricingSettings;
 }
 
 export interface FinancialResult {
   capexCostVnd: number;
   capexSellVnd: number;
   discountVnd: number;
-  vatVnd: number;
+  vatVnd?: number; // @deprecated Đơn giá thiết bị/vật tư đã bao gồm VAT
   grandTotalVnd: number;
   grossMarginPct: number;
   grossMarginVnd: number;
-  investmentRatePreVatVndPerKwp: number; // Suất đầu tư chưa VAT (Vnđ/kWp)
-  investmentRatePostVatVndPerKwp: number; // Suất đầu tư có VAT (Vnđ/kWp)
+  investmentRateVndPerKwp: number; // Suất đầu tư trọn gói (Vnđ/kWp, đã bao gồm VAT)
+  investmentRatePreVatVndPerKwp?: number; // @deprecated
+  investmentRatePostVatVndPerKwp?: number; // @deprecated
   year1OutputKwh: number;
   year1SavingsVnd: number;
   paybackYears: number;
@@ -259,8 +287,9 @@ export interface Project {
   createdByEmail?: string; // Email người tạo (Chủ sở hữu)
   createdByName?: string; // Họ tên người tạo
   sharedWithEmails?: string[]; // Danh sách email được chia sẻ riêng
-  sharedWithRoles?: ('ky_su' | 'sales' | 'admin')[]; // Chia sẻ theo nhóm vai trò
+  sharedWithRoles?: ('sales' | 'admin')[]; // Chia sẻ theo nhóm vai trò (admin, sales)
   isPublic?: boolean; // Công khai cho toàn bộ công ty
+  catalogVersion?: number; // Phiên bản catalog áp dụng cho dự án
 
   // Step 1: Customer & Roof
   custType: CustomerType;
@@ -310,13 +339,9 @@ export interface Project {
   canopyAreaM2?: number;
   canopyUnitCostVnd?: number;
   canopyHeightM?: number;
-  includeEvnDocs?: boolean;
-  evnDocsCostVnd?: number;
   includeTransport?: boolean;
   transportCostVnd?: number;
   installCostVndPerKwp?: number;
-  includeScada?: boolean;
-  scadaCostVnd?: number;
   surveyChecklist?: SurveyChecklistItem[];
 }
 

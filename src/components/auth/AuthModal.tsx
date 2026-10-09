@@ -19,7 +19,7 @@ import { loginUser, registerUser, verifyEmail, resendVerificationCode } from '..
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onLoginSuccess: (user: UserProfile) => void;
+  onLoginSuccess: (user: UserProfile, mustChangePassword?: boolean) => void;
   initialMode?: 'login' | 'register';
 }
 
@@ -64,7 +64,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     setIsLoading(false);
 
     if (result.success && result.user) {
-      onLoginSuccess(result.user);
+      onLoginSuccess(result.user, !!result.mustChangePassword);
       onClose();
     } else if (result.requiresVerification) {
       setVerifyEmailTarget(result.email || email.trim());
@@ -98,8 +98,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       setErrorMessage('Vui lòng nhập Email hợp lệ.');
       return;
     }
-    if (password.length < 6) {
-      setErrorMessage('Mật khẩu phải có tối thiểu 6 ký tự.');
+    if (password.length < 8) {
+      setErrorMessage('Mật khẩu phải có tối thiểu 8 ký tự.');
       return;
     }
     if (password !== confirmPassword) {
@@ -143,7 +143,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     if (result.success && result.user) {
       setSuccessMessage('Kích hoạt tài khoản thành công! Đang chuyển hướng...');
       setTimeout(() => {
-        onLoginSuccess(result.user!);
+        onLoginSuccess(result.user!, !!result.mustChangePassword);
         onClose();
       }, 1000);
     } else {

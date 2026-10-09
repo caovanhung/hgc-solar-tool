@@ -26,7 +26,7 @@ interface Step4Props {
   onSelectInverterProposal: (proposal: InverterProposal) => void;
   onNext: () => void;
   onBack: () => void;
-  userRole: 'ky_su' | 'sales' | 'admin';
+  userRole: 'admin' | 'sales';
 }
 
 export const Step4TechnicalResults: React.FC<Step4Props> = ({
@@ -37,8 +37,8 @@ export const Step4TechnicalResults: React.FC<Step4Props> = ({
   onBack,
   userRole,
 }) => {
-  // Toggle Đơn giản / Chi tiết
-  const [detailMode, setDetailMode] = useState<boolean>(userRole === 'ky_su');
+  // Toggle Đơn giản / Chi tiết: mặc định true cho admin, false cho sales
+  const [detailMode, setDetailMode] = useState<boolean>(userRole === 'admin');
   const [showHgcGuide, setShowHgcGuide] = useState<boolean>(false);
 
   // Trạng thái mở/đóng từng thẻ

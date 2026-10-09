@@ -6,7 +6,7 @@ export interface FinancialCalculationParams {
   dailyKwh: number;
   tariffVnd: number;
   discountPct?: number; // e.g. 2%
-  vatPct?: number; // Mặc định 0% vì đơn giá thiết bị/vật tư đã bao gồm thuế VAT
+  vatPct?: number; // @deprecated Đơn giá thiết bị/vật tư đã bao gồm thuế VAT
   daySelfConsumptionRatio?: number; // 70% daytime self-consumption
 }
 
@@ -17,18 +17,18 @@ export function calculateFinancials(params: FinancialCalculationParams): Financi
     dailyKwh,
     tariffVnd,
     discountPct = 0,
-    vatPct = 0,
     daySelfConsumptionRatio = 0.7,
   } = params;
 
-  // 1. Tính tổng giá vốn (Cost) và giá bán (Sell) từ BOM
+  // 1. Tính tổng giá vốn (Cost) và giá bán (Sell) từ BOM (Đơn giá đã bao gồm VAT)
   const capexCostVnd = bomLines.reduce((acc, line) => acc + line.totalCostVnd, 0);
   const rawSellVnd = bomLines.reduce((acc, line) => acc + line.totalSellVnd, 0);
 
   const discountVnd = Math.round((rawSellVnd * discountPct) / 100);
   const subtotalAfterDiscount = rawSellVnd - discountVnd;
-  const vatVnd = Math.round((subtotalAfterDiscount * vatPct) / 100);
-  const grandTotalVnd = subtotalAfterDiscount + vatVnd;
+  // Đơn giá thiết bị, vật tư và nhân công mặc định đã bao gồm VAT -> Không cộng thêm thuế VAT
+  const vatVnd = 0;
+  const grandTotalVnd = subtotalAfterDiscount;
 
   const grossMarginVnd = subtotalAfterDiscount - capexCostVnd;
   const grossMarginPct = rawSellVnd > 0 ? Number(((grossMarginVnd / subtotalAfterDiscount) * 100).toFixed(1)) : 0;
@@ -111,10 +111,11 @@ export function calculateFinancials(params: FinancialCalculationParams): Financi
   const co2ReductionTonsYear = Number(((annualTotalKwh * 0.65) / 1000).toFixed(1));
   const treesEquivalentYear = Math.round(co2ReductionTonsYear * 45);
 
-  // 6. Suất đầu tư (Vnđ/kWp) chuẩn Etek Power
+  // 6. Suất đầu tư (Vnđ/kWp) trọn gói (đơn giá đã bao gồm VAT)
   const validKwp = installedKwp > 0 ? installedKwp : 1;
-  const investmentRatePreVatVndPerKwp = Math.round(subtotalAfterDiscount / validKwp);
-  const investmentRatePostVatVndPerKwp = Math.round(grandTotalVnd / validKwp);
+  const investmentRateVndPerKwp = Math.round(grandTotalVnd / validKwp);
+  const investmentRatePreVatVndPerKwp = investmentRateVndPerKwp;
+  const investmentRatePostVatVndPerKwp = investmentRateVndPerKwp;
 
   return {
     capexCostVnd,
@@ -124,6 +125,7 @@ export function calculateFinancials(params: FinancialCalculationParams): Financi
     grandTotalVnd,
     grossMarginPct,
     grossMarginVnd,
+    investmentRateVndPerKwp,
     investmentRatePreVatVndPerKwp,
     investmentRatePostVatVndPerKwp,
     year1OutputKwh: annualTotalKwh,

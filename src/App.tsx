@@ -90,9 +90,7 @@ function createInitialProject(name = 'Hồ sơ kỹ thuật mới'): Project {
     marginPct: 18,
     roofType: 'tole',
     hasCanopyFrame: false,
-    includeEvnDocs: false,
     includeTransport: true,
-    includeScada: false, // Mặc định không có (ETEK ko cần)
     sysType: 'zero_export',
     phases: '3',
   });
@@ -103,7 +101,6 @@ function createInitialProject(name = 'Hồ sơ kỹ thuật mới'): Project {
     dailyKwh: layout.dailyKwh,
     tariffVnd,
     discountPct: 0,
-    vatPct: 0,
   });
 
   return {
@@ -139,8 +136,6 @@ function createInitialProject(name = 'Hồ sơ kỹ thuật mới'): Project {
     marginPct: 18,
     discountPct: 0,
     pricingTier: 'recommended',
-    includeEvnDocs: false,
-    includeScada: false,
     bomLines,
     financial,
     surveyChecklist: DEFAULT_SURVEY_CHECKLIST,
@@ -149,7 +144,7 @@ function createInitialProject(name = 'Hồ sơ kỹ thuật mới'): Project {
 
 function upgradeProjectIfNeeded(p: Project): Project {
   const hasOldBom = p.bomLines && p.bomLines.some((l: any) => l.categoryCode === 'III' || !l.categoryCode);
-  const isMissingRates = !p.financial?.investmentRatePostVatVndPerKwp;
+  const isMissingRates = !p.financial?.investmentRateVndPerKwp && !p.financial?.investmentRatePostVatVndPerKwp;
   const isOldPanel = !INITIAL_PANELS.some((item) => item.id === p.selectedPanelId);
   const hasMissingHgcSection = p.bomLines && p.bomLines.some((l: any) => !l.hgcSectionCode);
   const isMissingDescriptions = p.bomLines && p.bomLines.some((l: any) => !l.technicalDescription || !l.costBreakdown);
@@ -195,7 +190,6 @@ function upgradeProjectIfNeeded(p: Project): Project {
         dailyKwh: layout.dailyKwh,
         tariffVnd: 2850,
         discountPct: p.discountPct || 0,
-        vatPct: 0,
       });
 
       return {
@@ -242,7 +236,7 @@ export default function App() {
   const [currentProjectId, setCurrentProjectId] = useState<string>(() => projects[0]?.id || '');
   const [activeStep, setActiveStep] = useState<number>(1);
   const [activeView, setActiveView] = useState<'wizard' | 'projects' | 'admin'>('projects');
-  const [userRole, setUserRole] = useState<UserRole>('ky_su');
+  const [userRole, setUserRole] = useState<UserRole>('sales');
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(() => getLocalStoredUser());
   const [showAuthModal, setShowAuthModal] = useState<boolean>(false);
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving'>('saved');
@@ -282,7 +276,7 @@ export default function App() {
     }
 
     // Tải mới từ PostgreSQL Backend theo đúng quyền của tài khoản này
-    fetchProjectsFromServer(user.email, user.role).then((serverProjects) => {
+    fetchProjectsFromServer().then((serverProjects) => {
       if (serverProjects !== null && Array.isArray(serverProjects)) {
         const cleanProjects = serverProjects.filter(
           (p: any) => p.id !== 'demo-hgc-01' && !p.name?.includes('Văn Phòng HGC')
@@ -355,7 +349,7 @@ export default function App() {
   // Khởi tạo & Cập nhật khi tài khoản thay đổi: Đồng bộ dữ liệu dự án của riêng tài khoản từ Backend Server
   useEffect(() => {
     if (currentUser) {
-      fetchProjectsFromServer(currentUser.email, currentUser.role).then((serverProjects) => {
+      fetchProjectsFromServer().then((serverProjects) => {
         if (serverProjects !== null && Array.isArray(serverProjects)) {
           const cleanProjects = serverProjects.filter(
             (p: any) => p.id !== 'demo-hgc-01' && !p.name?.includes('Văn Phòng HGC')
@@ -424,13 +418,9 @@ export default function App() {
           updates.hasCanopyFrame !== undefined ||
           updates.canopyAreaM2 !== undefined ||
           updates.canopyUnitCostVnd !== undefined ||
-          updates.includeEvnDocs !== undefined ||
-          updates.evnDocsCostVnd !== undefined ||
           updates.includeTransport !== undefined ||
           updates.transportCostVnd !== undefined ||
-          updates.installCostVndPerKwp !== undefined ||
-          updates.includeScada !== undefined ||
-          updates.scadaCostVnd !== undefined
+          updates.installCostVndPerKwp !== undefined
         ) {
           const panel = panels.find((pan) => pan.id === (updates.selectedPanelId || updated.selectedPanelId)) || panels[0];
           const province = VIETNAM_PROVINCES.find((pv) => pv.code === (updates.provinceCode || updated.provinceCode)) || VIETNAM_PROVINCES[0];
@@ -496,13 +486,9 @@ export default function App() {
             hasCanopyFrame: updated.hasCanopyFrame,
             canopyAreaM2: updated.canopyAreaM2,
             canopyUnitCostVnd: updated.canopyUnitCostVnd,
-            includeEvnDocs: updated.includeEvnDocs,
-            evnDocsCostVnd: updated.evnDocsCostVnd,
             includeTransport: updated.includeTransport,
             transportCostVnd: updated.transportCostVnd,
             installCostVndPerKwp: updated.installCostVndPerKwp,
-            includeScada: updated.includeScada,
-            scadaCostVnd: updated.scadaCostVnd,
             sysType: updated.sysType,
             phases: updated.phases,
           });
@@ -513,7 +499,6 @@ export default function App() {
             dailyKwh: layout.dailyKwh,
             tariffVnd: tariff,
             discountPct: updated.discountPct,
-            vatPct: 0,
           });
 
           const resultProject = {
@@ -527,11 +512,11 @@ export default function App() {
             bomLines,
             financial,
           };
-          saveProjectToServer(resultProject, currentUser?.email, currentUser?.role);
+          saveProjectToServer(resultProject);
           return resultProject;
         }
 
-        saveProjectToServer(updated, currentUser?.email, currentUser?.role);
+        saveProjectToServer(updated);
         return updated;
       })
     );
@@ -564,7 +549,7 @@ export default function App() {
     newProj.updatedAt = new Date().toISOString();
 
     setProjects([newProj, ...projects]);
-    saveProjectToServer(newProj, currentUser?.email, currentUser?.role);
+    saveProjectToServer(newProj);
     setCurrentProjectId(newProj.id);
     setActiveView('wizard');
     setActiveStep(1);
@@ -581,7 +566,7 @@ export default function App() {
         console.error(e);
       }
     }
-    deleteProjectFromServer(id, currentUser?.email, currentUser?.role);
+    deleteProjectFromServer(id);
     showToast('✓ Đã xóa vĩnh viễn dự án thành công');
 
     if (currentProjectId === id) {
@@ -609,7 +594,7 @@ export default function App() {
       updatedAt: new Date().toISOString(),
     };
     setProjects([duplicated, ...projects]);
-    saveProjectToServer(duplicated, currentUser?.email, currentUser?.role);
+    saveProjectToServer(duplicated);
     setCurrentProjectId(duplicated.id);
     setActiveView('wizard');
     setActiveStep(1);
@@ -666,7 +651,6 @@ export default function App() {
         onClearCache={handleClearCache}
         activeView={activeView}
         userRole={userRole}
-        setUserRole={setUserRole}
         saveStatus={saveStatus}
         currentUser={currentUser}
         onOpenAuthModal={() => setShowAuthModal(true)}
@@ -760,7 +744,7 @@ export default function App() {
             onDuplicateProject={handleDuplicateProject}
             onUpdateProject={(updated) => {
               setProjects((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
-              saveProjectToServer(updated, currentUser?.email, currentUser?.role);
+              saveProjectToServer(updated);
               showToast('✓ Đã cập nhật quyền chia sẻ dự án');
             }}
           />
@@ -769,13 +753,8 @@ export default function App() {
         {/* VIEW 2: ADMIN CATALOG */}
         {activeView === 'admin' && (
           <AdminCatalog
-            panels={panels}
-            inverters={inverters}
-            materials={materials}
-            onUpdatePanels={setPanels}
-            onUpdateInverters={setInverters}
-            onUpdateMaterials={handleUpdateMaterials}
             onBack={() => setActiveView('wizard')}
+            currentUserId={currentUser?.id}
           />
         )}
 

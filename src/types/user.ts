@@ -1,4 +1,4 @@
-export type UserRole = 'ky_su' | 'sales' | 'admin';
+export type UserRole = 'admin' | 'sales';
 
 export interface UserProfile {
   id: string;
@@ -8,6 +8,7 @@ export interface UserProfile {
   address: string;
   role: UserRole;
   isEmailVerified: boolean;
+  mustChangePassword?: boolean;
   createdAt: string;
 }
 

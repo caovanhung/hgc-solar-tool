@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Project, BomLine } from '../../types/solar';
+import { useCatalog } from '../../state/CatalogContext';
+import { detectPriceDrift } from '../../utils/priceDrift';
 import {
   exportErpBomCsv,
   exportHgcSampleBomCsv,
@@ -19,6 +21,7 @@ import {
   Printer,
   ShieldCheck,
   AlertCircle,
+  AlertTriangle,
   TrendingUp,
   Clock,
   Sparkles,
@@ -45,7 +48,7 @@ interface Step5Props {
   onUpdate: (updates: Partial<Project>) => void;
   onBack: () => void;
   onPrint: () => void;
-  userRole: 'ky_su' | 'sales' | 'admin';
+  userRole: 'admin' | 'sales';
 }
 
 export type PrintDocumentType =
@@ -75,6 +78,10 @@ export const Step5QuotationBOM: React.FC<Step5Props> = ({
 
   const [activeChartTab, setActiveChartTab] = useState<'recharts_roi' | 'cashflow'>('recharts_roi');
 
+  const { catalog } = useCatalog();
+  const [showDriftDetails, setShowDriftDetails] = useState(false);
+  const priceDrift = useMemo(() => detectPriceDrift(project, catalog), [project, catalog]);
+
   const bomLines = project.bomLines || [];
   const fin = project.financial;
   const installedKwp = project.layoutResult?.installedKwp || 1;
@@ -87,9 +94,10 @@ export const Step5QuotationBOM: React.FC<Step5Props> = ({
     onUpdate({ discountPct: Math.max(0, Math.min(30, val)) });
   };
 
-  // Chỉ số suất đầu tư rõ ràng
+  // Chỉ số suất đầu tư rõ ràng (Đơn giá đã bao gồm VAT)
   const ratePreVat = fin?.investmentRatePreVatVndPerKwp || Math.round((fin?.capexSellVnd || 0) / installedKwp);
-  const ratePostVat = fin?.investmentRatePostVatVndPerKwp || Math.round((fin?.grandTotalVnd || 0) / installedKwp);
+  const ratePostVat = fin?.investmentRatePostVatVndPerKwp || fin?.investmentRateVndPerKwp || Math.round((fin?.grandTotalVnd || 0) / installedKwp);
+  const rateVndPerKwp = ratePostVat;
   const ratePerWp = Math.round(ratePostVat / 1000);
 
   // 1. Xuất file Bảng Kê Vật Tư Mẫu Excel (A - B - C - D) theo docs/Bảng kê vật tư mẫu.xlsx
@@ -249,6 +257,15 @@ export const Step5QuotationBOM: React.FC<Step5Props> = ({
             </button>
 
             <button
+              onClick={handleExportProposalExcel}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-[#0F2A45] hover:bg-[#1E3A8A] text-white font-bold text-xs shadow-sm transition-all"
+              title="Xuất file Excel (.xlsx) Hồ Sơ Đề Xuất Giá Trị & Báo Giá gửi khách hàng (kèm biểu đồ Recharts và bảng dòng tiền 20 năm)"
+            >
+              <FileSpreadsheet size={15} />
+              <span>Xuất Excel Proposal</span>
+            </button>
+
+            <button
               onClick={() => setShowPrintModal(true)}
               className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-[#E4572E] hover:bg-[#d04922] text-white font-bold text-xs shadow transition-all"
             >
@@ -326,18 +343,17 @@ export const Step5QuotationBOM: React.FC<Step5Props> = ({
             <div className="mt-1">
               <div className="flex items-baseline justify-between">
                 <span className="text-base sm:text-lg font-black text-emerald-950 font-mono">
-                  {ratePostVat.toLocaleString('vi-VN')}
+                  {rateVndPerKwp.toLocaleString('vi-VN')}
                 </span>
-                <span className="text-xs font-bold text-emerald-800 font-mono">đ/kWp (VAT)</span>
+                <span className="text-xs font-bold text-emerald-800 font-mono">đ/kWp</span>
               </div>
-              <div className="text-[10.5px] text-emerald-700 font-mono mt-0.5 flex justify-between">
-                <span>Chưa VAT:</span>
-                <strong className="text-emerald-900">{ratePreVat.toLocaleString('vi-VN')} đ/kWp</strong>
+              <div className="text-[10px] text-emerald-700 mt-0.5">
+                <span>(Đơn giá đã bao gồm VAT)</span>
               </div>
             </div>
           </div>
 
-          {/* Tổng giá trị trọn gói có VAT */}
+          {/* Tổng giá trị trọn gói */}
           <div className="bg-orange-50/60 p-3 rounded-lg border border-[#E4572E]/30 flex flex-col justify-between">
             <span className="text-[11px] text-slate-700 font-bold uppercase tracking-wide">
               Tổng Báo Giá Trọn Gói:
@@ -345,9 +361,8 @@ export const Step5QuotationBOM: React.FC<Step5Props> = ({
             <div className="text-lg font-extrabold text-[#E4572E] font-mono mt-0.5 truncate">
               {fin ? fin.grandTotalVnd.toLocaleString('vi-VN') : 0} đ
             </div>
-            <div className="text-[10.5px] text-slate-500 font-mono mt-0.5 flex justify-between">
-              <span>Đã gồm VAT 10%:</span>
-              <span className="font-semibold text-slate-700">{fin ? fin.vatVnd.toLocaleString('vi-VN') : 0} đ</span>
+            <div className="text-[10px] text-slate-500 font-medium mt-0.5 flex justify-between">
+              <span>Đơn giá đã bao gồm thuế VAT</span>
             </div>
           </div>
         </div>
@@ -374,7 +389,7 @@ export const Step5QuotationBOM: React.FC<Step5Props> = ({
             </span>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {/* 1. Mái Khung Giàn Nâng Cao */}
             <div className={`p-3 rounded-xl border transition-all ${
               project.roofType === 'canopy' || project.hasCanopyFrame
@@ -391,20 +406,27 @@ export const Step5QuotationBOM: React.FC<Step5Props> = ({
                   })}
                   className="accent-[#E4572E] w-4 h-4 rounded"
                 />
-                <span className="font-bold text-xs text-slate-900">Làm Mái Khung Nâng Cao</span>
+                <span className="font-bold text-xs text-slate-900">Làm Mái Khung Nâng Cao (Canopy)</span>
               </label>
               {(project.roofType === 'canopy' || project.hasCanopyFrame) ? (
                 <div className="space-y-2 mt-2 pt-2 border-t border-orange-200/60">
                   <div className="flex items-center justify-between text-[11px]">
-                    <span className="text-slate-600">Đơn giá gia công:</span>
+                    <span className="text-slate-600 flex items-center gap-1">
+                      <span>Đơn giá gia công:</span>
+                      {userRole === 'sales' && <span className="text-[10px] text-slate-400" title="Chỉ Admin mới có quyền sửa đơn giá">🔒</span>}
+                    </span>
                     <div className="flex items-center gap-1">
                       <input
                         type="number"
                         min="0"
                         step="10000"
+                        disabled={userRole === 'sales'}
+                        title={userRole === 'sales' ? 'Chỉ Quản trị viên (Admin) mới có quyền chỉnh sửa đơn giá này' : undefined}
                         value={project.canopyUnitCostVnd !== undefined ? project.canopyUnitCostVnd : 450000}
                         onChange={(e) => onUpdate({ canopyUnitCostVnd: Number(e.target.value) })}
-                        className="w-20 px-1.5 py-0.5 text-right text-xs font-mono font-bold border border-slate-300 rounded bg-white"
+                        className={`w-20 px-1.5 py-0.5 text-right text-xs font-mono font-bold border rounded ${
+                          userRole === 'sales' ? 'bg-slate-100 text-slate-500 border-slate-200 cursor-not-allowed' : 'bg-white border-slate-300'
+                        }`}
                       />
                       <span className="text-[10px] text-slate-500 font-mono">đ/m²</span>
                     </div>
@@ -429,42 +451,7 @@ export const Step5QuotationBOM: React.FC<Step5Props> = ({
               )}
             </div>
 
-            {/* 2. Thí nghiệm & Hồ sơ EVN */}
-            <div className={`p-3 rounded-xl border transition-all ${
-              Boolean(project.includeEvnDocs)
-                ? 'border-[#E4572E] bg-orange-50/20 shadow-2xs'
-                : 'border-slate-200 bg-slate-50/50'
-            }`}>
-              <label className="flex items-center gap-2 cursor-pointer mb-2">
-                <input
-                  type="checkbox"
-                  checked={Boolean(project.includeEvnDocs)}
-                  onChange={(e) => onUpdate({ includeEvnDocs: e.target.checked })}
-                  className="accent-[#E4572E] w-4 h-4 rounded"
-                />
-                <span className="font-bold text-xs text-slate-900">Hồ Sơ & Thí Nghiệm EVN</span>
-              </label>
-              {Boolean(project.includeEvnDocs) ? (
-                <div className="flex items-center justify-between text-[11px] mt-2 pt-2 border-t border-orange-200/60">
-                  <span className="text-slate-600">Chi phí trọn gói:</span>
-                  <div className="flex items-center gap-1">
-                    <input
-                      type="number"
-                      min="0"
-                      step="500000"
-                      value={project.evnDocsCostVnd !== undefined ? project.evnDocsCostVnd : 4500000}
-                      onChange={(e) => onUpdate({ evnDocsCostVnd: Number(e.target.value) })}
-                      className="w-24 px-1.5 py-0.5 text-right text-xs font-mono font-bold border border-slate-300 rounded bg-white"
-                    />
-                    <span className="text-[10px] text-slate-500 font-mono">đ</span>
-                  </div>
-                </div>
-              ) : (
-                <p className="text-[11px] text-slate-500">Mặc định không có (Tích chọn nếu cần hồ sơ EVN)</p>
-              )}
-            </div>
-
-            {/* 3. Vận chuyển & Cẩu kéo */}
+            {/* 2. Vận chuyển & Cẩu kéo */}
             <div className={`p-3 rounded-xl border transition-all ${
               project.includeTransport !== false
                 ? 'border-slate-300 bg-white shadow-2xs'
@@ -481,58 +468,28 @@ export const Step5QuotationBOM: React.FC<Step5Props> = ({
               </label>
               {project.includeTransport !== false ? (
                 <div className="flex items-center justify-between text-[11px] mt-2 pt-2 border-t border-slate-100">
-                  <span className="text-slate-600">Xe cẩu trọn gói:</span>
+                  <span className="text-slate-600 flex items-center gap-1">
+                    <span>Xe cẩu trọn gói:</span>
+                    {userRole === 'sales' && <span className="text-[10px] text-slate-400" title="Chỉ Admin mới có quyền sửa đơn giá">🔒</span>}
+                  </span>
                   <div className="flex items-center gap-1">
                     <input
                       type="number"
                       min="0"
                       step="500000"
+                      disabled={userRole === 'sales'}
+                      title={userRole === 'sales' ? 'Chỉ Quản trị viên (Admin) mới có quyền chỉnh sửa đơn giá này' : undefined}
                       value={project.transportCostVnd !== undefined ? project.transportCostVnd : 3500000}
                       onChange={(e) => onUpdate({ transportCostVnd: Number(e.target.value) })}
-                      className="w-24 px-1.5 py-0.5 text-right text-xs font-mono font-bold border border-slate-300 rounded bg-white"
+                      className={`w-24 px-1.5 py-0.5 text-right text-xs font-mono font-bold border rounded ${
+                        userRole === 'sales' ? 'bg-slate-100 text-slate-500 border-slate-200 cursor-not-allowed' : 'bg-white border-slate-300'
+                      }`}
                     />
                     <span className="text-[10px] text-slate-500 font-mono">đ</span>
                   </div>
                 </div>
               ) : (
                 <p className="text-[11px] text-slate-400">Đã tắt: Chủ đầu tư tự chịu vận chuyển / nhận tại kho</p>
-              )}
-            </div>
-
-            {/* 4. Hệ thống SCADA Datalogger */}
-            <div className={`p-3 rounded-xl border transition-all ${
-              Boolean(project.includeScada)
-                ? 'border-[#E4572E] bg-orange-50/20 shadow-2xs'
-                : 'border-slate-200 bg-slate-50/50'
-            }`}>
-              <label className="flex items-center gap-2 cursor-pointer mb-2">
-                <input
-                  type="checkbox"
-                  checked={Boolean(project.includeScada)}
-                  onChange={(e) => onUpdate({ includeScada: e.target.checked })}
-                  className="accent-[#E4572E] w-4 h-4 rounded"
-                />
-                <span className="font-bold text-xs text-slate-900">Hệ Thống Scada Datalogger</span>
-              </label>
-              {project.includeScada ? (
-                <div className="flex items-center justify-between text-[11px] mt-2 pt-2 border-t border-orange-200/60">
-                  <span className="text-slate-600">Chi phí bộ Logger:</span>
-                  <div className="flex items-center gap-1">
-                    <input
-                      type="number"
-                      min="0"
-                      step="200000"
-                      value={project.scadaCostVnd !== undefined ? project.scadaCostVnd : 3200000}
-                      onChange={(e) => onUpdate({ scadaCostVnd: Number(e.target.value) })}
-                      className="w-24 px-1.5 py-0.5 text-right text-xs font-mono font-bold border border-slate-300 rounded bg-white"
-                    />
-                    <span className="text-[10px] text-slate-500 font-mono">đ</span>
-                  </div>
-                </div>
-              ) : (
-                <p className="text-[11px] text-emerald-700 font-medium">
-                  ✓ Đã tích hợp Wifi Dongle miễn phí theo Inverter (ETEK không cần)
-                </p>
               )}
             </div>
           </div>

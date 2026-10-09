@@ -18,6 +18,7 @@ import {
   MapPin,
   Mail,
   BookOpen,
+  Lock,
 } from 'lucide-react';
 import { Project } from '../../types/solar';
 import { UserProfile, UserRole } from '../../types/user';
@@ -32,11 +33,11 @@ interface HeaderProps {
   onClearCache?: () => void;
   activeView: 'wizard' | 'projects' | 'admin';
   userRole: UserRole;
-  setUserRole: (role: UserRole) => void;
   saveStatus: 'saved' | 'saving';
   currentUser?: UserProfile | null;
   onOpenAuthModal: () => void;
   onLogout: () => void;
+  onOpenChangePassword?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -49,14 +50,13 @@ export const Header: React.FC<HeaderProps> = ({
   onClearCache,
   activeView,
   userRole,
-  setUserRole,
   saveStatus,
   currentUser,
   onOpenAuthModal,
   onLogout,
+  onOpenChangePassword,
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [roleDropdownOpen, setRoleDropdownOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
 
   return (
@@ -128,19 +128,21 @@ export const Header: React.FC<HeaderProps> = ({
                 <span className="hidden md:inline">Dự án</span>
               </button>
 
-              {/* Admin Catalog Button */}
-              <button
-                onClick={onOpenAdmin}
-                className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 text-xs font-semibold rounded-lg border transition-colors ${
-                  activeView === 'admin'
-                    ? 'bg-[#1E4C7C] border-cyan-400 text-cyan-200'
-                    : 'bg-[#0A1C2E] border-[#1E4C7C] text-slate-200 hover:bg-[#153454]'
-                }`}
-                title="Quản lý danh mục thiết bị và đơn giá"
-              >
-                <Settings size={14} />
-                <span className="hidden md:inline">Danh mục</span>
-              </button>
+              {/* Admin Catalog Button - Only for Admin */}
+              {userRole === 'admin' && (
+                <button
+                  onClick={onOpenAdmin}
+                  className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 text-xs font-semibold rounded-lg border transition-colors ${
+                    activeView === 'admin'
+                      ? 'bg-[#1E4C7C] border-cyan-400 text-cyan-200'
+                      : 'bg-[#0A1C2E] border-[#1E4C7C] text-slate-200 hover:bg-[#153454]'
+                  }`}
+                  title="Quản lý danh mục thiết bị và đơn giá"
+                >
+                  <Settings size={14} />
+                  <span className="hidden md:inline">Quản trị & Danh mục</span>
+                </button>
+              )}
 
               {/* Tài liệu & Công thức tính toán Button */}
               {onOpenDocModal && (
@@ -178,65 +180,15 @@ export const Header: React.FC<HeaderProps> = ({
                 </button>
               )}
 
-              {/* Role Switcher Pill */}
-              <div className="relative hidden sm:block">
-                <button
-                  onClick={() => {
-                    setRoleDropdownOpen(!roleDropdownOpen);
-                    setUserDropdownOpen(false);
-                  }}
-                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#0A1C2E] border border-[#1E4C7C] text-xs text-slate-200 hover:bg-[#153454] transition-colors"
-                >
-                  <ShieldCheck size={14} className="text-emerald-400" />
-                  <span className="font-semibold">
-                    {userRole === 'ky_su' ? 'Kỹ sư' : userRole === 'sales' ? 'Kinh doanh' : 'Admin'}
-                  </span>
-                  <ChevronDown size={12} className="text-slate-400" />
-                </button>
-
-                {roleDropdownOpen && (
-                  <div className="absolute right-0 mt-1 w-44 bg-[#0A1C2E] border border-[#1E4C7C] rounded-lg shadow-xl py-1 z-50 text-xs">
-                    <div className="px-3 py-1.5 text-slate-400 border-b border-[#1E4C7C] font-semibold text-[10px] uppercase">
-                      Chuyển vai trò thử nghiệm
-                    </div>
-                    <button
-                      onClick={() => {
-                        setUserRole('ky_su');
-                        setRoleDropdownOpen(false);
-                      }}
-                      className={`w-full text-left px-3 py-2 flex items-center justify-between hover:bg-[#1E4C7C] ${
-                        userRole === 'ky_su' ? 'text-cyan-300 font-bold bg-[#14324f]' : 'text-slate-200'
-                      }`}
-                    >
-                      <span>Kỹ sư (Engineer)</span>
-                      {userRole === 'ky_su' && <CheckCircle2 size={12} />}
-                    </button>
-                    <button
-                      onClick={() => {
-                        setUserRole('sales');
-                        setRoleDropdownOpen(false);
-                      }}
-                      className={`w-full text-left px-3 py-2 flex items-center justify-between hover:bg-[#1E4C7C] ${
-                        userRole === 'sales' ? 'text-cyan-300 font-bold bg-[#14324f]' : 'text-slate-200'
-                      }`}
-                    >
-                      <span>Kinh doanh (Sales)</span>
-                      {userRole === 'sales' && <CheckCircle2 size={12} />}
-                    </button>
-                    <button
-                      onClick={() => {
-                        setUserRole('admin');
-                        setRoleDropdownOpen(false);
-                      }}
-                      className={`w-full text-left px-3 py-2 flex items-center justify-between hover:bg-[#1E4C7C] ${
-                        userRole === 'admin' ? 'text-cyan-300 font-bold bg-[#14324f]' : 'text-slate-200'
-                      }`}
-                    >
-                      <span>Quản trị viên (Admin)</span>
-                      {userRole === 'admin' && <CheckCircle2 size={12} />}
-                    </button>
-                  </div>
-                )}
+              {/* Role Badge (Admin / Sales) */}
+              <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#0A1C2E] border border-[#1E4C7C] text-xs text-slate-200">
+                <ShieldCheck
+                  size={14}
+                  className={userRole === 'admin' ? 'text-purple-400' : 'text-emerald-400'}
+                />
+                <span className="font-semibold">
+                  {userRole === 'admin' ? 'Quản trị viên' : 'Kinh doanh (Sales)'}
+                </span>
               </div>
             </>
           ) : (
@@ -264,7 +216,6 @@ export const Header: React.FC<HeaderProps> = ({
                 <button
                   onClick={() => {
                     setUserDropdownOpen(!userDropdownOpen);
-                    setRoleDropdownOpen(false);
                   }}
                   className="flex items-center gap-2 pl-2 pr-2.5 py-1 bg-[#0A1C2E] border border-cyan-500/60 rounded-lg text-xs hover:bg-[#153454] transition-colors"
                 >
@@ -313,7 +264,19 @@ export const Header: React.FC<HeaderProps> = ({
                       </div>
                     </div>
 
-                    <div className="pt-2">
+                    <div className="pt-2 space-y-1.5">
+                      {onOpenChangePassword && (
+                        <button
+                          onClick={() => {
+                            onOpenChangePassword();
+                            setUserDropdownOpen(false);
+                          }}
+                          className="w-full flex items-center justify-center gap-2 py-1.5 bg-[#0F2A45] hover:bg-[#1a3f66] border border-[#1E4C7C] rounded-lg text-slate-200 font-semibold transition-colors"
+                        >
+                          <Lock size={13} className="text-cyan-400" />
+                          <span>Đổi mật khẩu</span>
+                        </button>
+                      )}
                       <button
                         onClick={() => {
                           onLogout();
@@ -364,15 +327,28 @@ export const Header: React.FC<HeaderProps> = ({
                   <span className="text-[10px] text-slate-400 block truncate">{currentUser.phone} · {currentUser.email}</span>
                 </div>
               </div>
-              <button
-                onClick={() => {
-                  onLogout();
-                  setMobileMenuOpen(false);
-                }}
-                className="text-xs text-red-400 font-semibold ml-2"
-              >
-                Thoát
-              </button>
+              <div className="flex items-center gap-2 ml-2">
+                {onOpenChangePassword && (
+                  <button
+                    onClick={() => {
+                      onOpenChangePassword();
+                      setMobileMenuOpen(false);
+                    }}
+                    className="text-xs text-cyan-300 font-semibold hover:underline"
+                  >
+                    Đổi MK
+                  </button>
+                )}
+                <button
+                  onClick={() => {
+                    onLogout();
+                    setMobileMenuOpen(false);
+                  }}
+                  className="text-xs text-red-400 font-semibold"
+                >
+                  Thoát
+                </button>
+              </div>
             </div>
           ) : (
             <button
@@ -407,15 +383,17 @@ export const Header: React.FC<HeaderProps> = ({
             >
               <FolderOpen size={16} /> Danh sách dự án
             </button>
-            <button
-              onClick={() => {
-                onOpenAdmin();
-                setMobileMenuOpen(false);
-              }}
-              className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#0F2A45] text-slate-100 font-semibold"
-            >
-              <Settings size={16} /> Cấu hình danh mục thiết bị
-            </button>
+            {userRole === 'admin' && (
+              <button
+                onClick={() => {
+                  onOpenAdmin();
+                  setMobileMenuOpen(false);
+                }}
+                className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#0F2A45] text-slate-100 font-semibold"
+              >
+                <Settings size={16} /> Quản trị & Danh mục
+              </button>
+            )}
             {onOpenDocModal && (
               <button
                 onClick={() => {
@@ -440,19 +418,9 @@ export const Header: React.FC<HeaderProps> = ({
 
           <div className="pt-2 border-t border-[#1E4C7C]/60 flex items-center justify-between text-xs">
             <span className="text-slate-400">Vai trò:</span>
-            <div className="flex gap-1.5">
-              {(['ky_su', 'sales', 'admin'] as const).map((r) => (
-                <button
-                  key={r}
-                  onClick={() => setUserRole(r)}
-                  className={`px-2 py-1 rounded text-[11px] font-medium ${
-                    userRole === r ? 'bg-[#E4572E] text-white' : 'bg-[#0F2A45] text-slate-300'
-                  }`}
-                >
-                  {r === 'ky_su' ? 'Kỹ sư' : r === 'sales' ? 'Sales' : 'Admin'}
-                </button>
-              ))}
-            </div>
+            <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-[#0F2A45] text-cyan-300 border border-[#1E4C7C]">
+              {userRole === 'admin' ? 'Quản trị viên' : 'Kinh doanh (Sales)'}
+            </span>
           </div>
         </div>
       )}

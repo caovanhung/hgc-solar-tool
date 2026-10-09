@@ -50,7 +50,7 @@ export const ProjectList: React.FC<ProjectListProps> = ({
   const [sharingProject, setSharingProject] = useState<Project | null>(null);
   const [shareEmailInput, setShareEmailInput] = useState('');
   const [shareEmails, setShareEmails] = useState<string[]>([]);
-  const [shareRoles, setShareRoles] = useState<('ky_su' | 'sales' | 'admin')[]>([]);
+  const [shareRoles, setShareRoles] = useState<('sales' | 'admin')[]>([]);
   const [isPublicState, setIsPublicState] = useState(false);
 
   const userEmail = (currentUser?.email || '').toLowerCase().trim();
@@ -109,7 +109,7 @@ export const ProjectList: React.FC<ProjectListProps> = ({
   };
 
   // Đổi trạng thái chia sẻ nhóm
-  const handleToggleRole = (role: 'ky_su' | 'sales' | 'admin') => {
+  const handleToggleRole = (role: 'sales' | 'admin') => {
     if (shareRoles.includes(role)) {
       setShareRoles(shareRoles.filter((r) => r !== role));
     } else {
@@ -319,7 +319,7 @@ export const ProjectList: React.FC<ProjectListProps> = ({
                     <strong className="text-sm font-bold text-[#E4572E] font-mono">
                       {grandTotal > 0 ? `${(grandTotal / 1000000).toFixed(0)} tr` : 'Chưa tính'}
                     </strong>
-                    <span className="text-[10px] text-slate-500 block">Gồm VAT</span>
+                    <span className="text-[10px] text-slate-500 block">Đã gồm VAT</span>
                   </div>
                 </div>
 
@@ -487,20 +487,7 @@ export const ProjectList: React.FC<ProjectListProps> = ({
               <label className="block text-xs font-bold text-slate-700 uppercase">
                 2. Chia sẻ cho toàn bộ phòng ban / nhóm:
               </label>
-              <div className="grid grid-cols-2 gap-2 text-xs">
-                <label className="flex items-center gap-2 p-2.5 rounded-lg border border-slate-200 hover:bg-slate-50 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={shareRoles.includes('ky_su')}
-                    onChange={() => handleToggleRole('ky_su')}
-                    className="rounded text-[#E4572E] focus:ring-[#E4572E]"
-                  />
-                  <div>
-                    <strong className="block text-slate-800">Nhóm Kỹ Sư</strong>
-                    <span className="text-[10px] text-slate-500">Toàn bộ tài khoản Kỹ thuật</span>
-                  </div>
-                </label>
-
+              <div>
                 <label className="flex items-center gap-2 p-2.5 rounded-lg border border-slate-200 hover:bg-slate-50 cursor-pointer">
                   <input
                     type="checkbox"
@@ -509,8 +496,8 @@ export const ProjectList: React.FC<ProjectListProps> = ({
                     className="rounded text-[#E4572E] focus:ring-[#E4572E]"
                   />
                   <div>
-                    <strong className="block text-slate-800">Nhóm Kinh Doanh</strong>
-                    <span className="text-[10px] text-slate-500">Tài khoản Bán hàng / Sales</span>
+                    <strong className="block text-slate-800">Nhóm Kinh Doanh (Sales)</strong>
+                    <span className="text-[10px] text-slate-500">Toàn bộ tài khoản nhân viên kinh doanh / Sales</span>
                   </div>
                 </label>
               </div>

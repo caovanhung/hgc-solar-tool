@@ -31,13 +31,9 @@ export interface GenerateBomParams {
   hasCanopyFrame?: boolean;
   canopyAreaM2?: number;
   canopyUnitCostVnd?: number;
-  includeEvnDocs?: boolean;
-  evnDocsCostVnd?: number;
   includeTransport?: boolean;
   transportCostVnd?: number;
   installCostVndPerKwp?: number;
-  includeScada?: boolean;
-  scadaCostVnd?: number;
   sysType?: string;
   phases?: string;
 }
@@ -140,26 +136,31 @@ export function generateProjectBom(params: GenerateBomParams): BomLine[] {
   const lines: BomLine[] = [];
   const multiplier = 1 + marginPct / 100;
 
-  // Helper tìm kiếm vật tư trong catalog theo SKU hoặc ID
+  // Helper tìm kiếm vật tư trong catalog theo SKU hoặc ID (khớp chính xác theo ID hoặc SKU, không khớp tên)
   const findMat = (
     key: string,
     fallbackCost: number,
     fallbackName?: string,
     fallbackSpec?: string,
     fallbackUnit?: string,
-    fallbackBrand?: string
+    fallbackBrand?: string,
+    fallbackOrigin?: string
   ) => {
+    const keyLower = key.toLowerCase();
     const found = materialsCatalog.find(
-      (m) => m.id === key || m.sku.toLowerCase() === key.toLowerCase() || m.name.toLowerCase().includes(key.toLowerCase())
+      (m) => m.id.toLowerCase() === keyLower || (m.sku && m.sku.toLowerCase() === keyLower)
     );
     const descInfo = getItemDescriptionAndCostBreakdown(key, found?.categoryCode, found?.name || fallbackName);
     return {
+      materialId: found ? found.id : undefined,
+      materialKind: 'material' as const,
       cost: found ? found.costVnd : fallbackCost,
       name: found ? found.name : fallbackName || key,
       spec: found ? found.spec : fallbackSpec || '',
       sku: found ? found.sku : key,
       unit: found ? found.unit : fallbackUnit || 'Cái',
-      brand: fallbackBrand || found?.brand || 'VN',
+      brand: found?.brand || fallbackBrand || 'VN',
+      origin: found?.origin || fallbackOrigin || 'Việt Nam',
       technicalDescription: found?.technicalDescription || descInfo.technicalDescription,
       costBreakdown: found?.costBreakdown || descInfo.costBreakdown,
     };
@@ -191,6 +192,8 @@ export function generateProjectBom(params: GenerateBomParams): BomLine[] {
     const invPhaseName = inverter.phases === '3' ? '3Pha' : '1pha';
     lines.push({
       id: 'bom-inverter',
+      materialId: inverter.id,
+      materialKind: 'inverter',
       categoryCode: 'I',
       categoryName: 'Vật tư chính',
       hgcSectionCode: 'A',
@@ -214,6 +217,8 @@ export function generateProjectBom(params: GenerateBomParams): BomLine[] {
   const panelCost = panel.priceHintVnd;
   lines.push({
     id: 'bom-panel',
+    materialId: panel.id,
+    materialKind: 'panel',
     categoryCode: 'I',
     categoryName: 'Vật tư chính',
     hgcSectionCode: 'A',
@@ -1326,62 +1331,18 @@ export function generateProjectBom(params: GenerateBomParams): BomLine[] {
     });
   }
 
-  // Tùy chọn nâng cao: Thí nghiệm & Hồ sơ EVN (nếu kỹ sư bật)
-  if (params.includeEvnDocs) {
-    const docCost = params.evnDocsCostVnd !== undefined ? params.evnDocsCostVnd : 4500000;
-    lines.push({
-      id: 'bom-evn-docs',
-      categoryCode: 'VIII',
-      categoryName: 'Chi phí dịch vụ',
-      hgcSectionCode: 'D',
-      hgcSubsection: 'CÁC CHI PHÍ KHÁC',
-      name: 'Thí nghiệm đo kiểm định điện & Lập hồ sơ kỹ thuật thỏa thuận EVN (Tùy chọn)',
-      spec: 'Hồ sơ pháp lý nghiệm thu kỹ thuật đấu nối với Điện lực EVN',
-      sku: 'SERVICE-EVN-DOCS',
-      brand: 'VN',
-      origin: 'Việt Nam',
-      unit: 'Hệ',
-      qty: 1,
-      unitCostVnd: docCost,
-      totalCostVnd: docCost,
-      unitSellVnd: Math.round(docCost * multiplier),
-      totalSellVnd: Math.round(docCost * multiplier),
-    });
-  }
-
-  // Tùy chọn nâng cao: Scada Datalogger (nếu kỹ sư bật)
-  if (params.includeScada) {
-    const scadaCost = params.scadaCostVnd !== undefined ? params.scadaCostVnd : 3200000;
-    lines.push({
-      id: 'bom-scada-logger',
-      categoryCode: 'X',
-      categoryName: 'Hệ thống Scada',
-      hgcSectionCode: 'C',
-      hgcSubsection: 'THIẾT BỊ NGOẠI VI',
-      name: 'Datalogger thông minh & Thiết bị truyền thông đám mây 24/7 (Tùy chọn)',
-      spec: 'Cổng RS485/WiFi/4G giám sát thời gian thực qua App/Web',
-      sku: 'SCADA-LOGGER-IOT',
-      brand: inverter?.brand || 'VN',
-      origin: 'Chính hãng',
-      unit: 'Bộ',
-      qty: 1,
-      unitCostVnd: scadaCost,
-      totalCostVnd: scadaCost,
-      unitSellVnd: Math.round(scadaCost * multiplier),
-      totalSellVnd: Math.round(scadaCost * multiplier),
-    });
-  }
-
   return lines.map((line) => {
     const fromCat = materialsCatalog.find(
       (m) =>
-        m.id === line.id ||
-        (line.sku && m.sku?.toLowerCase() === line.sku.toLowerCase()) ||
-        m.name.toLowerCase() === line.name.toLowerCase()
+        (line.materialId && m.id === line.materialId) ||
+        m.id.toLowerCase() === line.id.toLowerCase() ||
+        (line.sku && m.sku?.toLowerCase() === line.sku.toLowerCase())
     );
     const desc = getItemDescriptionAndCostBreakdown(line.sku || line.id, line.categoryCode, line.name);
     return {
       ...line,
+      materialId: line.materialId || fromCat?.id,
+      materialKind: line.materialKind || (fromCat ? 'material' : undefined),
       technicalDescription: line.technicalDescription || fromCat?.technicalDescription || desc.technicalDescription,
       costBreakdown: line.costBreakdown || fromCat?.costBreakdown || desc.costBreakdown,
     };
@@ -1545,34 +1506,23 @@ export function exportHgcSampleBomCsv(
 
   const grandSell = lines.reduce((s, l) => s + l.totalSellVnd, 0);
   const grandCost = lines.reduce((s, l) => s + l.totalCostVnd, 0);
-  const vatSell = Math.round(grandSell * 0.1);
-  const totalWithVat = grandSell + vatSell;
 
   csvRows.push('');
-  csvRows.push([
-    '""',
-    '"TỔNG CỘNG CHƯA VAT:"',
-    '""',
-    '""',
-    '""',
-    '""',
-    ...(viewType === 'internal' ? ['""', `"${grandCost}"`] : []),
-    '""',
-    `"${grandSell}"`,
-    '""',
-  ].join(','));
-  csvRows.push([
-    '""',
-    '"THUẾ VAT (10%):"',
-    '""',
-    '""',
-    '""',
-    '""',
-    ...(viewType === 'internal' ? ['""', '""'] : []),
-    '""',
-    `"${vatSell}"`,
-    '""',
-  ].join(','));
+  if (viewType === 'internal') {
+    csvRows.push([
+      '""',
+      '"TỔNG GIÁ VỐN THIẾT BỊ & DỊCH VỤ:"',
+      '""',
+      '""',
+      '""',
+      '""',
+      '""',
+      `"${grandCost}"`,
+      '""',
+      '""',
+      '""',
+    ].join(','));
+  }
   csvRows.push([
     '""',
     '"TỔNG CỘNG THANH TOÁN (ĐÃ GỒM VAT):"',
@@ -1582,7 +1532,7 @@ export function exportHgcSampleBomCsv(
     '""',
     ...(viewType === 'internal' ? ['""', '""'] : []),
     '""',
-    `"${totalWithVat}"`,
+    `"${grandSell}"`,
     '""',
   ].join(','));
 
@@ -1702,19 +1652,15 @@ export function exportSummaryQuotationCsv(
     ].join(',');
   });
 
-  const ratePreVat = financial?.investmentRatePreVatVndPerKwp || Math.round((financial?.capexSellVnd || 0) / (installedKwp || 1));
-  const ratePostVat = financial?.investmentRatePostVatVndPerKwp || Math.round((financial?.grandTotalVnd || 0) / (installedKwp || 1));
+  const rateVndPerKwp = financial?.investmentRateVndPerKwp || financial?.investmentRatePostVatVndPerKwp || Math.round((financial?.grandTotalVnd || 0) / (installedKwp || 1));
 
   const summaryRows = [
     '',
-    `"TỈ SUẤT ĐẦU TƯ (CHƯA VAT) / kWp:","${ratePreVat.toLocaleString('vi-VN')} Vnđ / kWp"`,
-    `"TỈ SUẤT ĐẦU TƯ TRỌN GÓI (ĐÃ GỒM VAT 10%) / kWp:","${ratePostVat.toLocaleString('vi-VN')} Vnđ / kWp"`,
+    `"TỈ SUẤT ĐẦU TƯ TRỌN GÓI (ĐÃ GỒM VAT) / kWp:","${rateVndPerKwp.toLocaleString('vi-VN')} Vnđ / kWp"`,
     '',
-    `"Tổng cộng (chưa VAT):","${(financial?.capexSellVnd || 0).toLocaleString('vi-VN')} đ"`,
-    `"Thuế VAT (10%):","${(financial?.vatVnd || 0).toLocaleString('vi-VN')} đ"`,
-    `"Tổng Cộng Thanh Toán:","${(financial?.grandTotalVnd || 0).toLocaleString('vi-VN')} đ"`,
+    `"Tổng Cộng Thanh Toán (Đơn giá đã bao gồm VAT):","${(financial?.grandTotalVnd || financial?.capexSellVnd || 0).toLocaleString('vi-VN')} đ"`,
     '',
-    `"* Ghi chú: Báo giá đã bao gồm toàn bộ thiết bị chính hãng, phụ kiện mounting nhôm Anodized Al6005-T5, cáp điện Cadivi, tủ điện bám tải Zero-Export, nhân công lắp đặt và hồ sơ thỏa thuận Điện lực EVN."`,
+    `"* Ghi chú: Báo giá đã bao gồm toàn bộ thiết bị chính hãng, phụ kiện mounting nhôm Anodized Al6005-T5, cáp điện Cadivi, tủ điện bám tải Zero-Export, nhân công lắp đặt. Đơn giá thiết bị/vật tư mặc định đã bao gồm VAT."`,
   ];
 
   return '\ufeff' + [headers.join(','), ...rows, ...summaryRows].join('\r\n');
